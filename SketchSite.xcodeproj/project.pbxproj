@@ -6,6 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		3B3ADCE92DFF36AD00C78854 /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3ADCE82DFF36AD00C78854 /* CanvasView.swift */; };
+		3B3ADCEB2DFF375200C78854 /* SketchSiteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3ADCEA2DFF375200C78854 /* SketchSiteApp.swift */; };
+		3B3ADCEE2DFF390A00C78854 /* VisionAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3ADCED2DFF390A00C78854 /* VisionAnalysisService.swift */; };
+		3B3ADCF12DFF39B000C78854 /* CanvasSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3ADCF02DFF39B000C78854 /* CanvasSnapshot.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		3B3398B72DFF330D0001685C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +34,10 @@
 		3B3398A92DFF330B0001685C /* SketchSite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SketchSite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3398B62DFF330D0001685C /* SketchSiteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SketchSiteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3398C02DFF330D0001685C /* SketchSiteUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SketchSiteUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B3ADCE82DFF36AD00C78854 /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
+		3B3ADCEA2DFF375200C78854 /* SketchSiteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchSiteApp.swift; sourceTree = "<group>"; };
+		3B3ADCED2DFF390A00C78854 /* VisionAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionAnalysisService.swift; sourceTree = "<group>"; };
+		3B3ADCF02DFF39B000C78854 /* CanvasSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasSnapshot.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +86,10 @@
 		3B3398A02DFF330B0001685C = {
 			isa = PBXGroup;
 			children = (
+				3B3ADCEF2DFF399800C78854 /* Utilities */,
+				3B3ADCEC2DFF38E900C78854 /* Services */,
+				3B3ADCEA2DFF375200C78854 /* SketchSiteApp.swift */,
+				3B3ADCE72DFF365600C78854 /* Views */,
 				3B3398AB2DFF330B0001685C /* SketchSite */,
 				3B3398B92DFF330D0001685C /* SketchSiteTests */,
 				3B3398C32DFF330D0001685C /* SketchSiteUITests */,
@@ -90,6 +105,30 @@
 				3B3398C02DFF330D0001685C /* SketchSiteUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		3B3ADCE72DFF365600C78854 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				3B3ADCE82DFF36AD00C78854 /* CanvasView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		3B3ADCEC2DFF38E900C78854 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				3B3ADCED2DFF390A00C78854 /* VisionAnalysisService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		3B3ADCEF2DFF399800C78854 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				3B3ADCF02DFF39B000C78854 /* CanvasSnapshot.swift */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -175,6 +214,7 @@
 				TargetAttributes = {
 					3B3398A82DFF330B0001685C = {
 						CreatedOnToolsVersion = 16.3;
+						LastSwiftMigration = 1630;
 					};
 					3B3398B52DFF330D0001685C = {
 						CreatedOnToolsVersion = 16.3;
@@ -236,6 +276,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3B3ADCEB2DFF375200C78854 /* SketchSiteApp.swift in Sources */,
+				3B3ADCE92DFF36AD00C78854 /* CanvasView.swift in Sources */,
+				3B3ADCEE2DFF390A00C78854 /* VisionAnalysisService.swift in Sources */,
+				3B3ADCF12DFF39B000C78854 /* CanvasSnapshot.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -395,6 +439,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = C8XAFC8DSU;
@@ -413,6 +458,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.tylerschmidt.SketchSite;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -423,6 +469,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = C8XAFC8DSU;
