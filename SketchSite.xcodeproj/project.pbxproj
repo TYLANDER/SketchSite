@@ -11,6 +11,9 @@
 		3B3ADCEB2DFF375200C78854 /* SketchSiteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3ADCEA2DFF375200C78854 /* SketchSiteApp.swift */; };
 		3B3ADCEE2DFF390A00C78854 /* VisionAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3ADCED2DFF390A00C78854 /* VisionAnalysisService.swift */; };
 		3B3ADCF12DFF39B000C78854 /* CanvasSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3ADCF02DFF39B000C78854 /* CanvasSnapshot.swift */; };
+		3B3ADCF32DFF822C00C78854 /* LayoutDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3ADCF22DFF822C00C78854 /* LayoutDescriptor.swift */; };
+		3B3ADCF52DFF86E000C78854 /* ChatGPTService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3ADCF42DFF86E000C78854 /* ChatGPTService.swift */; };
+		3B3ADCF72DFFCD5F00C78854 /* CodePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3ADCF62DFFCD5F00C78854 /* CodePreviewView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,6 +41,9 @@
 		3B3ADCEA2DFF375200C78854 /* SketchSiteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchSiteApp.swift; sourceTree = "<group>"; };
 		3B3ADCED2DFF390A00C78854 /* VisionAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionAnalysisService.swift; sourceTree = "<group>"; };
 		3B3ADCF02DFF39B000C78854 /* CanvasSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasSnapshot.swift; sourceTree = "<group>"; };
+		3B3ADCF22DFF822C00C78854 /* LayoutDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutDescriptor.swift; sourceTree = "<group>"; };
+		3B3ADCF42DFF86E000C78854 /* ChatGPTService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatGPTService.swift; sourceTree = "<group>"; };
+		3B3ADCF62DFFCD5F00C78854 /* CodePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodePreviewView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -111,6 +117,7 @@
 			isa = PBXGroup;
 			children = (
 				3B3ADCE82DFF36AD00C78854 /* CanvasView.swift */,
+				3B3ADCF62DFFCD5F00C78854 /* CodePreviewView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -119,6 +126,7 @@
 			isa = PBXGroup;
 			children = (
 				3B3ADCED2DFF390A00C78854 /* VisionAnalysisService.swift */,
+				3B3ADCF42DFF86E000C78854 /* ChatGPTService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -127,6 +135,7 @@
 			isa = PBXGroup;
 			children = (
 				3B3ADCF02DFF39B000C78854 /* CanvasSnapshot.swift */,
+				3B3ADCF22DFF822C00C78854 /* LayoutDescriptor.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -277,8 +286,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				3B3ADCEB2DFF375200C78854 /* SketchSiteApp.swift in Sources */,
+				3B3ADCF52DFF86E000C78854 /* ChatGPTService.swift in Sources */,
 				3B3ADCE92DFF36AD00C78854 /* CanvasView.swift in Sources */,
 				3B3ADCEE2DFF390A00C78854 /* VisionAnalysisService.swift in Sources */,
+				3B3ADCF32DFF822C00C78854 /* LayoutDescriptor.swift in Sources */,
+				3B3ADCF72DFFCD5F00C78854 /* CodePreviewView.swift in Sources */,
 				3B3ADCF12DFF39B000C78854 /* CanvasSnapshot.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

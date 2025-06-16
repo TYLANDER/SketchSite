@@ -1,6 +1,10 @@
 import SwiftUI
 import PencilKit
 
+// MARK: - ChatGPTService Stub
+
+
+// MARK: - CanvasView for PencilKit Drawing
 struct CanvasView: UIViewRepresentable {
     @Binding var canvasView: PKCanvasView
 
@@ -16,7 +20,10 @@ struct CanvasView: UIViewRepresentable {
     }
 }
 
+// MARK: - Container View with VisionKit Analysis
 struct CanvasContainerView: View {
+    @State private var generatedCode: String? = nil
+    @State private var showCodePreview = false
     @State private var detectedRects: [CGRect] = []
     @State private var canvasView = PKCanvasView()
 
@@ -26,7 +33,7 @@ struct CanvasContainerView: View {
             CanvasView(canvasView: $canvasView)
                 .edgesIgnoringSafeArea(.all)
 
-            // 🔵 Overlay rectangles on top of the canvas
+            // Rectangle overlays
             ForEach(detectedRects, id: \.self) { rect in
                 Rectangle()
                     .stroke(Color.blue, lineWidth: 2)
@@ -35,7 +42,7 @@ struct CanvasContainerView: View {
                     .position(x: rect.midX, y: rect.midY)
             }
 
-            // Bottom control bar
+            // Bottom toolbar
             HStack {
                 Button(action: {
                     canvasView.drawing = PKDrawing()
@@ -46,33 +53,51 @@ struct CanvasContainerView: View {
 
                 Spacer()
 
-                    Button(action: {
-                        print("🟡 Generate tapped")
+                Button(action: {
+                    print("🟡 Generate tapped")
 
-                        if let image = canvasView.snapshotImage() {
-                            print("📸 Snapshot captured")
+                    if let image = canvasView.snapshotImage() {
+                        print("📸 Snapshot captured")
 
-                            let analyzer = VisionAnalysisService()
-                            analyzer.detectRectangles(in: image) { rectangles in
+                        let analyzer = VisionAnalysisService()
+                        analyzer.detectRectangles(in: image) { rectangles in
+                            DispatchQueue.main.async {
                                 print("📐 Detected \(rectangles.count) rectangle(s)")
 
-                                DispatchQueue.main.async {
-                                    let canvasSize = canvasView.bounds.size
+                                let canvasSize = canvasView.bounds.size
+                                let convertedRects = rectangles.map { rect -> CGRect in
+                                    let bb = rect.boundingBox
+                                    let width = bb.width * canvasSize.width
+                                    let height = bb.height * canvasSize.height
+                                    let x = bb.minX * canvasSize.width
+                                    let y = (1 - bb.maxY) * canvasSize.height
+                                    return CGRect(x: x, y: y, width: width, height: height)
+                                }
 
-                                    let convertedRects = rectangles.map { rect -> CGRect in
-                                        let boundingBox = rect.boundingBox
-                                        let width = boundingBox.width * canvasSize.width
-                                        let height = boundingBox.height * canvasSize.height
-                                        let x = boundingBox.minX * canvasSize.width
-                                        let y = (1 - boundingBox.maxY) * canvasSize.height
-                                        return CGRect(x: x, y: y, width: width, height: height)
+                                self.detectedRects = convertedRects
+
+                                let description = LayoutDescriptor.describe(rects: convertedRects, canvasSize: canvasSize)
+                                print("📝 Layout Description:\n\(description)")
+
+                                let prompt = """
+                                Generate HTML and CSS code for the following layout:
+                                \(description)
+                                """
+
+                                ChatGPTService.shared.generateCode(prompt: prompt) { result in
+                                    switch result {
+                                    case .success(let code):
+                                        print("🧠 Generated Code:\n\(code)")
+                                        self.generatedCode = code
+                                        self.showCodePreview = true
+                                    case .failure(let error):
+                                        print("❌ Error: \(error.localizedDescription)")
                                     }
-
-                                    self.detectedRects = convertedRects
                                 }
                             }
                         }
-                    }) {
+                    }
+                }) {
                     Label("Generate", systemImage: "wand.and.stars")
                         .padding()
                 }
@@ -81,6 +106,11 @@ struct CanvasContainerView: View {
             .background(.ultraThinMaterial)
             .cornerRadius(12)
             .padding()
+        }
+        .sheet(isPresented: $showCodePreview) {
+            if let code = generatedCode {
+                CodePreviewView(code: code)
+            }
         }
         .navigationTitle("Sketch")
     }
