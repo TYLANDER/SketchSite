@@ -1,3 +1,5 @@
+
+
 import Foundation
 
 class ChatGPTService {
@@ -14,7 +16,7 @@ class ChatGPTService {
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let requestBody: [String: Any] = [
-            "model": "gpt-4", // or gpt-3.5-turbo
+            "model": "gpt-4o", // use "gpt-3.5-turbo" if needed
             "messages": [
                 ["role": "system", "content": "You are an expert front-end developer."],
                 ["role": "user", "content": prompt]
@@ -28,6 +30,10 @@ class ChatGPTService {
             if let error = error {
                 completion(.failure(error))
                 return
+            }
+
+            if let data = data {
+                print("🔵 Raw response from OpenAI:\n\(String(data: data, encoding: .utf8) ?? "Unreadable data")")
             }
 
             guard let data = data,

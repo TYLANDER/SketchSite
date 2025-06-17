@@ -55,6 +55,7 @@ struct CanvasContainerView: View {
 
                 Button(action: {
                     print("🟡 Generate tapped")
+                    self.showCodePreview = false // Ensure sheet resets
 
                     if let image = canvasView.snapshotImage() {
                         print("📸 Snapshot captured")
@@ -101,6 +102,15 @@ struct CanvasContainerView: View {
                     Label("Generate", systemImage: "wand.and.stars")
                         .padding()
                 }
+
+                if generatedCode != nil {
+                    Button(action: {
+                        self.showCodePreview = true
+                    }) {
+                        Label("Show Code", systemImage: "doc.plaintext")
+                            .padding()
+                    }
+                }
             }
             .padding()
             .background(.ultraThinMaterial)
@@ -109,9 +119,22 @@ struct CanvasContainerView: View {
         }
         .sheet(isPresented: $showCodePreview) {
             if let code = generatedCode {
-                CodePreviewView(code: code)
+                AnimatedCodePreview(code: code)
             }
         }
         .navigationTitle("Sketch")
+    }
+}
+
+struct AnimatedCodePreview: View {
+    let code: String
+
+    var body: some View {
+        VStack {
+            Spacer()
+            CodePreviewView(code: code)
+                .transition(.move(edge: .bottom))
+                .animation(.easeInOut(duration: 0.3), value: code)
+        }
     }
 }
