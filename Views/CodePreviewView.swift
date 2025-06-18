@@ -31,6 +31,7 @@ struct CodePreviewView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
+        let title = "SketchSite_Export"
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
@@ -90,6 +91,17 @@ struct CodePreviewView: View {
                         dismiss()
                     }
                 }
+                ToolbarItemGroup(placement: .confirmationAction) {
+                    Button("Export") {
+                        ExportService.shared.export(code: code)
+                    }
+                    
+                    Button(action: {
+                        shareCodeViaAirDrop(code, title: title)
+                    }) {
+                        Label("AirDrop", systemImage: "square.and.arrow.up")
+                    }
+                }
             }
         }
     }
@@ -109,6 +121,20 @@ struct CodePreviewView: View {
             return "CSS"
         } else {
             return "Code"
+        }
+    }
+    
+    private func shareCodeViaAirDrop(_ text: String, title: String) {
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(title).txt")
+        do {
+            try text.write(to: tempURL, atomically: true, encoding: .utf8)
+            let activityVC = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
+            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let rootVC = scene.windows.first?.rootViewController {
+                rootVC.present(activityVC, animated: true, completion: nil)
+            }
+        } catch {
+            print("❌ Failed to write temp file for AirDrop: \(error)")
         }
     }
 }

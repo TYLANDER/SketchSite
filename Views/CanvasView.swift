@@ -81,7 +81,8 @@ struct CanvasContainerView: View {
                                 print("📝 Layout Description:\n\(description)")
 
                                 let prompt = """
-                                Generate HTML and CSS code for the following layout:
+                                Generate HTML and CSS for the following UI layout composed of multiple elements. Each element is represented by its size and position relative to the canvas:
+
                                 \(description)
                                 """
 

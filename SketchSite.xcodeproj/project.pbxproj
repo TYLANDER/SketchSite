@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3B030B162E01F9AC000B0116 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B030B152E01F9AC000B0116 /* ExportService.swift */; };
+		3B030B182E02662E000B0116 /* AnnotationProcesor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B030B172E02662E000B0116 /* AnnotationProcesor.swift */; };
 		3B3ADCE92DFF36AD00C78854 /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3ADCE82DFF36AD00C78854 /* CanvasView.swift */; };
 		3B3ADCEB2DFF375200C78854 /* SketchSiteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3ADCEA2DFF375200C78854 /* SketchSiteApp.swift */; };
 		3B3ADCEE2DFF390A00C78854 /* VisionAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3ADCED2DFF390A00C78854 /* VisionAnalysisService.swift */; };
@@ -34,6 +36,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3B030B152E01F9AC000B0116 /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
+		3B030B172E02662E000B0116 /* AnnotationProcesor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationProcesor.swift; sourceTree = "<group>"; };
 		3B3398A92DFF330B0001685C /* SketchSite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SketchSite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3398B62DFF330D0001685C /* SketchSiteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SketchSiteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3398C02DFF330D0001685C /* SketchSiteUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SketchSiteUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -127,6 +131,7 @@
 			children = (
 				3B3ADCED2DFF390A00C78854 /* VisionAnalysisService.swift */,
 				3B3ADCF42DFF86E000C78854 /* ChatGPTService.swift */,
+				3B030B152E01F9AC000B0116 /* ExportService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -136,6 +141,7 @@
 			children = (
 				3B3ADCF02DFF39B000C78854 /* CanvasSnapshot.swift */,
 				3B3ADCF22DFF822C00C78854 /* LayoutDescriptor.swift */,
+				3B030B172E02662E000B0116 /* AnnotationProcesor.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -286,8 +292,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				3B3ADCEB2DFF375200C78854 /* SketchSiteApp.swift in Sources */,
+				3B030B162E01F9AC000B0116 /* ExportService.swift in Sources */,
 				3B3ADCF52DFF86E000C78854 /* ChatGPTService.swift in Sources */,
 				3B3ADCE92DFF36AD00C78854 /* CanvasView.swift in Sources */,
+				3B030B182E02662E000B0116 /* AnnotationProcesor.swift in Sources */,
 				3B3ADCEE2DFF390A00C78854 /* VisionAnalysisService.swift in Sources */,
 				3B3ADCF32DFF822C00C78854 /* LayoutDescriptor.swift in Sources */,
 				3B3ADCF72DFFCD5F00C78854 /* CodePreviewView.swift in Sources */,

@@ -1,24 +1,29 @@
 import Foundation
-import CoreGraphics
 
-struct LayoutDescriptor {
-    static func describe(rects: [CGRect], canvasSize: CGSize) -> String {
-        var descriptions: [String] = []
-
-        for (index, rect) in rects.enumerated() {
-            let centerX = rect.midX
-            let centerY = rect.midY
-
-            let horizontal = centerX < canvasSize.width / 3 ? "left"
-                : (centerX > 2 * canvasSize.width / 3 ? "right" : "center")
-            let vertical = centerY < canvasSize.height / 3 ? "top"
-                : (centerY > 2 * canvasSize.height / 3 ? "bottom" : "middle")
-
-            let label = "Element \(index + 1)"
-            let desc = "\(label): \(Int(rect.width))×\(Int(rect.height)) near the \(vertical)-\(horizontal)"
-            descriptions.append(desc)
-        }
-
-        return descriptions.joined(separator: "\n")
-    }
+public enum UIComponentType: String, CaseIterable {
+    case alert
+    case badge
+    case breadcrumb
+    case button
+    case buttonGroup = "button group"
+    case carousel
+    case collapse
+    case dropdown
+    case form
+    case formControl = "form control"
+    case icon
+    case image
+    case label
+    case listGroup = "list group"
+    case mediaObject = "media object"
+    case modal
+    case navbar
+    case navs
+    case pagination
+    case progressBar = "progress bar"
+    case table
+    case tab
+    case thumbnail
+    case tooltip
+    case well
 }
