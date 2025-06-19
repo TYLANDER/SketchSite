@@ -34,6 +34,12 @@ struct CanvasContainerView: View {
     @State private var selectedComponentID: UUID? = nil
     @State private var showTypePicker = false
     @State private var typePickerSelection: UIComponentType? = nil
+    @State private var undoStack: [PKDrawing] = []
+    @State private var redoStack: [PKDrawing] = []
+    @State private var showInspector = false
+    @State private var browserPreviewPresented = false
+    @State private var selectedModel: String = "gpt-4o"
+    @State private var customPrompt: String = ""
 
     var body: some View {
         GeometryReader { geometry in
@@ -42,6 +48,11 @@ struct CanvasContainerView: View {
                 CanvasView(canvasView: $canvasView)
                     .frame(width: geometry.size.width, height: geometry.size.height)
                     .edgesIgnoringSafeArea(.all)
+                    .onChange(of: canvasView.drawing) { newDrawing in
+                        // Push to undo stack on drawing change
+                        undoStack.append(newDrawing)
+                        redoStack.removeAll()
+                    }
 
                 // Prominent title at the top, above the canvas
                 VStack(spacing: 0) {
@@ -60,7 +71,7 @@ struct CanvasContainerView: View {
                 .zIndex(2)
 
                 // Rectangle overlays with inferred component type labels
-                ForEach(detectedComponents) { comp in
+                ForEach(Array(detectedComponents.enumerated()), id: \.(1)) { idx, comp in
                     ZStack {
                         Rectangle()
                             .stroke(Color.blue, lineWidth: 2)
@@ -68,7 +79,7 @@ struct CanvasContainerView: View {
                             .frame(width: comp.rect.width, height: comp.rect.height)
                             .position(x: comp.rect.midX, y: comp.rect.midY)
                         // Show the inferred type above the rectangle
-                        Text(comp.type.description)
+                        Text(autoName(for: comp, index: idx))
                             .font(.caption2.bold())
                             .foregroundColor(.white)
                             .padding(4)
@@ -79,95 +90,97 @@ struct CanvasContainerView: View {
                     .contentShape(Rectangle())
                     .onTapGesture {
                         selectedComponentID = comp.id
-                        if case let .ui(type) = comp.type {
-                            typePickerSelection = type
-                        } else {
-                            typePickerSelection = nil
-                        }
-                        showTypePicker = true
+                        showInspector = true
                     }
                     .accessibilityLabel("Component: \(comp.type.description)")
-                    .accessibilityHint("Double tap to change component type.")
+                    .accessibilityHint("Double tap to inspect and edit component.")
                 }
 
-                // Bottom toolbar for clearing, generating, and showing code
+                // Bottom toolbar for clearing, generating, undo/redo, and showing code
                 VStack {
                     Spacer()
                     HStack(spacing: 24) {
+                        Button(action: {
+                            // Undo drawing
+                            guard !undoStack.isEmpty else { return }
+                            let last = undoStack.removeLast()
+                            redoStack.append(canvasView.drawing)
+                            canvasView.drawing = last
+                        }) {
+                            VStack(spacing: 4) {
+                                Image(systemName: "arrow.uturn.backward")
+                                    .font(.title2)
+                                Text("Undo").font(.caption)
+                            }.frame(minWidth: 60, minHeight: 44)
+                        }
+                        .accessibilityLabel("Undo")
+                        .accessibilityHint("Undo the last drawing action.")
+                        Button(action: {
+                            // Redo drawing
+                            guard !redoStack.isEmpty else { return }
+                            let last = redoStack.removeLast()
+                            undoStack.append(canvasView.drawing)
+                            canvasView.drawing = last
+                        }) {
+                            VStack(spacing: 4) {
+                                Image(systemName: "arrow.uturn.forward")
+                                    .font(.title2)
+                                Text("Redo").font(.caption)
+                            }.frame(minWidth: 60, minHeight: 44)
+                        }
+                        .accessibilityLabel("Redo")
+                        .accessibilityHint("Redo the last undone drawing action.")
                         Button(action: {
                             // Clear the canvas drawing
                             canvasView.drawing = PKDrawing()
                         }) {
                             VStack(spacing: 4) {
-                                Image(systemName: "trash")
-                                    .font(.title2)
-                                Text("Clear")
-                                    .font(.caption)
-                            }
-                            .frame(minWidth: 60, minHeight: 44)
+                                Image(systemName: "trash").font(.title2)
+                                Text("Clear").font(.caption)
+                            }.frame(minWidth: 60, minHeight: 44)
                         }
                         .accessibilityLabel("Clear Canvas")
                         .accessibilityHint("Removes all drawings from the canvas.")
-
                         Spacer(minLength: 0)
-
                         Button(action: {
-                            // Run Vision analysis and code generation
-                            print("🟡 Generate tapped")
-                            self.showCodePreview = false // Ensure sheet resets
-
-                            if let image = canvasView.snapshotImage() {
-                                print("📸 Snapshot captured")
-
-                                let analyzer = VisionAnalysisService()
-                                let canvasSize = canvasView.bounds.size
-                                analyzer.detectLayoutAndAnnotations(in: image, canvasSize: canvasSize) { components in
-                                    DispatchQueue.main.async {
-                                        print("📦 Detected \(components.count) component(s)")
-                                        self.detectedComponents = components
-                                        let description = LayoutDescriptor.describe(components: components, canvasSize: canvasSize)
-                                        print("📝 Layout Description:\n\(description)")
-                                        let prompt = """
-                                        Generate HTML and CSS for the following UI layout composed of multiple elements. Each element is represented by its size and position relative to the canvas:\n\n\(description)
-                                        """
-                                        ChatGPTService.shared.generateCode(prompt: prompt) { result in
-                                            switch result {
-                                            case .success(let code):
-                                                print("🤠 Generated Code:\n\(code)")
-                                                self.generatedCode = code
-                                                self.showCodePreview = true
-                                            case .failure(let error):
-                                                print("❌ Error: \(error.localizedDescription)")
-                                            }
-                                        }
-                                    }
+                            // Regenerate code from current detection (no new Vision analysis)
+                            let description = LayoutDescriptor.describe(components: detectedComponents, canvasSize: canvasView.bounds.size)
+                            let prompt = customPrompt.isEmpty ? "Generate HTML and CSS for the following UI layout composed of multiple elements. Each element is represented by its size and position relative to the canvas:\n\n\(description)" : customPrompt
+                            ChatGPTService.shared.generateCode(prompt: prompt) { result in
+                                switch result {
+                                case .success(let code):
+                                    self.generatedCode = code
+                                    self.showCodePreview = true
+                                case .failure(let error):
+                                    print("❌ Error: \(error.localizedDescription)")
                                 }
                             }
                         }) {
                             VStack(spacing: 4) {
-                                Image(systemName: "wand.and.stars")
-                                    .font(.title2)
-                                Text("Generate")
-                                    .font(.caption)
-                            }
-                            .frame(minWidth: 60, minHeight: 44)
+                                Image(systemName: "arrow.clockwise").font(.title2)
+                                Text("Regenerate").font(.caption)
+                            }.frame(minWidth: 60, minHeight: 44)
                         }
-                        .accessibilityLabel("Generate Code")
-                        .accessibilityHint("Analyzes your sketch and generates HTML and CSS code.")
-
-                        Spacer(minLength: 0)
-
+                        .accessibilityLabel("Regenerate Code")
+                        .accessibilityHint("Reruns code generation with current detection.")
+                        Button(action: {
+                            self.browserPreviewPresented = true
+                        }) {
+                            VStack(spacing: 4) {
+                                Image(systemName: "safari").font(.title2)
+                                Text("Preview").font(.caption)
+                            }.frame(minWidth: 60, minHeight: 44)
+                        }
+                        .accessibilityLabel("Browser Preview")
+                        .accessibilityHint("Preview generated HTML/CSS in a browser.")
                         if generatedCode != nil {
                             Button(action: {
                                 self.showCodePreview = true
                             }) {
                                 VStack(spacing: 4) {
-                                    Image(systemName: "doc.plaintext")
-                                        .font(.title2)
-                                    Text("Show Code")
-                                        .font(.caption)
-                                }
-                                .frame(minWidth: 60, minHeight: 44)
+                                    Image(systemName: "doc.plaintext").font(.title2)
+                                    Text("Show Code").font(.caption)
+                                }.frame(minWidth: 60, minHeight: 44)
                             }
                             .accessibilityLabel("Show Generated Code")
                             .accessibilityHint("Displays the generated HTML and CSS code.")
@@ -183,6 +196,16 @@ struct CanvasContainerView: View {
                 }
             }
             .edgesIgnoringSafeArea(.all)
+            .sheet(isPresented: $showInspector) {
+                if let id = selectedComponentID, let idx = detectedComponents.firstIndex(where: { $0.id == id }) {
+                    InspectorView(component: $detectedComponents[idx])
+                }
+            }
+            .sheet(isPresented: $browserPreviewPresented) {
+                if let code = generatedCode {
+                    BrowserPreviewView(html: code)
+                }
+            }
             .sheet(isPresented: $showTypePicker) {
                 NavigationView {
                     List {
@@ -228,6 +251,12 @@ struct CanvasContainerView: View {
                 AnimatedCodePreview(code: code)
             }
         }
+    }
+
+    // Helper for auto-naming
+    private func autoName(for comp: DetectedComponent, index: Int) -> String {
+        let base = comp.type.description.capitalized
+        return "\(base) \(index + 1)"
     }
 }
 
