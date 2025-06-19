@@ -1,5 +1,6 @@
 import SwiftUI
 import PencilKit
+import PhotosUI
 
 // MARK: - ChatGPTService Stub
 
@@ -42,6 +43,9 @@ struct CanvasContainerView: View {
     @State private var selectedPromptTemplate: String = ""
     @State private var chatHistory: [(role: String, content: String)] = []
     @State private var followUpInput: String = ""
+    @State private var showImagePicker = false
+    @State private var imagePickerSource: UIImagePickerController.SourceType = .photoLibrary
+    @State private var selectedImage: UIImage? = nil
 
     var body: some View {
         GeometryReader { geometry in
@@ -66,32 +70,25 @@ struct CanvasContainerView: View {
                 .padding(.horizontal)
                 .padding(.top, geometry.safeAreaInsets.top + 8)
                 ZStack(alignment: .top) {
-                    // Drawing canvas (truly full screen, under nav bar and safe areas)
-                    CanvasView(canvasView: $canvasView)
-                        .frame(width: geometry.size.width, height: geometry.size.height)
-                        .edgesIgnoringSafeArea(.all)
-                        .onChange(of: canvasView.drawing) { newDrawing in
-                            // Push to undo stack on drawing change
-                            undoStack.append(newDrawing)
-                            redoStack.removeAll()
-                        }
-
-                    // Prominent title at the top, above the canvas
-                    VStack(spacing: 0) {
-                        Text("SketchSite – Draw Your UI")
-                            .font(.largeTitle.bold())
-                            .foregroundColor(.primary)
-                            .padding(.top, geometry.safeAreaInsets.top + 16)
-                            .padding(.bottom, 8)
-                            .frame(maxWidth: .infinity)
-                            .background(
-                                VisualEffectBlur()
-                                    .edgesIgnoringSafeArea(.top)
-                            )
-                        Spacer()
+                    // If a photo is selected, show it as the background
+                    if let img = selectedImage {
+                        Image(uiImage: img)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .clipped()
+                            .edgesIgnoringSafeArea(.all)
                     }
-                    .zIndex(2)
-
+                    // Drawing canvas (truly full screen, under nav bar and safe areas)
+                    if selectedImage == nil {
+                        CanvasView(canvasView: $canvasView)
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .edgesIgnoringSafeArea(.all)
+                            .onChange(of: canvasView.drawing) { newDrawing in
+                                undoStack.append(newDrawing)
+                                redoStack.removeAll()
+                            }
+                    }
                     // Rectangle overlays with inferred component type labels
                     ForEach(Array(detectedComponents.enumerated()), id: \.(1)) { idx, comp in
                         ZStack {
@@ -100,7 +97,6 @@ struct CanvasContainerView: View {
                                 .background(Color.blue.opacity(0.2))
                                 .frame(width: comp.rect.width, height: comp.rect.height)
                                 .position(x: comp.rect.midX, y: comp.rect.midY)
-                            // Show the inferred type above the rectangle
                             Text(autoName(for: comp, index: idx))
                                 .font(.caption2.bold())
                                 .foregroundColor(.white)
@@ -118,104 +114,141 @@ struct CanvasContainerView: View {
                         .accessibilityHint("Double tap to inspect and edit component.")
                     }
 
-                    // Bottom toolbar for clearing, generating, undo/redo, and showing code
-                    VStack {
+                    // Prominent title at the top, above the canvas
+                    VStack(spacing: 0) {
+                        Text("SketchSite – Draw Your UI")
+                            .font(.largeTitle.bold())
+                            .foregroundColor(.primary)
+                            .padding(.top, geometry.safeAreaInsets.top + 16)
+                            .padding(.bottom, 8)
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                VisualEffectBlur()
+                                    .edgesIgnoringSafeArea(.top)
+                            )
                         Spacer()
-                        HStack(spacing: 24) {
-                            Button(action: {
-                                // Undo drawing
-                                guard !undoStack.isEmpty else { return }
-                                let last = undoStack.removeLast()
-                                redoStack.append(canvasView.drawing)
-                                canvasView.drawing = last
-                            }) {
-                                VStack(spacing: 4) {
-                                    Image(systemName: "arrow.uturn.backward")
-                                        .font(.title2)
-                                    Text("Undo").font(.caption)
-                                }.frame(minWidth: 60, minHeight: 44)
-                            }
-                            .accessibilityLabel("Undo")
-                            .accessibilityHint("Undo the last drawing action.")
-                            Button(action: {
-                                // Redo drawing
-                                guard !redoStack.isEmpty else { return }
-                                let last = redoStack.removeLast()
-                                undoStack.append(canvasView.drawing)
-                                canvasView.drawing = last
-                            }) {
-                                VStack(spacing: 4) {
-                                    Image(systemName: "arrow.uturn.forward")
-                                        .font(.title2)
-                                    Text("Redo").font(.caption)
-                                }.frame(minWidth: 60, minHeight: 44)
-                            }
-                            .accessibilityLabel("Redo")
-                            .accessibilityHint("Redo the last undone drawing action.")
-                            Button(action: {
-                                // Clear the canvas drawing
-                                canvasView.drawing = PKDrawing()
-                            }) {
-                                VStack(spacing: 4) {
-                                    Image(systemName: "trash").font(.title2)
-                                    Text("Clear").font(.caption)
-                                }.frame(minWidth: 60, minHeight: 44)
-                            }
-                            .accessibilityLabel("Clear Canvas")
-                            .accessibilityHint("Removes all drawings from the canvas.")
-                            Spacer(minLength: 0)
-                            Button(action: {
-                                // Regenerate code from current detection (no new Vision analysis)
-                                let description = LayoutDescriptor.describe(components: detectedComponents, canvasSize: canvasView.bounds.size)
-                                let prompt = selectedPromptTemplate.isEmpty ? "Generate HTML and CSS for the following UI layout composed of multiple elements. Each element is represented by its size and position relative to the canvas:\n\n\(description)" : selectedPromptTemplate
-                                ChatGPTService.shared.generateCode(prompt: prompt, model: selectedModel, conversation: chatHistory) { result in
-                                    switch result {
-                                    case .success(let code):
-                                        self.generatedCode = code
-                                        self.showCodePreview = true
-                                    case .failure(let error):
-                                        print("❌ Error: \(error.localizedDescription)")
-                                    }
-                                }
-                            }) {
-                                VStack(spacing: 4) {
-                                    Image(systemName: "arrow.clockwise").font(.title2)
-                                    Text("Regenerate").font(.caption)
-                                }.frame(minWidth: 60, minHeight: 44)
-                            }
-                            .accessibilityLabel("Regenerate Code")
-                            .accessibilityHint("Reruns code generation with current detection.")
-                            Button(action: {
-                                self.browserPreviewPresented = true
-                            }) {
-                                VStack(spacing: 4) {
-                                    Image(systemName: "safari").font(.title2)
-                                    Text("Preview").font(.caption)
-                                }.frame(minWidth: 60, minHeight: 44)
-                            }
-                            .accessibilityLabel("Browser Preview")
-                            .accessibilityHint("Preview generated HTML/CSS in a browser.")
-                            if generatedCode != nil {
-                                Button(action: {
-                                    self.showCodePreview = true
-                                }) {
-                                    VStack(spacing: 4) {
-                                        Image(systemName: "doc.plaintext").font(.title2)
-                                        Text("Show Code").font(.caption)
-                                    }.frame(minWidth: 60, minHeight: 44)
-                                }
-                                .accessibilityLabel("Show Generated Code")
-                                .accessibilityHint("Displays the generated HTML and CSS code.")
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 12)
-                        .background(VisualEffectBlur().edgesIgnoringSafeArea(.bottom))
-                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                        .shadow(color: Color.black.opacity(0.12), radius: 8, x: 0, y: 2)
-                        .accessibilityElement(children: .contain)
                     }
+                    .zIndex(2)
+                }
+                // Bottom toolbar for clearing, generating, undo/redo, and showing code
+                VStack {
+                    Spacer()
+                    HStack(spacing: 24) {
+                        Button(action: {
+                            // Undo drawing
+                            guard !undoStack.isEmpty else { return }
+                            let last = undoStack.removeLast()
+                            redoStack.append(canvasView.drawing)
+                            canvasView.drawing = last
+                        }) {
+                            VStack(spacing: 4) {
+                                Image(systemName: "arrow.uturn.backward")
+                                    .font(.title2)
+                                Text("Undo").font(.caption)
+                            }.frame(minWidth: 60, minHeight: 44)
+                        }
+                        .accessibilityLabel("Undo")
+                        .accessibilityHint("Undo the last drawing action.")
+                        Button(action: {
+                            // Redo drawing
+                            guard !redoStack.isEmpty else { return }
+                            let last = redoStack.removeLast()
+                            undoStack.append(canvasView.drawing)
+                            canvasView.drawing = last
+                        }) {
+                            VStack(spacing: 4) {
+                                Image(systemName: "arrow.uturn.forward")
+                                    .font(.title2)
+                                Text("Redo").font(.caption)
+                            }.frame(minWidth: 60, minHeight: 44)
+                        }
+                        .accessibilityLabel("Redo")
+                        .accessibilityHint("Redo the last undone drawing action.")
+                        Button(action: {
+                            // Clear the canvas drawing
+                            canvasView.drawing = PKDrawing()
+                        }) {
+                            VStack(spacing: 4) {
+                                Image(systemName: "trash").font(.title2)
+                                Text("Clear").font(.caption)
+                            }.frame(minWidth: 60, minHeight: 44)
+                        }
+                        .accessibilityLabel("Clear Canvas")
+                        .accessibilityHint("Removes all drawings from the canvas.")
+                        Spacer(minLength: 0)
+                        Button(action: {
+                            // Regenerate code from current detection (no new Vision analysis)
+                            let description = LayoutDescriptor.describe(components: detectedComponents, canvasSize: canvasView.bounds.size)
+                            let prompt = selectedPromptTemplate.isEmpty ? "Generate HTML and CSS for the following UI layout composed of multiple elements. Each element is represented by its size and position relative to the canvas:\n\n\(description)" : selectedPromptTemplate
+                            ChatGPTService.shared.generateCode(prompt: prompt, model: selectedModel, conversation: chatHistory) { result in
+                                switch result {
+                                case .success(let code):
+                                    self.generatedCode = code
+                                    self.showCodePreview = true
+                                case .failure(let error):
+                                    print("❌ Error: \(error.localizedDescription)")
+                                }
+                            }
+                        }) {
+                            VStack(spacing: 4) {
+                                Image(systemName: "arrow.clockwise").font(.title2)
+                                Text("Regenerate").font(.caption)
+                            }.frame(minWidth: 60, minHeight: 44)
+                        }
+                        .accessibilityLabel("Regenerate Code")
+                        .accessibilityHint("Reruns code generation with current detection.")
+                        Button(action: {
+                            self.browserPreviewPresented = true
+                        }) {
+                            VStack(spacing: 4) {
+                                Image(systemName: "safari").font(.title2)
+                                Text("Preview").font(.caption)
+                            }.frame(minWidth: 60, minHeight: 44)
+                        }
+                        .accessibilityLabel("Browser Preview")
+                        .accessibilityHint("Preview generated HTML/CSS in a browser.")
+                        if generatedCode != nil {
+                            Button(action: {
+                                self.showCodePreview = true
+                            }) {
+                                VStack(spacing: 4) {
+                                    Image(systemName: "doc.plaintext").font(.title2)
+                                    Text("Show Code").font(.caption)
+                                }.frame(minWidth: 60, minHeight: 44)
+                            }
+                            .accessibilityLabel("Show Generated Code")
+                            .accessibilityHint("Displays the generated HTML and CSS code.")
+                        }
+                        Button(action: {
+                            imagePickerSource = .camera
+                            showImagePicker = true
+                        }) {
+                            VStack(spacing: 4) {
+                                Image(systemName: "camera").font(.title2)
+                                Text("Take Photo").font(.caption)
+                            }.frame(minWidth: 60, minHeight: 44)
+                        }
+                        .accessibilityLabel("Take Photo")
+                        .accessibilityHint("Take a photo of a sketch to analyze.")
+                        Button(action: {
+                            imagePickerSource = .photoLibrary
+                            showImagePicker = true
+                        }) {
+                            VStack(spacing: 4) {
+                                Image(systemName: "photo").font(.title2)
+                                Text("Upload Photo").font(.caption)
+                            }.frame(minWidth: 60, minHeight: 44)
+                        }
+                        .accessibilityLabel("Upload Photo")
+                        .accessibilityHint("Upload a photo of a sketch from your library.")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(VisualEffectBlur().edgesIgnoringSafeArea(.bottom))
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .shadow(color: Color.black.opacity(0.12), radius: 8, x: 0, y: 2)
+                    .accessibilityElement(children: .contain)
                 }
             }
             .edgesIgnoringSafeArea(.all)
@@ -265,6 +298,22 @@ struct CanvasContainerView: View {
                             Button("Cancel") { showTypePicker = false }
                         }
                     }
+                }
+            }
+            .sheet(isPresented: $showImagePicker) {
+                ImagePicker(sourceType: imagePickerSource) { image in
+                    if let img = image {
+                        selectedImage = img
+                        // Run Vision analysis on the selected image
+                        let analyzer = VisionAnalysisService()
+                        let canvasSize = CGSize(width: img.size.width, height: img.size.height)
+                        analyzer.detectLayoutAndAnnotations(in: img, canvasSize: canvasSize) { components in
+                            DispatchQueue.main.async {
+                                detectedComponents = components
+                            }
+                        }
+                    }
+                    showImagePicker = false
                 }
             }
         }
