@@ -20,21 +20,61 @@ SketchSite is an innovative iOS app that lets you sketch user interface layouts 
 
 ## Features
 - **PencilKit Canvas:** Draw UI elements freehand.
+- **Undo/Redo Drawing:** Instantly undo or redo your last drawing actions.
 - **Vision Analysis:** Detects rectangles, groups, and text annotations.
 - **Component Inference:** Classifies elements (button, image, nav bar, etc.) and allows manual override.
-- **Interactive Overlays:** Tap detected elements to change their type.
-- **Modern Toolbar:** Accessible, mobile-friendly controls for clearing, generating, and previewing code.
+- **Auto-Naming:** Detected components are auto-named (e.g., "Button 1").
+- **Interactive Overlays:** Tap detected elements to open the Inspector and edit their properties.
+- **Inspector:** Edit type, label, and size of any detected component in a dedicated Inspector sheet.
+- **Modern Toolbar:** Accessible, mobile-friendly controls for clearing, generating, undo/redo, regenerating, and previewing code.
+- **Regenerate Button:** Instantly rerun code generation with the current detection results.
+- **Browser Preview:** Live HTML/CSS preview inside the app using a built-in browser (WKWebView).
 - **Code Preview:** View and copy generated code in a compact, readable window.
 - **XcodeGen Integration:** Project structure is managed via `project.yml` for easy file management and reproducibility.
 
 ---
 
+## Roadmap & Priorities
+
+### High Priority
+- [x] **Rectangle-to-Component Detection Refinement**  
+  Improved grouping, heuristics, and support for more UI element types.
+- [x] **Element Inspector**  
+  Tap an element to view and edit properties (type, label, size, etc.).
+- [x] **Undo Button**  
+  Add undo/redo for drawing and detection pipeline.
+- [x] **Regenerate Response Button**  
+  Add a dedicated button to quickly rerun code generation.
+
+### Medium Priority
+- [x] **Auto Naming + Reordering**  
+  Auto-naming for detected elements; manual renaming and reordering in Inspector.
+- [x] **Open in Browser Preview (WKWebView)**  
+  Live HTML/CSS preview inside the app.
+- [ ] **Ask ChatGPT Follow-Up (Prompt Chaining UI)**  
+  UI for follow-up questions and prompt chaining.
+- [ ] **Model Selector**  
+  Toggle between GPT-4, GPT-3.5, etc.
+- [ ] **Preloaded Prompts**  
+  Quick-select templates (SwiftUI, Tailwind CSS, etc.).
+
+### Low Priority
+- [ ] **Resizable Drawer**  
+  Draggable/expandable code or inspector drawer.
+- [ ] **Prompt Customization UI**  
+  UI for editing system/user messages before sending to GPT.
+
+---
+
 ## Usage
 1. **Draw:** Use your finger or Apple Pencil to sketch UI elements on the canvas.
-2. **Annotate:** Add text labels to clarify intent (e.g., "CTA", "Profile Image").
-3. **Analyze:** Tap "Generate" to run Vision and AI analysis.
-4. **Edit:** Tap any blue rectangle to change its inferred type.
-5. **Export:** Preview, copy, or share the generated code.
+2. **Undo/Redo:** Instantly undo or redo your last drawing actions using the toolbar.
+3. **Annotate:** Add text labels to clarify intent (e.g., "CTA", "Profile Image").
+4. **Analyze:** Tap "Generate" to run Vision and AI analysis.
+5. **Edit:** Tap any blue rectangle to open the Inspector and change its type, label, or size.
+6. **Regenerate:** Use the Regenerate button to rerun code generation with the current detection results.
+7. **Preview:** Tap the browser icon to preview your generated HTML/CSS live in the app.
+8. **Export:** Preview, copy, or share the generated code.
 
 ---
 
