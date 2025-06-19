@@ -7,6 +7,7 @@
 
 import XCTest
 
+/// UI tests for the SketchSite app.
 final class SketchSiteUITests: XCTestCase {
 
     override func setUpWithError() throws {
@@ -15,13 +16,14 @@ final class SketchSiteUITests: XCTestCase {
         // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
 
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
+        // In UI tests it's important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
     }
 
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
+    /// Example UI test. Launches the app and verifies UI behavior.
     @MainActor
     func testExample() throws {
         // UI tests must launch the application that they test.
@@ -31,6 +33,7 @@ final class SketchSiteUITests: XCTestCase {
         // Use XCTAssert and related functions to verify your tests produce the correct results.
     }
 
+    /// Measures launch performance of the app.
     @MainActor
     func testLaunchPerformance() throws {
         // This measures how long it takes to launch your application.

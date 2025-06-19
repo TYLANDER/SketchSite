@@ -7,8 +7,10 @@
 
 import XCTest
 
+/// UI launch tests for the SketchSite app.
 final class SketchSiteUITestsLaunchTests: XCTestCase {
 
+    /// Indicates whether the test runs for each UI configuration.
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true
     }
@@ -17,6 +19,7 @@ final class SketchSiteUITestsLaunchTests: XCTestCase {
         continueAfterFailure = false
     }
 
+    /// Tests app launch and captures a screenshot.
     @MainActor
     func testLaunch() throws {
         let app = XCUIApplication()

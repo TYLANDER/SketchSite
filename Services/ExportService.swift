@@ -3,10 +3,16 @@ import Foundation
 import UniformTypeIdentifiers
 import UIKit
 
+/// Service for exporting generated code to files and sharing via UIActivityViewController.
 class ExportService {
     static let shared = ExportService()
     private init() {}
 
+    /// Exports code to a temporary file with the given filename and returns its URL.
+    /// - Parameters:
+    ///   - code: The code to export.
+    ///   - filename: The desired filename (default: GeneratedCode.html).
+    /// - Returns: The URL of the exported file, or nil if export failed.
     func export(code: String, filename: String = "GeneratedCode.html") -> URL? {
         let fileManager = FileManager.default
         let tempDir = fileManager.temporaryDirectory
@@ -20,9 +26,9 @@ class ExportService {
         case "html":
             formattedCode = """
             <!DOCTYPE html>
-            <html lang="en">
+            <html lang=\"en\">
             <head>
-                <meta charset="UTF-8">
+                <meta charset=\"UTF-8\">
                 <title>Exported HTML</title>
             </head>
             <body>
@@ -53,6 +59,10 @@ class ExportService {
         }
     }
 
+    /// Presents a share sheet for the exported file from the given view controller.
+    /// - Parameters:
+    ///   - fileURL: The URL of the file to share.
+    ///   - controller: The presenting UIViewController.
     func share(fileURL: URL, from controller: UIViewController) {
         let activityVC = UIActivityViewController(activityItems: [fileURL], applicationActivities: nil)
         activityVC.excludedActivityTypes = [.assignToContact, .addToReadingList, .openInIBooks]

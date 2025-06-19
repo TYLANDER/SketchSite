@@ -1,0 +1,51 @@
+   name: SketchSite
+   options:
+     bundleIdPrefix: com.yourcompany
+   targets:
+     SketchSite:
+       type: application
+       platform: iOS
+       sources:
+         - path: .
+           excludes:
+             - SketchSiteTests
+             - SketchSiteUITests
+             - SketchSite.xcodeproj
+             - .git
+             - README.md
+             - replacements.txt
+         - Views
+         - Utilities
+         - Services
+         - SketchSiteApp.swift
+         - Info.plist
+       info:
+         path: Info.plist
+         properties:
+           CFBundleIdentifier: com.yourcompany.SketchSite
+           CFBundleName: SketchSite
+           UILaunchStoryboardName: ""
+           UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+           LSRequiresIPhoneOS: true
+           CFBundleShortVersionString: "1.0"
+           CFBundleVersion: "1"
+     SketchSiteTests:
+       type: bundle.unit-test
+       platform: iOS
+       sources: [SketchSiteTests]
+       dependencies:
+         - target: SketchSite
+       info:
+         path: Info.plist
+         properties:
+           CFBundleIdentifier: com.yourcompany.SketchSiteTests
+     SketchSiteUITests:
+       type: bundle.ui-testing
+       platform: iOS
+       sources: [SketchSiteUITests]
+       dependencies:
+         - target: SketchSite
+       info:
+         path: Info.plist
+         properties:
+           CFBundleIdentifier: com.yourcompany.SketchSiteUITests

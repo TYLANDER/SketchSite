@@ -1,7 +1,9 @@
 import PencilKit
 import UIKit
 
+/// Extension to capture a UIImage snapshot of the current PKCanvasView drawing.
 extension PKCanvasView {
+    /// Returns a UIImage snapshot of the current canvas contents.
     func snapshotImage() -> UIImage? {
         let bounds = self.bounds
         let format = UIGraphicsImageRendererFormat()

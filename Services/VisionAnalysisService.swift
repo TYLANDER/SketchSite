@@ -2,9 +2,11 @@ import Foundation
 import Vision
 import UIKit
 import VisionKit
+import CoreGraphics
 
+/// Service for analyzing images using Vision to detect rectangles, text, and infer UI layout components.
 class VisionAnalysisService {
-    
+    /// Detects rectangles in a UIImage using Vision and returns VNRectangleObservation results.
     func detectRectangles(in image: UIImage, completion: @escaping ([VNRectangleObservation]) -> Void) {
         guard let cgImage = image.cgImage else {
             print("❌ Failed to convert UIImage to CGImage")
@@ -40,6 +42,7 @@ class VisionAnalysisService {
         }
     }
     
+    /// Detects text annotations in a UIImage using Vision and returns VNRecognizedTextObservation results.
     func detectTextAnnotations(in image: UIImage, completion: @escaping ([VNRecognizedTextObservation]) -> Void) {
         guard let cgImage = image.cgImage else {
             print("❌ Failed to convert UIImage to CGImage")
@@ -71,9 +74,17 @@ class VisionAnalysisService {
         }
     }
     
-    func detectLayoutAndAnnotations(in image: UIImage, completion: @escaping ([VNRectangleObservation], [VNRecognizedTextObservation]) -> Void) {
+    /// Detects rectangles and text, then infers components and returns [DetectedComponent].
+    /// - Parameters:
+    ///   - image: The UIImage to analyze.
+    ///   - canvasSize: The size of the canvas for coordinate conversion.
+    ///   - completion: Completion handler with detected components.
+    func detectLayoutAndAnnotations(
+        in image: UIImage,
+        canvasSize: CGSize,
+        completion: @escaping ([DetectedComponent]) -> Void
+    ) {
         let dispatchGroup = DispatchGroup()
-
         var rectangles: [VNRectangleObservation] = []
         var annotations: [VNRecognizedTextObservation] = []
 
@@ -90,7 +101,27 @@ class VisionAnalysisService {
         }
 
         dispatchGroup.notify(queue: .main) {
-            completion(rectangles, annotations)
+            // Convert Vision boundingBoxes to canvas coordinates
+            let rects: [CGRect] = rectangles.map { rect in
+                let bb = rect.boundingBox
+                let width = bb.width * canvasSize.width
+                let height = bb.height * canvasSize.height
+                let x = bb.minX * canvasSize.width
+                let y = (1 - bb.maxY) * canvasSize.height
+                return CGRect(x: x, y: y, width: width, height: height)
+            }
+            let annotationObjs = AnnotationProcessor.extractAnnotations(from: annotations)
+            let annotationDict: [String: CGRect] = Dictionary(uniqueKeysWithValues: annotationObjs.map { ($0.text, $0.position) })
+            // Convert annotation rects to canvas coordinates
+            let annotationDictCanvas: [String: CGRect] = annotationDict.mapValues { bb in
+                let width = bb.width * canvasSize.width
+                let height = bb.height * canvasSize.height
+                let x = bb.minX * canvasSize.width
+                let y = (1 - bb.maxY) * canvasSize.height
+                return CGRect(x: x, y: y, width: width, height: height)
+            }
+            let detected = RectangleComponentDetector.detectComponents(rects: rects, annotations: annotationDictCanvas, canvasSize: canvasSize)
+            completion(detected)
         }
     }
 }

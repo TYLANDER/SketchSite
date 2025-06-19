@@ -31,10 +31,18 @@ struct CodePreviewView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        let title = "SketchSite_Export"
+        let title = "Exported Code"
         NavigationView {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(title)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.vertical, 2)
+
                     ForEach(splitCodeBlocks(code), id: \.self) { segment in
                         VStack(alignment: .leading, spacing: 0) {
                             HStack {
@@ -61,14 +69,14 @@ struct CodePreviewView: View {
                             Group {
                                 if let attributedString = try? AttributedString(highlightedHTML: segment) {
                                     Text(attributedString)
-                                        .font(.system(.body, design: .monospaced))
-                                        .padding()
+                                        .font(.system(.footnote, design: .monospaced))
+                                        .padding(8)
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                         .background(Color(.systemGray6))
                                 } else {
                                     Text(segment)
-                                        .font(.system(.body, design: .monospaced))
-                                        .padding()
+                                        .font(.system(.footnote, design: .monospaced))
+                                        .padding(8)
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                         .background(Color(.systemGray6))
                                 }
@@ -79,12 +87,12 @@ struct CodePreviewView: View {
                                     .stroke(Color(.systemGray4), lineWidth: 1)
                             )
                         }
-                        .padding(.bottom, 16)
+                        .padding(.bottom, 12)
                     }
                 }
                 .padding()
             }
-            .navigationTitle("Generated Code")
+            .navigationTitle("")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") {
@@ -95,7 +103,6 @@ struct CodePreviewView: View {
                     Button("Export") {
                         ExportService.shared.export(code: code)
                     }
-                    
                     Button(action: {
                         shareCodeViaAirDrop(code, title: title)
                     }) {

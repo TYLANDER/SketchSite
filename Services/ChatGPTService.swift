@@ -1,6 +1,6 @@
 import Foundation
 
-// Singleton service for interacting with the OpenAI Chat Completions API
+/// Singleton service for interacting with the OpenAI Chat Completions API.
 class ChatGPTService {
     static let shared = ChatGPTService()
     private init() {}
@@ -9,9 +9,9 @@ class ChatGPTService {
 
     /// Generates front-end code using OpenAI's GPT model, with optional user sketch annotations.
     /// - Parameters:
-    ///   - prompt: The main layout or design prompt generated from Vision analysis
-    ///   - annotations: Freeform user annotations to provide context or intent (e.g., "CTA button here")
-    ///   - completion: Completion handler with result of GPT response
+    ///   - prompt: The main layout or design prompt generated from Vision analysis.
+    ///   - annotations: Freeform user annotations to provide context or intent (e.g., "CTA button here").
+    ///   - completion: Completion handler with result of GPT response.
     func generateCode(prompt: String, annotations: [String] = [], completion: @escaping (Result<String, Error>) -> Void) {
         // Combine the core layout prompt with user-provided annotations, if any
         var fullPrompt = prompt
