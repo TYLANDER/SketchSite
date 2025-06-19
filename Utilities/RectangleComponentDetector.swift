@@ -58,8 +58,8 @@ public class RectangleComponentDetector {
         for group in groups {
             if group.count == 1 {
                 let rect = group[0]
-                let type = inferType(for: rect, canvasSize: canvasSize)
                 let label = annotationLabel(for: rect, annotations: annotations)
+                let type = inferType(for: rect, canvasSize: canvasSize, annotation: label)
                 detected.append(DetectedComponent(rect: rect, type: .ui(type), label: label))
                 usedRects.insert(rect)
             } else {
@@ -74,8 +74,8 @@ public class RectangleComponentDetector {
         }
         // 3. Any unused rects (not grouped)
         for rect in rects where !usedRects.contains(rect) {
-            let type = inferType(for: rect, canvasSize: canvasSize)
             let label = annotationLabel(for: rect, annotations: annotations)
+            let type = inferType(for: rect, canvasSize: canvasSize, annotation: label)
             detected.append(DetectedComponent(rect: rect, type: .ui(type), label: label))
         }
         return detected
@@ -83,45 +83,86 @@ public class RectangleComponentDetector {
     
     // MARK: - Grouping
 
-    /// Groups rectangles that are close and similarly sized.
+    /// Groups rectangles by proximity, alignment, and grid/row/column structure.
     private static func groupRectangles(_ rects: [CGRect], canvasSize: CGSize) -> [[CGRect]] {
-        // Simple grouping: group rects that are horizontally or vertically aligned and close
+        // Improved grouping: detect rows, columns, and grids
         var groups: [[CGRect]] = []
         var used = Set<Int>()
         let threshold: CGFloat = max(canvasSize.width, canvasSize.height) * 0.05 // 5% of canvas
+        let alignThreshold: CGFloat = max(canvasSize.width, canvasSize.height) * 0.02 // 2% for alignment
+        
+        // 1. Try to group by rows (horizontal alignment)
         for (i, rect) in rects.enumerated() {
             if used.contains(i) { continue }
-            var group = [rect]
+            var row = [rect]
             for (j, other) in rects.enumerated() where i != j && !used.contains(j) {
-                if areRectsGrouped(rect, other, threshold: threshold) {
-                    group.append(other)
+                // If minY is close and heights are similar, treat as same row
+                if abs(rect.minY - other.minY) < alignThreshold && abs(rect.height - other.height) < threshold {
+                    row.append(other)
                     used.insert(j)
                 }
             }
-            used.insert(i)
-            groups.append(group)
+            if row.count > 1 {
+                used.insert(i)
+                groups.append(row)
+            }
+        }
+        // 2. Try to group by columns (vertical alignment)
+        for (i, rect) in rects.enumerated() {
+            if used.contains(i) { continue }
+            var col = [rect]
+            for (j, other) in rects.enumerated() where i != j && !used.contains(j) {
+                if abs(rect.minX - other.minX) < alignThreshold && abs(rect.width - other.width) < threshold {
+                    col.append(other)
+                    used.insert(j)
+                }
+            }
+            if col.count > 1 {
+                used.insert(i)
+                groups.append(col)
+            }
+        }
+        // 3. Any remaining rects are singletons
+        for (i, rect) in rects.enumerated() where !used.contains(i) {
+            groups.append([rect])
         }
         return groups
     }
 
-    /// Returns true if two rectangles should be grouped (close and aligned).
-    private static func areRectsGrouped(_ a: CGRect, _ b: CGRect, threshold: CGFloat) -> Bool {
-        // Group if close horizontally or vertically
-        let horiz = abs(a.minY - b.minY) < threshold && abs(a.height - b.height) < threshold
-        let vert = abs(a.minX - b.minX) < threshold && abs(a.width - b.width) < threshold
-        let dist = hypot(a.midX - b.midX, a.midY - b.midY)
-        return (horiz || vert) && dist < threshold * 2
-    }
-    
-    // MARK: - Type Inference
-
-    /// Heuristically infers the UI component type for a single rectangle.
-    private static func inferType(for rect: CGRect, canvasSize: CGSize) -> UIComponentType {
+    /// Heuristically infers the UI component type for a single rectangle, using annotation hints if available.
+    private static func inferType(for rect: CGRect, canvasSize: CGSize, annotation: String? = nil) -> UIComponentType {
         let aspect = rect.width / max(rect.height, 1)
         let area = rect.width * rect.height
         let relWidth = rect.width / canvasSize.width
         let relHeight = rect.height / canvasSize.height
-        // Heuristics for common UI types
+        let label = annotation?.lowercased() ?? ""
+        // Use annotation hints if present
+        if label.contains("img") || label.contains("photo") || label.contains("avatar") {
+            return .image
+        } else if label.contains("icon") {
+            return .icon
+        } else if label.contains("btn") || label.contains("button") {
+            return .button
+        } else if label.contains("nav") {
+            return .navbar
+        } else if label.contains("input") || label.contains("field") || label.contains("form") {
+            return .formControl
+        } else if label.contains("card") {
+            return .mediaObject
+        } else if label.contains("list") {
+            return .listGroup
+        } else if label.contains("tab") {
+            return .tab
+        } else if label.contains("badge") {
+            return .badge
+        } else if label.contains("progress") {
+            return .progressBar
+        } else if label.contains("dropdown") {
+            return .dropdown
+        } else if label.contains("table") {
+            return .table
+        }
+        // Heuristics for common UI types (fallback)
         if relWidth > 0.8 && relHeight < 0.15 {
             return .navbar
         } else if aspect > 3 && relHeight < 0.1 {
