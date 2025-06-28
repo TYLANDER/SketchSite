@@ -3,64 +3,58 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		047A03F35C95277F1D19D233 /* AnnotationProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB99E54AC987C3053ABADABB /* AnnotationProcessor.swift */; };
+		2D62D7ED736292DEF9E2CA69 /* FollowUpChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7A483519B6B2F8957CA69A /* FollowUpChatView.swift */; };
+		34ACEBF6436ADE8F9FD03BE6 /* InspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C4CFE478E8885495427A22 /* InspectorView.swift */; };
+		3B3E74822E1065CA00B12C9E /* DiagnosticsRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3E74812E1065CA00B12C9E /* DiagnosticsRunner.swift */; };
+		3DC8832869ABB1E5D75F6106 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E3D4DA2DA6B1C77ED72A483 /* ImagePicker.swift */; };
 		50E55870D3E56B60FE5D1930 /* SketchSiteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF86342ECB4F7B54C62434FF /* SketchSiteApp.swift */; };
 		53CB058FE81866D1AAAAFA55 /* LayoutDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 693082C1A91403A8F2A4FCA7 /* LayoutDescriptor.swift */; };
 		65C868E6BE0BA6A6656E43A1 /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC127DE801E20515A139BA11 /* CanvasView.swift */; };
+		65EF08ED8B12D25858D2263E /* ComponentOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF6E952BE10CB72D825CF25D /* ComponentOverlayView.swift */; };
 		7AFF0197C3D74C4645BAF39D /* RectangleComponentDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82ACF3190FD89526B063647A /* RectangleComponentDetector.swift */; };
-		84BB71E204F9E7383E152A1C /* SketchSiteUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C93EC8F15147EE4B21B81E6 /* SketchSiteUITestsLaunchTests.swift */; };
 		88E6E56B08E3E487A90B7F44 /* CodePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C482469AAF7A4AF1C0F830D2 /* CodePreviewView.swift */; };
+		8D834CDD742E23BD171B30DA /* TypePickerSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F4CA2BA2F58E50927FCEE5F /* TypePickerSheetView.swift */; };
 		9F53A17FC6C503FC1A919D4F /* VisionAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0801B484E8711DAA386A2DF /* VisionAnalysisService.swift */; };
+		A1A6DEA49AC13BEC38CF376B /* ToolbarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9692D6CB458C33DBC28BA91 /* ToolbarButton.swift */; };
 		A80A5088BB3C14E4F8683D1B /* CanvasSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63CEE0AEA930B7F8B83AFCCA /* CanvasSnapshot.swift */; };
 		AC17EB1B88C46BEC9798E0FF /* AnnotationProcesor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112A26675336F0C0883CAADB /* AnnotationProcesor.swift */; };
 		B202969C5EC7F7D103ED76AA /* ChatGPTService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64EA9320DDA162BD563DD9A9 /* ChatGPTService.swift */; };
 		BBB22019BE26D876864E4F62 /* project.yml in Resources */ = {isa = PBXBuildFile; fileRef = A36A012AA6E047396EBBB17E /* project.yml */; };
+		CA0CE59AF9DC9FDAE259CA6C /* BrowserPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AE89B33F6FFC6A3D1E5D2B9 /* BrowserPreviewView.swift */; };
 		CDAFD824DDBB80CF29640607 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7565884C3353639DDF85078A /* ExportService.swift */; };
-		DE3A6C2C87AFAE421419C5DB /* SketchSiteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36B0713A878FB40F45CBAD0E /* SketchSiteTests.swift */; };
 		E8252D3507F91C20C185235D /* ComponentDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A9FEB238E4BC0D48433D35 /* ComponentDetector.swift */; };
-		EC3B898074C85D1E5D58602A /* SketchSiteUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5234C3AAC0625A85AF27789 /* SketchSiteUITests.swift */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		D3E347D2F65B524B73DF7636 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BE71513E0E14490456D60F5A /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 4056AC127B19C7A5D6458F02;
-			remoteInfo = SketchSite;
-		};
-		DAC0FF601CA3B19BDF428066 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BE71513E0E14490456D60F5A /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 4056AC127B19C7A5D6458F02;
-			remoteInfo = SketchSite;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		0C93EC8F15147EE4B21B81E6 /* SketchSiteUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchSiteUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		0E3D4DA2DA6B1C77ED72A483 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		112A26675336F0C0883CAADB /* AnnotationProcesor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationProcesor.swift; sourceTree = "<group>"; };
-		122AEFED7BF6D8EE009931D6 /* .gitignore */ = {isa = PBXFileReference; path = .gitignore; sourceTree = "<group>"; };
+		122AEFED7BF6D8EE009931D6 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		13A9FEB238E4BC0D48433D35 /* ComponentDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentDetector.swift; sourceTree = "<group>"; };
+		2F4CA2BA2F58E50927FCEE5F /* TypePickerSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypePickerSheetView.swift; sourceTree = "<group>"; };
 		36B0713A878FB40F45CBAD0E /* SketchSiteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchSiteTests.swift; sourceTree = "<group>"; };
+		3B3E74812E1065CA00B12C9E /* DiagnosticsRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsRunner.swift; sourceTree = "<group>"; };
 		63CEE0AEA930B7F8B83AFCCA /* CanvasSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasSnapshot.swift; sourceTree = "<group>"; };
 		64EA9320DDA162BD563DD9A9 /* ChatGPTService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatGPTService.swift; sourceTree = "<group>"; };
 		693082C1A91403A8F2A4FCA7 /* LayoutDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutDescriptor.swift; sourceTree = "<group>"; };
-		6AF0ACB720101286675256A1 /* .env */ = {isa = PBXFileReference; path = .env; sourceTree = "<group>"; };
+		6AF0ACB720101286675256A1 /* .env */ = {isa = PBXFileReference; lastKnownFileType = text; path = .env; sourceTree = "<group>"; };
+		72C4CFE478E8885495427A22 /* InspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorView.swift; sourceTree = "<group>"; };
 		7565884C3353639DDF85078A /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
-		813844D8182807DD8CC3343B /* SketchSiteUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SketchSiteUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7AE89B33F6FFC6A3D1E5D2B9 /* BrowserPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserPreviewView.swift; sourceTree = "<group>"; };
 		82ACF3190FD89526B063647A /* RectangleComponentDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RectangleComponentDetector.swift; sourceTree = "<group>"; };
+		9B7A483519B6B2F8957CA69A /* FollowUpChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowUpChatView.swift; sourceTree = "<group>"; };
 		A36A012AA6E047396EBBB17E /* project.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = project.yml; sourceTree = "<group>"; };
-		B8EDE1C89BC517C4F151452C /* SketchSiteTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SketchSiteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A9692D6CB458C33DBC28BA91 /* ToolbarButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarButton.swift; sourceTree = "<group>"; };
 		BB99E54AC987C3053ABADABB /* AnnotationProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationProcessor.swift; sourceTree = "<group>"; };
+		BF6E952BE10CB72D825CF25D /* ComponentOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentOverlayView.swift; sourceTree = "<group>"; };
 		C482469AAF7A4AF1C0F830D2 /* CodePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodePreviewView.swift; sourceTree = "<group>"; };
 		CC127DE801E20515A139BA11 /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
-		D50F5B3032BFADB556AEBB7C /* SketchSite.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SketchSite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D50F5B3032BFADB556AEBB7C /* SketchSite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SketchSite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D5234C3AAC0625A85AF27789 /* SketchSiteUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchSiteUITests.swift; sourceTree = "<group>"; };
 		DF86342ECB4F7B54C62434FF /* SketchSiteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchSiteApp.swift; sourceTree = "<group>"; };
 		F0801B484E8711DAA386A2DF /* VisionAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionAnalysisService.swift; sourceTree = "<group>"; };
@@ -71,8 +65,15 @@
 		343EDB33915A840A83471839 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				7AE89B33F6FFC6A3D1E5D2B9 /* BrowserPreviewView.swift */,
 				CC127DE801E20515A139BA11 /* CanvasView.swift */,
 				C482469AAF7A4AF1C0F830D2 /* CodePreviewView.swift */,
+				BF6E952BE10CB72D825CF25D /* ComponentOverlayView.swift */,
+				9B7A483519B6B2F8957CA69A /* FollowUpChatView.swift */,
+				0E3D4DA2DA6B1C77ED72A483 /* ImagePicker.swift */,
+				72C4CFE478E8885495427A22 /* InspectorView.swift */,
+				A9692D6CB458C33DBC28BA91 /* ToolbarButton.swift */,
+				2F4CA2BA2F58E50927FCEE5F /* TypePickerSheetView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -82,6 +83,7 @@
 			children = (
 				F8FF0CA7FD492D80AE5B500B /* Info.plist */,
 				DF86342ECB4F7B54C62434FF /* SketchSiteApp.swift */,
+				3B3E74812E1065CA00B12C9E /* DiagnosticsRunner.swift */,
 				CFC198C4417DE7ABB9702CE0 /* Services */,
 				ECA3E6B3047F29549ECE0B3B /* SketchSite */,
 				98DDF9C5D7484D0D704AF9DF /* SketchSiteTests */,
@@ -117,8 +119,6 @@
 			isa = PBXGroup;
 			children = (
 				D50F5B3032BFADB556AEBB7C /* SketchSite.app */,
-				B8EDE1C89BC517C4F151452C /* SketchSiteTests.xctest */,
-				813844D8182807DD8CC3343B /* SketchSiteUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -138,12 +138,7 @@
 			children = (
 				6AF0ACB720101286675256A1 /* .env */,
 				122AEFED7BF6D8EE009931D6 /* .gitignore */,
-				F8FF0CA7FD492D80AE5B500B /* Info.plist */,
 				A36A012AA6E047396EBBB17E /* project.yml */,
-				DF86342ECB4F7B54C62434FF /* SketchSiteApp.swift */,
-				CFC198C4417DE7ABB9702CE0 /* Services */,
-				9E2986A0E62B34FF6D9903DC /* Utilities */,
-				343EDB33915A840A83471839 /* Views */,
 			);
 			name = SketchSite;
 			path = .;
@@ -161,24 +156,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		3C1F9DFB3BDED045E5827AB3 /* SketchSiteTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 0EAA2EB6410C837E150E347E /* Build configuration list for PBXNativeTarget "SketchSiteTests" */;
-			buildPhases = (
-				BABA0C80978F83F7E11AF664 /* Sources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				7A9AAF2FAB8E7AA010B2D81C /* PBXTargetDependency */,
-			);
-			name = SketchSiteTests;
-			packageProductDependencies = (
-			);
-			productName = SketchSiteTests;
-			productReference = B8EDE1C89BC517C4F151452C /* SketchSiteTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 		4056AC127B19C7A5D6458F02 /* SketchSite */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 6D5555AB80D03B0DD332C386 /* Build configuration list for PBXNativeTarget "SketchSite" */;
@@ -197,24 +174,6 @@
 			productReference = D50F5B3032BFADB556AEBB7C /* SketchSite.app */;
 			productType = "com.apple.product-type.application";
 		};
-		FC456995F73010626B028C13 /* SketchSiteUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = BA65EC05C5493A1D5579BE69 /* Build configuration list for PBXNativeTarget "SketchSiteUITests" */;
-			buildPhases = (
-				7555B17BCCA328AF3F19357F /* Sources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				1BB16ABE78E4BC9A26844A0E /* PBXTargetDependency */,
-			);
-			name = SketchSiteUITests;
-			packageProductDependencies = (
-			);
-			productName = SketchSiteUITests;
-			productReference = 813844D8182807DD8CC3343B /* SketchSiteUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -223,11 +182,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
-				TargetAttributes = {
-					FC456995F73010626B028C13 = {
-						TestTargetID = 4056AC127B19C7A5D6458F02;
-					};
-				};
 			};
 			buildConfigurationList = 8AB9EB4192DE2F5BD3902D53 /* Build configuration list for PBXProject "SketchSite" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -239,13 +193,10 @@
 			);
 			mainGroup = 6F25D281975492179841C1DE;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 54;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				4056AC127B19C7A5D6458F02 /* SketchSite */,
-				3C1F9DFB3BDED045E5827AB3 /* SketchSiteTests */,
-				FC456995F73010626B028C13 /* SketchSiteUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -268,50 +219,28 @@
 			files = (
 				AC17EB1B88C46BEC9798E0FF /* AnnotationProcesor.swift in Sources */,
 				047A03F35C95277F1D19D233 /* AnnotationProcessor.swift in Sources */,
+				CA0CE59AF9DC9FDAE259CA6C /* BrowserPreviewView.swift in Sources */,
 				A80A5088BB3C14E4F8683D1B /* CanvasSnapshot.swift in Sources */,
 				65C868E6BE0BA6A6656E43A1 /* CanvasView.swift in Sources */,
 				B202969C5EC7F7D103ED76AA /* ChatGPTService.swift in Sources */,
 				88E6E56B08E3E487A90B7F44 /* CodePreviewView.swift in Sources */,
 				E8252D3507F91C20C185235D /* ComponentDetector.swift in Sources */,
+				3B3E74822E1065CA00B12C9E /* DiagnosticsRunner.swift in Sources */,
+				65EF08ED8B12D25858D2263E /* ComponentOverlayView.swift in Sources */,
 				CDAFD824DDBB80CF29640607 /* ExportService.swift in Sources */,
+				2D62D7ED736292DEF9E2CA69 /* FollowUpChatView.swift in Sources */,
+				3DC8832869ABB1E5D75F6106 /* ImagePicker.swift in Sources */,
+				34ACEBF6436ADE8F9FD03BE6 /* InspectorView.swift in Sources */,
 				53CB058FE81866D1AAAAFA55 /* LayoutDescriptor.swift in Sources */,
 				7AFF0197C3D74C4645BAF39D /* RectangleComponentDetector.swift in Sources */,
 				50E55870D3E56B60FE5D1930 /* SketchSiteApp.swift in Sources */,
+				A1A6DEA49AC13BEC38CF376B /* ToolbarButton.swift in Sources */,
+				8D834CDD742E23BD171B30DA /* TypePickerSheetView.swift in Sources */,
 				9F53A17FC6C503FC1A919D4F /* VisionAnalysisService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		7555B17BCCA328AF3F19357F /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				EC3B898074C85D1E5D58602A /* SketchSiteUITests.swift in Sources */,
-				84BB71E204F9E7383E152A1C /* SketchSiteUITestsLaunchTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		BABA0C80978F83F7E11AF664 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				DE3A6C2C87AFAE421419C5DB /* SketchSiteTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		1BB16ABE78E4BC9A26844A0E /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 4056AC127B19C7A5D6458F02 /* SketchSite */;
-			targetProxy = D3E347D2F65B524B73DF7636 /* PBXContainerItemProxy */;
-		};
-		7A9AAF2FAB8E7AA010B2D81C /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 4056AC127B19C7A5D6458F02 /* SketchSite */;
-			targetProxy = DAC0FF601CA3B19BDF428066 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		0432FDD0167A5C2225271C72 /* Debug */ = {
@@ -319,6 +248,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = C8XAFC8DSU;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -327,23 +257,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.SketchSite;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		16ECB3EEC3FF121225136566 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				INFOPLIST_FILE = Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.SketchSiteTests;
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SketchSite.app/SketchSite";
 			};
 			name = Debug;
 		};
@@ -409,62 +322,12 @@
 			};
 			name = Debug;
 		};
-		67F3EFD9776E36B36721ED11 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				INFOPLIST_FILE = Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.SketchSiteUITests;
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = SketchSite;
-			};
-			name = Debug;
-		};
-		A7A38C8C1AE66E9041CB7FD4 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				INFOPLIST_FILE = Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.SketchSiteUITests;
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = SketchSite;
-			};
-			name = Release;
-		};
-		BE6AE7157FA54F4FEB8850F9 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				INFOPLIST_FILE = Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.SketchSiteTests;
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SketchSite.app/SketchSite";
-			};
-			name = Release;
-		};
 		ED8443E3B9E5DC9DCDD45E23 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = C8XAFC8DSU;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -534,15 +397,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		0EAA2EB6410C837E150E347E /* Build configuration list for PBXNativeTarget "SketchSiteTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				16ECB3EEC3FF121225136566 /* Debug */,
-				BE6AE7157FA54F4FEB8850F9 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
 		6D5555AB80D03B0DD332C386 /* Build configuration list for PBXNativeTarget "SketchSite" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -557,15 +411,6 @@
 			buildConfigurations = (
 				5E468D13988B80C530E8FED5 /* Debug */,
 				F55FED40342EB7E4CA774C2F /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
-		BA65EC05C5493A1D5579BE69 /* Build configuration list for PBXNativeTarget "SketchSiteUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				67F3EFD9776E36B36721ED11 /* Debug */,
-				A7A38C8C1AE66E9041CB7FD4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

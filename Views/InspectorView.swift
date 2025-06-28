@@ -11,7 +11,7 @@ struct InspectorView: View {
         Form {
             Section(header: Text("Type")) {
                 Picker("Component Type", selection: $type) {
-                    ForEach(UIComponentType.allCases, id: \.(self)) { t in
+                    ForEach(UIComponentType.allCases, id: \.self) { t in
                         Text(t.rawValue.capitalized).tag(t)
                     }
                 }
@@ -50,6 +50,9 @@ struct InspectorView: View {
             width = component.rect.width
             height = component.rect.height
             if case let .ui(t) = component.type { type = t }
+            if !UIComponentType.allCases.contains(type) {
+                type = UIComponentType.allCases.first ?? .label
+            }
         }
     }
 } 
