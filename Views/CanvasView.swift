@@ -32,6 +32,10 @@ struct CanvasContainerView: View {
     @State private var isAnalyzing = false
     @State private var analysisError: String? = nil
     @State private var showErrorAlert = false
+    @State private var currentStrokeCount = 0
+    
+    // Component selection state
+    @State private var selectedComponentID: UUID? = nil
     
     private let visionService = VisionAnalysisService()
     
@@ -40,10 +44,26 @@ struct CanvasContainerView: View {
             // Full-screen canvas background
             CanvasView(canvasView: $canvasView)
                 .ignoresSafeArea(.all)
-                .onChange(of: canvasView.drawing) { newDrawing in
-                    undoStack.append(newDrawing)
-                    redoStack.removeAll()
+                .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
+                    let newCount = canvasView.drawing.strokes.count
+                    if newCount != currentStrokeCount {
+                        print("📝 Stroke count changed! Old: \(currentStrokeCount), New: \(newCount)")
+                        currentStrokeCount = newCount
+                    }
                 }
+            
+            // Component overlays
+            ForEach(Array(detectedComponents.enumerated()), id: \.element.id) { index, component in
+                ComponentOverlayView(
+                    comp: component,
+                    idx: index,
+                    isSelected: selectedComponentID == component.id,
+                    onTap: {
+                        selectedComponentID = selectedComponentID == component.id ? nil : component.id
+                        print("🔵 Selected component: \(component.type.description)")
+                    }
+                )
+            }
             
             // Top header overlay
             VStack {
@@ -87,6 +107,18 @@ struct CanvasContainerView: View {
                     .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundColor(.primary)
                 Spacer()
+                
+                // Show component count when components are detected
+                if !detectedComponents.isEmpty {
+                    Text("\(detectedComponents.count) components")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(8)
+                }
+                
                 Picker("Model", selection: .constant("gpt-4o")) {
                     Text("gpt-4o").tag("gpt-4o")
                     Text("gpt-3.5").tag("gpt-3.5")
@@ -137,7 +169,10 @@ struct CanvasContainerView: View {
                     }
                     .frame(minWidth: 80)
                 }
-                .disabled(isAnalyzing || canvasView.drawing.strokes.isEmpty)
+                .disabled(isAnalyzing || currentStrokeCount == 0)
+                .onAppear {
+                    print("🔧 Generate button appeared. Initial stroke count: \(canvasView.drawing.strokes.count)")
+                }
                 
                 Spacer()
                 
@@ -177,8 +212,10 @@ struct CanvasContainerView: View {
         undoStack.append(canvasView.drawing)
         canvasView.drawing = PKDrawing()
         redoStack.removeAll()
+        currentStrokeCount = 0
         // Clear detected components when canvas is cleared
         detectedComponents.removeAll()
+        selectedComponentID = nil
     }
 
     private func pick(_ source: UIImagePickerController.SourceType) {
@@ -188,10 +225,17 @@ struct CanvasContainerView: View {
     
     // MARK: - Vision Analysis
     private func generateComponents() {
-        guard !canvasView.drawing.strokes.isEmpty else { return }
+        let strokeCount = canvasView.drawing.strokes.count
+        print("🔥 Generate button tapped! currentStrokeCount: \(currentStrokeCount), actual strokeCount: \(strokeCount)")
+        guard strokeCount > 0 else { 
+            print("❌ No strokes detected, returning early")
+            return 
+        }
         
+        print("✅ Starting analysis...")
         isAnalyzing = true
         analysisError = nil
+        selectedComponentID = nil // Clear selection when regenerating
         
         // Take snapshot of current canvas
         guard let canvasImage = canvasView.snapshotImage() else {
