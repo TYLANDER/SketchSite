@@ -34,14 +34,15 @@ struct CanvasContainerView: View {
     @State private var showErrorAlert = false
     @State private var currentStrokeCount = 0
     
-    // Component selection state
+    // Component selection and inspection state
     @State private var selectedComponentID: UUID? = nil
+    @State private var showInspector = false
     
     private let visionService = VisionAnalysisService()
     
     var body: some View {
         ZStack {
-            // Full-screen canvas background
+            // Full-screen canvas background with tap-to-deselect
             CanvasView(canvasView: $canvasView)
                 .ignoresSafeArea(.all)
                 .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
@@ -51,16 +52,31 @@ struct CanvasContainerView: View {
                         currentStrokeCount = newCount
                     }
                 }
+                .onTapGesture {
+                    // Background tap - deselect any selected component
+                    if selectedComponentID != nil {
+                        selectedComponentID = nil
+                        print("🔘 Deselected component by tapping canvas background")
+                    }
+                }
             
-            // Component overlays
+            // Component overlays with individual tap handling
             ForEach(Array(detectedComponents.enumerated()), id: \.element.id) { index, component in
                 ComponentOverlayView(
                     comp: component,
                     idx: index,
                     isSelected: selectedComponentID == component.id,
                     onTap: {
-                        selectedComponentID = selectedComponentID == component.id ? nil : component.id
-                        print("🔵 Selected component: \(component.type.description)")
+                        print("🔘 Component tap received for: \(component.type.description)")
+                        if selectedComponentID == component.id {
+                            // Tap selected component - open inspector
+                            showInspector = true
+                            print("🔍 Opening inspector for: \(component.type.description)")
+                        } else {
+                            // Tap unselected component - select it
+                            selectedComponentID = component.id
+                            print("🔵 Selected component: \(component.type.description)")
+                        }
                     }
                 )
             }
@@ -88,6 +104,33 @@ struct CanvasContainerView: View {
                 showImagePicker = false
             }
         }
+        .sheet(isPresented: $showInspector) {
+            if let selectedID = selectedComponentID,
+               let componentIndex = detectedComponents.firstIndex(where: { $0.id == selectedID }) {
+                NavigationView {
+                    InspectorView(component: Binding(
+                        get: { 
+                            detectedComponents[componentIndex]
+                        },
+                        set: { newComponent in
+                            detectedComponents[componentIndex] = newComponent
+                            print("✏️ Updated component: \(newComponent.type.description)")
+                        }
+                    ))
+                    .navigationTitle("Edit Component")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { 
+                                showInspector = false
+                                selectedComponentID = nil
+                            }
+                        }
+                    }
+                }
+                .presentationDetents([.medium, .large])
+            }
+        }
         .alert("Analysis Error", isPresented: $showErrorAlert) {
             Button("OK") { }
         } message: {
@@ -107,6 +150,8 @@ struct CanvasContainerView: View {
                     .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundColor(.primary)
                 Spacer()
+                
+
                 
                 // Show component count when components are detected
                 if !detectedComponents.isEmpty {

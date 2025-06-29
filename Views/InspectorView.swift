@@ -15,14 +15,14 @@ struct InspectorView: View {
                         Text(t.rawValue.capitalized).tag(t)
                     }
                 }
-                .onChange(of: type) { newType in
-                    component = DetectedComponent(rect: component.rect, type: .ui(newType), label: component.label)
+                .onChange(of: type) { oldValue, newValue in
+                    component.type = .ui(newValue)
                 }
             }
             Section(header: Text("Label")) {
                 TextField("Label", text: $label)
-                    .onChange(of: label) { newLabel in
-                        component = DetectedComponent(rect: component.rect, type: component.type, label: newLabel)
+                    .onChange(of: label) { oldValue, newValue in
+                        component.label = newValue
                     }
             }
             Section(header: Text("Size")) {
@@ -41,7 +41,7 @@ struct InspectorView: View {
                         .frame(width: 80)
                 }
                 Button("Apply Size") {
-                    component = DetectedComponent(rect: CGRect(x: component.rect.origin.x, y: component.rect.origin.y, width: width, height: height), type: component.type, label: component.label)
+                    component.rect = CGRect(x: component.rect.origin.x, y: component.rect.origin.y, width: width, height: height)
                 }
             }
         }

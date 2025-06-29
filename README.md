@@ -51,6 +51,8 @@ SketchSite is an innovative iOS app that lets you sketch user interface layouts 
   Auto-naming for detected elements; manual renaming and reordering in Inspector.
 - [x] **Open in Browser Preview (WKWebView)**  
   Live HTML/CSS preview inside the app.
+- [ ] **Component Drag & Drop**  
+  Allow users to drag component overlays to reposition them on the canvas.
 - [ ] **Ask ChatGPT Follow-Up (Prompt Chaining UI)**  
   UI for follow-up questions and prompt chaining.
 - [ ] **Model Selector**  

@@ -20,15 +20,20 @@ class VisionAnalysisService {
                 completion([])
                 return
             }
+            print("🔍 Vision detected \(results.count) raw rectangles")
+            for (idx, rect) in results.enumerated() {
+                print("  Raw rect \(idx + 1): \(rect.boundingBox) confidence: \(rect.confidence)")
+            }
             completion(results)
         }
 
-        // You can tweak these for better rectangle detection
-        request.minimumSize = 0.1
-        request.minimumAspectRatio = 0.3
-        request.maximumAspectRatio = 1.0
-        request.minimumConfidence = 0.5
-        request.quadratureTolerance = 20.0
+        // Highly tuned parameters for precise rectangle detection with minimal duplicates
+        request.minimumSize = 0.1   // Larger minimum size to filter out noise and partial detections
+        request.minimumAspectRatio = 0.25  // More restrictive aspect ratios
+        request.maximumAspectRatio = 4.0   // Less extreme aspect ratios
+        request.minimumConfidence = 0.7    // Higher confidence threshold to reduce false positives
+        request.quadratureTolerance = 10.0 // Stricter tolerance for rectangle shape quality
+        request.maximumObservations = 8    // Reduce maximum detections to prevent over-detection
 
         let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
         
@@ -110,6 +115,11 @@ class VisionAnalysisService {
                 let y = (1 - bb.maxY) * canvasSize.height
                 return CGRect(x: x, y: y, width: width, height: height)
             }
+            
+            // Remove duplicate/overlapping rectangles before component detection
+            let deduplicatedRects = self.removeDuplicateRectangles(rects, canvasSize: canvasSize)
+            print("🔍 Deduplicated rectangles: \(rects.count) → \(deduplicatedRects.count)")
+            
             let annotationObjs = AnnotationProcessor.extractAnnotations(from: annotations)
             let annotationDict: [String: CGRect] = Dictionary(uniqueKeysWithValues: annotationObjs.map { ($0.text, $0.position) })
             // Convert annotation rects to canvas coordinates
@@ -120,8 +130,58 @@ class VisionAnalysisService {
                 let y = (1 - bb.maxY) * canvasSize.height
                 return CGRect(x: x, y: y, width: width, height: height)
             }
-            let detected = RectangleComponentDetector.detectComponents(rects: rects, annotations: annotationDictCanvas, canvasSize: canvasSize)
+            let detected = RectangleComponentDetector.detectComponents(rects: deduplicatedRects, annotations: annotationDictCanvas, canvasSize: canvasSize)
             completion(detected)
         }
+    }
+
+    /// Removes duplicate and heavily overlapping rectangles that likely represent the same drawn shape.
+    private func removeDuplicateRectangles(_ rects: [CGRect], canvasSize: CGSize) -> [CGRect] {
+        guard rects.count > 1 else { return rects }
+        
+        var uniqueRects: [CGRect] = []
+        let overlapThreshold: CGFloat = 0.8 // 80% overlap threshold for considering rectangles duplicates
+        
+        for rect in rects.sorted(by: { $0.width * $0.height > $1.width * $1.height }) { // Process larger rectangles first
+            var isDuplicate = false
+            
+            for existingRect in uniqueRects {
+                let intersection = rect.intersection(existingRect)
+                let intersectionArea = intersection.width * intersection.height
+                let rectArea = rect.width * rect.height
+                let existingArea = existingRect.width * existingRect.height
+                
+                // Calculate overlap ratio for both rectangles
+                let overlapRatio1 = intersectionArea / rectArea
+                let overlapRatio2 = intersectionArea / existingArea
+                
+                // If either rectangle is mostly contained within the other, consider it a duplicate
+                if overlapRatio1 > overlapThreshold || overlapRatio2 > overlapThreshold {
+                    print("  🔄 Removing duplicate rect: \(rect) (overlaps \(Int(max(overlapRatio1, overlapRatio2) * 100))% with existing)")
+                    isDuplicate = true
+                    break
+                }
+                
+                // Also check for near-identical rectangles (same position and size within tolerance)
+                let positionTolerance: CGFloat = canvasSize.width * 0.02 // 2% of canvas width
+                let sizeTolerance: CGFloat = min(canvasSize.width, canvasSize.height) * 0.05 // 5% tolerance
+                
+                if abs(rect.midX - existingRect.midX) < positionTolerance &&
+                   abs(rect.midY - existingRect.midY) < positionTolerance &&
+                   abs(rect.width - existingRect.width) < sizeTolerance &&
+                   abs(rect.height - existingRect.height) < sizeTolerance {
+                    print("  🔄 Removing near-identical rect: \(rect)")
+                    isDuplicate = true
+                    break
+                }
+            }
+            
+            if !isDuplicate {
+                uniqueRects.append(rect)
+                print("  ✅ Keeping unique rect: \(rect)")
+            }
+        }
+        
+        return uniqueRects
     }
 }
