@@ -22,6 +22,9 @@ struct ComponentOverlayView: View {
         .topLeft, .topRight, .bottomLeft, .bottomRight,
         .top, .bottom, .left, .right
     ]
+    
+    // Geometry calculator for centralized calculations
+    private let geometryCalculator = GeometryCalculator()
 
     var body: some View {
         ZStack {
@@ -135,28 +138,11 @@ struct ComponentOverlayView: View {
     
     /// Returns the offset for a resize handle relative to the component rectangle center
     private func handleOffset(for position: HandlePosition) -> CGSize {
-        let halfWidth = componentWidth / 2
-        let halfHeight = componentHeight / 2
-        let offset = handleSize / 2
-        
-        switch position {
-        case .topLeft:
-            return CGSize(width: -halfWidth - offset, height: -halfHeight - offset)
-        case .topRight:
-            return CGSize(width: halfWidth + offset, height: -halfHeight - offset)
-        case .bottomLeft:
-            return CGSize(width: -halfWidth - offset, height: halfHeight + offset)
-        case .bottomRight:
-            return CGSize(width: halfWidth + offset, height: halfHeight + offset)
-        case .top:
-            return CGSize(width: 0, height: -halfHeight - offset)
-        case .bottom:
-            return CGSize(width: 0, height: halfHeight + offset)
-        case .left:
-            return CGSize(width: -halfWidth - offset, height: 0)
-        case .right:
-            return CGSize(width: halfWidth + offset, height: 0)
-        }
+        return geometryCalculator.calculateHandleOffset(
+            for: position,
+            componentSize: CGSize(width: componentWidth, height: componentHeight),
+            handleSize: handleSize
+        )
     }
     
     // MARK: - Gesture Handlers
@@ -213,83 +199,15 @@ struct ComponentOverlayView: View {
     // MARK: - Resize Calculation Logic
     
     private func calculateNewRect(for position: HandlePosition, with translation: CGSize) -> CGRect {
-        var newRect = comp.rect
-        let minSize: CGFloat = 20
-        
-        switch position {
-        case .topLeft:
-            let newWidth = max(minSize, comp.rect.width - translation.width)
-            let newHeight = max(minSize, comp.rect.height - translation.height)
-            newRect = CGRect(
-                x: comp.rect.maxX - newWidth,
-                y: comp.rect.maxY - newHeight,
-                width: newWidth,
-                height: newHeight
-            )
-        case .topRight:
-            let newWidth = max(minSize, comp.rect.width + translation.width)
-            let newHeight = max(minSize, comp.rect.height - translation.height)
-            newRect = CGRect(
-                x: comp.rect.minX,
-                y: comp.rect.maxY - newHeight,
-                width: newWidth,
-                height: newHeight
-            )
-        case .bottomLeft:
-            let newWidth = max(minSize, comp.rect.width - translation.width)
-            let newHeight = max(minSize, comp.rect.height + translation.height)
-            newRect = CGRect(
-                x: comp.rect.maxX - newWidth,
-                y: comp.rect.minY,
-                width: newWidth,
-                height: newHeight
-            )
-        case .bottomRight:
-            let newWidth = max(minSize, comp.rect.width + translation.width)
-            let newHeight = max(minSize, comp.rect.height + translation.height)
-            newRect = CGRect(
-                x: comp.rect.minX,
-                y: comp.rect.minY,
-                width: newWidth,
-                height: newHeight
-            )
-        case .top:
-            let newHeight = max(minSize, comp.rect.height - translation.height)
-            newRect = CGRect(
-                x: comp.rect.minX,
-                y: comp.rect.maxY - newHeight,
-                width: comp.rect.width,
-                height: newHeight
-            )
-        case .bottom:
-            let newHeight = max(minSize, comp.rect.height + translation.height)
-            newRect = CGRect(
-                x: comp.rect.minX,
-                y: comp.rect.minY,
-                width: comp.rect.width,
-                height: newHeight
-            )
-        case .left:
-            let newWidth = max(minSize, comp.rect.width - translation.width)
-            newRect = CGRect(
-                x: comp.rect.maxX - newWidth,
-                y: comp.rect.minY,
-                width: newWidth,
-                height: comp.rect.height
-            )
-        case .right:
-            let newWidth = max(minSize, comp.rect.width + translation.width)
-            newRect = CGRect(
-                x: comp.rect.minX,
-                y: comp.rect.minY,
-                width: newWidth,
-                height: comp.rect.height
-            )
-        }
+        let newRect = geometryCalculator.calculateNewRect(
+            for: position,
+            translation: translation,
+            originalRect: comp.rect,
+            minSize: 20
+        )
         
         // Clamp to canvas bounds
-        let canvasBounds = CGRect(x: 0, y: 0, width: canvasSize.width, height: canvasSize.height)
-        return newRect.intersection(canvasBounds)
+        return geometryCalculator.clampRectToCanvas(newRect, canvasSize: canvasSize)
     }
     
     // MARK: - Utility Methods
