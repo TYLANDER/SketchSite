@@ -30,6 +30,7 @@ SketchSite is an innovative iOS app that lets you sketch user interface layouts 
 - **Regenerate Button:** Instantly rerun code generation with the current detection results.
 - **Browser Preview:** Live HTML/CSS preview inside the app using a built-in browser (WKWebView).
 - **Code Preview:** View and copy generated code in a compact, readable window.
+- **Component Library:** Pre-built component templates organized by category with search and quick-add functionality.
 - **XcodeGen Integration:** Project structure is managed via `project.yml` for easy file management and reproducibility.
 
 ---
@@ -51,6 +52,8 @@ SketchSite is an innovative iOS app that lets you sketch user interface layouts 
   Auto-naming for detected elements; manual renaming and reordering in Inspector.
 - [x] **Open in Browser Preview (WKWebView)**  
   Live HTML/CSS preview inside the app.
+- [x] **Component Library**  
+  Pre-built component templates with categorized organization and search functionality.
 - [ ] **Component Drag & Drop**  
   Allow users to drag component overlays to reposition them on the canvas.
 - [ ] **Ask ChatGPT Follow-Up (Prompt Chaining UI)**  
@@ -70,13 +73,14 @@ SketchSite is an innovative iOS app that lets you sketch user interface layouts 
 
 ## Usage
 1. **Draw:** Use your finger or Apple Pencil to sketch UI elements on the canvas.
-2. **Undo/Redo:** Instantly undo or redo your last drawing actions using the toolbar.
-3. **Annotate:** Add text labels to clarify intent (e.g., "CTA", "Profile Image").
-4. **Analyze:** Tap "Generate" to run Vision and AI analysis.
-5. **Edit:** Tap any blue rectangle to open the Inspector and change its type, label, or size.
-6. **Regenerate:** Use the Regenerate button to rerun code generation with the current detection results.
-7. **Preview:** Tap the browser icon to preview your generated HTML/CSS live in the app.
-8. **Export:** Preview, copy, or share the generated code.
+2. **Library:** Tap "Library" to add pre-built components from the organized component library.
+3. **Undo/Redo:** Instantly undo or redo your last drawing actions using the toolbar.
+4. **Annotate:** Add text labels to clarify intent (e.g., "CTA", "Profile Image").
+5. **Analyze:** Tap "Generate" to run Vision and AI analysis.
+6. **Edit:** Tap any blue rectangle to open the Inspector and change its type, label, or size.
+7. **Regenerate:** Use the Regenerate button to rerun code generation with the current detection results.
+8. **Preview:** Tap the browser icon to preview your generated HTML/CSS live in the app.
+9. **Export:** Preview, copy, or share the generated code.
 
 ---
 
