@@ -53,6 +53,7 @@ struct CanvasContainerView: View {
     @State private var showBrowserPreview = false
     @State private var selectedModel = "gpt-4o"
     @State private var showInspector = false
+    @State private var showComponentLibrary = false
     
     // Canvas size tracking
     @State private var canvasSize: CGSize = UIScreen.main.bounds.size
@@ -199,6 +200,11 @@ struct CanvasContainerView: View {
                         }
                 }
             }
+            .sheet(isPresented: $showComponentLibrary) {
+                ComponentLibraryView { template in
+                    addLibraryComponent(template)
+                }
+            }
         }
     }
 
@@ -273,6 +279,16 @@ struct CanvasContainerView: View {
                         .font(.title2)
                 }
                 .disabled(!canvasStateManager.canRedo)
+                
+                // Component Library button
+                Button(action: { showComponentLibrary = true }) {
+                    VStack(spacing: 2) {
+                        Image(systemName: "square.grid.2x2")
+                            .font(.title2)
+                        Text("Library")
+                            .font(.caption)
+                    }
+                }
                 
                 Spacer()
                 
@@ -475,6 +491,22 @@ struct CanvasContainerView: View {
 
         Please provide only the complete HTML file with embedded CSS. No explanations needed.
         """
+    }
+    
+    // MARK: - Component Library
+    
+    private func addLibraryComponent(_ template: ComponentTemplate) {
+        // Calculate center position with slight randomization to avoid overlapping
+        let centerX = canvasSize.width / 2 + CGFloat.random(in: -50...50)
+        let centerY = canvasSize.height / 2 + CGFloat.random(in: -50...50)
+        let position = CGPoint(x: centerX, y: centerY)
+        
+        componentManager.addLibraryComponent(from: template, at: position)
+        print("📚 Added library component: \(template.name)")
+        
+        // Provide haptic feedback
+        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+        impactFeedback.impactOccurred()
     }
 }
 

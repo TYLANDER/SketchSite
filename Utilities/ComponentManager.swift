@@ -33,6 +33,14 @@ class ComponentManager: ObservableObject {
         print("➕ ComponentManager: Added component \(component.type.description)")
     }
     
+    func addLibraryComponent(from template: ComponentTemplate, at position: CGPoint? = nil) {
+        let targetPosition = position ?? CGPoint(x: canvasSize.width / 2, y: canvasSize.height / 2)
+        let component = ComponentLibrary.shared.createComponent(from: template, at: targetPosition, canvasSize: canvasSize)
+        addComponent(component)
+        selectComponent(withID: component.id)
+        print("📚 ComponentManager: Added library component '\(template.name)' at \(targetPosition)")
+    }
+    
     func removeComponent(withID id: UUID) {
         components.removeAll { $0.id == id }
         if selectedComponentID == id {
