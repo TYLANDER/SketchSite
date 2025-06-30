@@ -106,14 +106,27 @@ class VisionAnalysisService {
         }
 
         dispatchGroup.notify(queue: .main) {
-            // Convert Vision boundingBoxes to canvas coordinates
-            let rects: [CGRect] = rectangles.map { rect in
+            // Convert Vision boundingBoxes to canvas coordinates and clamp to canvas bounds
+            let rects: [CGRect] = rectangles.compactMap { rect in
                 let bb = rect.boundingBox
                 let width = bb.width * canvasSize.width
                 let height = bb.height * canvasSize.height
                 let x = bb.minX * canvasSize.width
                 let y = (1 - bb.maxY) * canvasSize.height
-                return CGRect(x: x, y: y, width: width, height: height)
+                
+                let originalRect = CGRect(x: x, y: y, width: width, height: height)
+                
+                // Clamp rectangle to canvas bounds
+                let canvasBounds = CGRect(x: 0, y: 0, width: canvasSize.width, height: canvasSize.height)
+                let clampedRect = originalRect.intersection(canvasBounds)
+                
+                // Only keep rectangles that have meaningful size after clamping
+                guard clampedRect.width > 10 && clampedRect.height > 10 else {
+                    print("  ❌ Filtered out rect outside canvas bounds: \(originalRect)")
+                    return nil
+                }
+                
+                return clampedRect
             }
             
             // Remove duplicate/overlapping rectangles before component detection

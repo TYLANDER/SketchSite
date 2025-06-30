@@ -5,16 +5,31 @@ import PhotosUI
 /// A UIViewRepresentable wrapper for PKCanvasView, enabling PencilKit drawing in SwiftUI.
 struct CanvasView: UIViewRepresentable {
     @Binding var canvasView: PKCanvasView
+    let isDrawingEnabled: Bool
 
     func makeUIView(context: Context) -> PKCanvasView {
         canvasView.drawingPolicy = .anyInput
         canvasView.backgroundColor = .clear
         canvasView.translatesAutoresizingMaskIntoConstraints = false
+        updateDrawingState()
         return canvasView
     }
 
     func updateUIView(_ uiView: PKCanvasView, context: Context) {
-        // Leave blank — all state is managed by PKCanvasView itself
+        updateDrawingState()
+    }
+    
+    private func updateDrawingState() {
+        if isDrawingEnabled {
+            // Enable drawing - set default tool
+            canvasView.tool = PKInkingTool(.pen, color: .black, width: 2)
+            canvasView.isUserInteractionEnabled = true
+            print("🎨 Drawing enabled")
+        } else {
+            // Disable drawing by setting user interaction to false
+            canvasView.isUserInteractionEnabled = false
+            print("🚫 Drawing disabled - component selected")
+        }
     }
 }
 
@@ -34,107 +49,168 @@ struct CanvasContainerView: View {
     @State private var showErrorAlert = false
     @State private var currentStrokeCount = 0
     
+    // Code generation state
+    @State private var generatedCode: String = ""
+    @State private var isGeneratingCode = false
+    @State private var showCodePreview = false
+    @State private var showBrowserPreview = false
+    @State private var selectedModel = "gpt-4o"
+    
     // Component selection and inspection state
     @State private var selectedComponentID: UUID? = nil
     @State private var showInspector = false
     
+    // Canvas size tracking
+    @State private var canvasSize: CGSize = UIScreen.main.bounds.size
+    
     private let visionService = VisionAnalysisService()
     
     var body: some View {
-        ZStack {
-            // Full-screen canvas background with tap-to-deselect
-            CanvasView(canvasView: $canvasView)
-                .ignoresSafeArea(.all)
-                .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
-                    let newCount = canvasView.drawing.strokes.count
-                    if newCount != currentStrokeCount {
-                        print("📝 Stroke count changed! Old: \(currentStrokeCount), New: \(newCount)")
-                        currentStrokeCount = newCount
+        GeometryReader { geometry in
+            ZStack {
+                // Full-screen canvas background with tap-to-deselect
+                CanvasView(canvasView: $canvasView, isDrawingEnabled: selectedComponentID == nil)
+                    .ignoresSafeArea(.all)
+                    .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
+                        let newCount = canvasView.drawing.strokes.count
+                        if newCount != currentStrokeCount {
+                            print("📝 Stroke count changed! Old: \(currentStrokeCount), New: \(newCount)")
+                            currentStrokeCount = newCount
+                        }
+                        
+                        // Update canvas size from geometry
+                        let newSize = geometry.size
+                        if newSize != canvasSize {
+                            canvasSize = newSize
+                            print("📐 Canvas size updated: \(canvasSize)")
+                        }
                     }
+                
+                // Invisible overlay to handle background taps when component is selected
+                if selectedComponentID != nil {
+                    Color.clear
+                        .ignoresSafeArea(.all)
+                        .onTapGesture {
+                            selectedComponentID = nil
+                            print("🔘 Deselected component by tapping background")
+                        }
+                        .allowsHitTesting(true)
                 }
-                .onTapGesture {
-                    // Background tap - deselect any selected component
-                    if selectedComponentID != nil {
-                        selectedComponentID = nil
-                        print("🔘 Deselected component by tapping canvas background")
-                    }
-                }
-            
-            // Component overlays with individual tap handling
-            ForEach(Array(detectedComponents.enumerated()), id: \.element.id) { index, component in
-                ComponentOverlayView(
-                    comp: component,
-                    idx: index,
-                    isSelected: selectedComponentID == component.id,
-                    onTap: {
-                        print("🔘 Component tap received for: \(component.type.description)")
-                        if selectedComponentID == component.id {
-                            // Tap selected component - open inspector
+                
+                // Component overlays with individual tap, drag, and resize handling
+                ForEach(Array(detectedComponents.enumerated()), id: \.element.id) { index, component in
+                    ComponentOverlayView(
+                        comp: component,
+                        idx: index,
+                        isSelected: selectedComponentID == component.id,
+                        onTap: {
+                            print("🔘 Component tap received for: \(component.type.description)")
+                            if selectedComponentID == component.id {
+                                // Tap selected component - deselect it
+                                selectedComponentID = nil
+                                print("🔘 Deselected component: \(component.type.description)")
+                            } else {
+                                // Tap unselected component - select it
+                                selectedComponentID = component.id
+                                print("🔵 Selected component: \(component.type.description)")
+                            }
+                        },
+                        onDrag: { newPosition in
+                            updateComponentPosition(at: index, to: newPosition)
+                        },
+                        onResize: { newRect in
+                            updateComponentSize(at: index, to: newRect)
+                        },
+                        onInspect: {
                             showInspector = true
                             print("🔍 Opening inspector for: \(component.type.description)")
-                        } else {
-                            // Tap unselected component - select it
-                            selectedComponentID = component.id
-                            print("🔵 Selected component: \(component.type.description)")
-                        }
-                    }
-                )
-            }
-            
-            // Top header overlay
-            VStack {
-                topBar
-                Spacer()
-            }
-            .ignoresSafeArea(.all)
-            
-            // Bottom toolbar overlay
-            VStack {
-                Spacer()
-                bottomToolbar
-            }
-            .ignoresSafeArea(.all)
-        }
-        .sheet(isPresented: $showImagePicker) {
-            ImagePicker(sourceType: imagePickerSource) { image in
-                if let img = image {
-                    selectedImage = img
-                    // run VisionKit analysis here if needed
-                }
-                showImagePicker = false
-            }
-        }
-        .sheet(isPresented: $showInspector) {
-            if let selectedID = selectedComponentID,
-               let componentIndex = detectedComponents.firstIndex(where: { $0.id == selectedID }) {
-                NavigationView {
-                    InspectorView(component: Binding(
-                        get: { 
-                            detectedComponents[componentIndex]
                         },
-                        set: { newComponent in
-                            detectedComponents[componentIndex] = newComponent
-                            print("✏️ Updated component: \(newComponent.type.description)")
-                        }
-                    ))
-                    .navigationTitle("Edit Component")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") { 
-                                showInspector = false
-                                selectedComponentID = nil
+                        canvasSize: canvasSize
+                    )
+                    .allowsHitTesting(true) // Ensure component overlays can receive touches
+                    .background(Color.clear) // Transparent background for touch handling
+                }
+                
+                // Top header overlay
+                VStack {
+                    topBar
+                    Spacer()
+                }
+                .ignoresSafeArea(.all)
+                
+                // Bottom toolbar overlay
+                VStack {
+                    Spacer()
+                    bottomToolbar
+                }
+                .ignoresSafeArea(.all)
+            }
+            .onAppear {
+                canvasSize = geometry.size
+                print("📐 Initial canvas size: \(canvasSize)")
+            }
+            .sheet(isPresented: $showImagePicker) {
+                ImagePicker(sourceType: imagePickerSource) { image in
+                    if let img = image {
+                        selectedImage = img
+                        // run VisionKit analysis here if needed
+                    }
+                    showImagePicker = false
+                }
+            }
+            .sheet(isPresented: $showInspector) {
+                if let selectedID = selectedComponentID,
+                   let componentIndex = detectedComponents.firstIndex(where: { $0.id == selectedID }) {
+                    NavigationView {
+                        InspectorView(component: Binding(
+                            get: { 
+                                detectedComponents[componentIndex]
+                            },
+                            set: { newComponent in
+                                detectedComponents[componentIndex] = newComponent
+                                print("✏️ Updated component: \(newComponent.type.description)")
+                            }
+                        ))
+                        .navigationTitle("Edit Component")
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Done") { 
+                                    showInspector = false
+                                    selectedComponentID = nil
+                                }
                             }
                         }
                     }
+                    .presentationDetents([.medium, .large])
                 }
-                .presentationDetents([.medium, .large])
             }
-        }
-        .alert("Analysis Error", isPresented: $showErrorAlert) {
-            Button("OK") { }
-        } message: {
-            Text(analysisError ?? "Unknown error occurred")
+            .alert("Analysis Error", isPresented: $showErrorAlert) {
+                Button("OK") { }
+            } message: {
+                Text(analysisError ?? "Unknown error occurred")
+            }
+            .sheet(isPresented: $showCodePreview) {
+                CodePreviewView(code: generatedCode)
+            }
+            .sheet(isPresented: $showBrowserPreview) {
+                NavigationView {
+                    BrowserPreviewView(html: generatedCode)
+                        .navigationTitle("Live Preview")
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Done") { showBrowserPreview = false }
+                            }
+                            ToolbarItem(placement: .primaryAction) {
+                                Button("View Code") { 
+                                    showBrowserPreview = false
+                                    showCodePreview = true
+                                }
+                            }
+                        }
+                }
+            }
         }
     }
 
@@ -146,9 +222,21 @@ struct CanvasContainerView: View {
                 .frame(height: 50)
             
             HStack {
-                Text("SketchSite")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(.primary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("SketchSite")
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundColor(.primary)
+                    
+                    if selectedComponentID != nil {
+                        Text("Component selected • Tap to deselect")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                    } else {
+                        Text("Draw mode • Tap component to select")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
                 Spacer()
                 
 
@@ -164,9 +252,10 @@ struct CanvasContainerView: View {
                         .cornerRadius(8)
                 }
                 
-                Picker("Model", selection: .constant("gpt-4o")) {
+                Picker("Model", selection: $selectedModel) {
                     Text("gpt-4o").tag("gpt-4o")
-                    Text("gpt-3.5").tag("gpt-3.5")
+                    Text("gpt-3.5-turbo").tag("gpt-3.5-turbo")
+                    Text("claude-3-opus").tag("claude-3-opus")
                 }
                 .pickerStyle(MenuPickerStyle())
             }
@@ -221,6 +310,38 @@ struct CanvasContainerView: View {
                 
                 Spacer()
                 
+                // Code generation and preview buttons
+                if !detectedComponents.isEmpty {
+                    Button(action: generateCode) {
+                        HStack(spacing: 4) {
+                            if isGeneratingCode {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            } else {
+                                Image(systemName: "doc.text")
+                                    .font(.title2)
+                            }
+                            Text(isGeneratingCode ? "Generating..." : "Code")
+                                .font(.caption)
+                        }
+                        .frame(minWidth: 70)
+                    }
+                    .disabled(isGeneratingCode)
+                    
+                    if !generatedCode.isEmpty {
+                        Button(action: { showBrowserPreview = true }) {
+                            VStack(spacing: 2) {
+                                Image(systemName: "safari")
+                                    .font(.title2)
+                                Text("Preview")
+                                    .font(.caption)
+                            }
+                        }
+                    }
+                    
+                    Spacer()
+                }
+                
                 Button(action: { pick(.camera) }) {
                     Image(systemName: "camera")
                         .font(.title2)
@@ -258,9 +379,11 @@ struct CanvasContainerView: View {
         canvasView.drawing = PKDrawing()
         redoStack.removeAll()
         currentStrokeCount = 0
-        // Clear detected components when canvas is cleared
+        // Clear EVERYTHING when canvas is cleared - complete reset
         detectedComponents.removeAll()
         selectedComponentID = nil
+        generatedCode = ""
+        print("🗑️ Canvas completely cleared - all components and code removed")
     }
 
     private func pick(_ source: UIImagePickerController.SourceType) {
@@ -277,10 +400,11 @@ struct CanvasContainerView: View {
             return 
         }
         
-        print("✅ Starting analysis...")
+        print("✅ Starting cumulative analysis...")
         isAnalyzing = true
         analysisError = nil
         selectedComponentID = nil // Clear selection when regenerating
+        // Note: Keep existing components and code - we'll add new detections to existing ones
         
         // Take snapshot of current canvas
         guard let canvasImage = canvasView.snapshotImage() else {
@@ -291,25 +415,223 @@ struct CanvasContainerView: View {
         }
         
         // Get canvas size for coordinate conversion
-        let canvasSize = canvasView.bounds.size
+        let analysisCanvasSize = canvasSize
+        print("📐 Using canvas size for analysis: \(analysisCanvasSize)")
         
         // Run Vision analysis
-        visionService.detectLayoutAndAnnotations(in: canvasImage, canvasSize: canvasSize) { components in
+        visionService.detectLayoutAndAnnotations(in: canvasImage, canvasSize: analysisCanvasSize) { newComponents in
             DispatchQueue.main.async {
                 self.isAnalyzing = false
                 
-                if components.isEmpty {
-                    self.analysisError = "No UI components detected. Try drawing clearer rectangles or shapes."
-                    self.showErrorAlert = true
+                if newComponents.isEmpty {
+                    if self.detectedComponents.isEmpty {
+                        self.analysisError = "No UI components detected. Try drawing clearer rectangles or shapes."
+                        self.showErrorAlert = true
+                    } else {
+                        print("ℹ️ No new components detected, keeping existing \(self.detectedComponents.count) components")
+                    }
                 } else {
-                    self.detectedComponents = components
-                    print("✅ Detected \(components.count) components:")
-                    for (idx, comp) in components.enumerated() {
+                    // Merge new components with existing ones, avoiding duplicates
+                    let mergedComponents = self.mergeComponents(existing: self.detectedComponents, new: newComponents)
+                    self.detectedComponents = mergedComponents
+                    
+                    let totalCount = mergedComponents.count
+                    let newCount = newComponents.count
+                    print("✅ Analysis complete: \(newCount) new + \(totalCount - newCount) existing = \(totalCount) total components:")
+                    for (idx, comp) in mergedComponents.enumerated() {
                         print("  \(idx + 1). \(comp.type.description) at \(comp.rect)")
                     }
                 }
             }
         }
+    }
+    
+    // MARK: - Component Position Updates
+    
+    /// Updates the position of a component after it has been dragged.
+    private func updateComponentPosition(at index: Int, to newPosition: CGPoint) {
+        guard index < detectedComponents.count else {
+            print("❌ Invalid component index: \(index)")
+            return
+        }
+        
+        let component = detectedComponents[index]
+        let oldRect = component.rect
+        
+        // Calculate new rect maintaining the same size but updating position
+        // newPosition represents the center point of the component
+        let newRect = CGRect(
+            x: newPosition.x - oldRect.width / 2,
+            y: newPosition.y - oldRect.height / 2,
+            width: oldRect.width,
+            height: oldRect.height
+        )
+        
+        // Clamp the new rect to canvas bounds
+        let clampedRect = clampRectToCanvas(newRect, canvasSize: canvasSize)
+        
+        // Update the component
+        detectedComponents[index].rect = clampedRect
+        
+        print("📍 Updated component \(index + 1) position:")
+        print("   Old: \(oldRect)")
+        print("   New: \(clampedRect)")
+        
+        // If this component was selected, keep it selected
+        if selectedComponentID == component.id {
+            print("🔄 Maintaining selection for moved component")
+        }
+    }
+    
+    /// Updates the size of a component after it has been resized.
+    private func updateComponentSize(at index: Int, to newRect: CGRect) {
+        guard index < detectedComponents.count else {
+            print("❌ Invalid component index: \(index)")
+            return
+        }
+        
+        let component = detectedComponents[index]
+        let oldRect = component.rect
+        
+        // Clamp the new rect to canvas bounds
+        let clampedRect = clampRectToCanvas(newRect, canvasSize: canvasSize)
+        
+        // Update the component
+        detectedComponents[index].rect = clampedRect
+        
+        print("📏 Updated component \(index + 1) size:")
+        print("   Old: \(oldRect)")
+        print("   New: \(clampedRect)")
+        
+        // If this component was selected, keep it selected
+        if selectedComponentID == component.id {
+            print("🔄 Maintaining selection for resized component")
+        }
+    }
+    
+    /// Clamps a rectangle to stay within canvas bounds.
+    private func clampRectToCanvas(_ rect: CGRect, canvasSize: CGSize) -> CGRect {
+        let canvasBounds = CGRect(x: 0, y: 0, width: canvasSize.width, height: canvasSize.height)
+        
+        var clampedRect = rect
+        
+        // Ensure the rectangle doesn't go outside the left or right edges
+        if clampedRect.minX < canvasBounds.minX {
+            clampedRect.origin.x = canvasBounds.minX
+        } else if clampedRect.maxX > canvasBounds.maxX {
+            clampedRect.origin.x = canvasBounds.maxX - clampedRect.width
+        }
+        
+        // Ensure the rectangle doesn't go outside the top or bottom edges
+        if clampedRect.minY < canvasBounds.minY {
+            clampedRect.origin.y = canvasBounds.minY
+        } else if clampedRect.maxY > canvasBounds.maxY {
+            clampedRect.origin.y = canvasBounds.maxY - clampedRect.height
+        }
+        
+        return clampedRect
+    }
+    
+    // MARK: - Component Merging
+    
+    /// Merges new components with existing ones, avoiding duplicates based on position and size similarity.
+    private func mergeComponents(existing: [DetectedComponent], new: [DetectedComponent]) -> [DetectedComponent] {
+        var merged = existing
+        let positionTolerance: CGFloat = 30.0 // pixels
+        let sizeTolerance: CGFloat = 20.0 // pixels
+        
+        for newComponent in new {
+            var isDuplicate = false
+            
+            // Check if this new component is similar to any existing component
+            for existingComponent in existing {
+                let positionDistance = hypot(
+                    newComponent.rect.midX - existingComponent.rect.midX,
+                    newComponent.rect.midY - existingComponent.rect.midY
+                )
+                let sizeDistance = hypot(
+                    newComponent.rect.width - existingComponent.rect.width,
+                    newComponent.rect.height - existingComponent.rect.height
+                )
+                
+                if positionDistance < positionTolerance && sizeDistance < sizeTolerance {
+                    print("🔄 Skipping duplicate component: \(newComponent.type.description) at \(newComponent.rect)")
+                    isDuplicate = true
+                    break
+                }
+            }
+            
+            if !isDuplicate {
+                merged.append(newComponent)
+                print("➕ Added new component: \(newComponent.type.description) at \(newComponent.rect)")
+            }
+        }
+        
+        return merged
+    }
+    
+    // MARK: - Code Generation
+    private func generateCode() {
+        guard !detectedComponents.isEmpty else { return }
+        
+        print("🎨 Starting code generation for \(detectedComponents.count) components...")
+        isGeneratingCode = true
+        
+        // Create layout description
+        let canvasSize = canvasView.bounds.size
+        let layoutDescription = LayoutDescriptor.describe(components: detectedComponents, canvasSize: canvasSize)
+        
+        // Build comprehensive prompt
+        let prompt = buildCodeGenerationPrompt(layoutDescription: layoutDescription, canvasSize: canvasSize)
+        
+        // Generate code using ChatGPT
+        ChatGPTService.shared.generateCode(prompt: prompt, model: selectedModel) { result in
+            DispatchQueue.main.async {
+                self.isGeneratingCode = false
+                
+                switch result {
+                case .success(let code):
+                    self.generatedCode = code
+                    self.showCodePreview = true
+                    print("✅ Code generation successful! Generated \(code.count) characters")
+                    
+                case .failure(let error):
+                    self.analysisError = "Code generation failed: \(error.localizedDescription)"
+                    self.showErrorAlert = true
+                    print("❌ Code generation failed: \(error)")
+                }
+            }
+        }
+    }
+    
+    private func buildCodeGenerationPrompt(layoutDescription: String, canvasSize: CGSize) -> String {
+        return """
+        You are an expert frontend developer. Generate clean, modern HTML and CSS code based on this UI sketch analysis.
+
+        **Canvas Size:** \(Int(canvasSize.width)) × \(Int(canvasSize.height)) pixels
+
+        **Detected Components:**
+        \(layoutDescription)
+
+        **Requirements:**
+        - Generate complete, valid HTML5 with embedded CSS
+        - Use modern CSS (flexbox/grid for layout)
+        - Make it responsive and mobile-friendly
+        - Use semantic HTML elements
+        - Include hover effects and smooth transitions
+        - Use a modern color scheme (avoid default browser styles)
+        - Make buttons and interactive elements accessible
+        - Include proper meta tags and viewport settings
+
+        **Style Guidelines:**
+        - Use a clean, professional design system
+        - Consistent spacing and typography
+        - Subtle shadows and rounded corners where appropriate
+        - Modern color palette (consider blues, grays, whites)
+        - Ensure good contrast for accessibility
+
+        Please provide only the complete HTML file with embedded CSS. No explanations needed.
+        """
     }
 }
 
