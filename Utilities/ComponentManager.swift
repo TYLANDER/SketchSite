@@ -209,9 +209,10 @@ class ComponentManager: ObservableObject {
             return
         }
         
+        let oldRect = components[index].rect
         let clampedRect = geometryCalculator.clampRectToCanvas(newRect, canvasSize: canvasSize)
         components[index].rect = clampedRect
-        print("📏 ComponentManager: Updated component \(index) size to \(clampedRect)")
+        print("📏 ComponentManager: Updated component \(index) size from \(oldRect) to \(clampedRect)")
     }
 }
 

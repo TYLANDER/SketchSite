@@ -16,6 +16,8 @@ struct ComponentOverlayView: View {
     @State private var isDragging: Bool = false
     @State private var isResizing: Bool = false
     @State private var isLongPressing: Bool = false
+    @State private var longPressProgress: CGFloat = 0.0
+    @State private var showInspectorHighlight: Bool = false
     
     // Resize handle properties
     private let handleSize: CGFloat = 10
@@ -35,8 +37,10 @@ struct ComponentOverlayView: View {
                 .onTapGesture {
                     handleTap()
                 }
-                .onLongPressGesture(minimumDuration: 0.6, maximumDistance: 10) {
+                .onLongPressGesture(minimumDuration: 0.4, maximumDistance: 10) {
                     handleLongPress()
+                } onPressingChanged: { pressing in
+                    handleLongPressStateChange(pressing: pressing)
                 }
                 .simultaneousGesture(dragGesture) // Allow dragging regardless of selection state
             
@@ -60,10 +64,71 @@ struct ComponentOverlayView: View {
     
     private var componentRectangle: some View {
         Rectangle()
-            .stroke(strokeColor, lineWidth: isDragging ? 3 : 2)
-            .background(strokeColor.opacity(isDragging ? 0.3 : 0.2))
+            .stroke(strokeColor, lineWidth: strokeLineWidth)
+            .background(strokeColor.opacity(backgroundOpacity))
             .frame(width: componentWidth, height: componentHeight)
-            .shadow(color: isDragging ? .black.opacity(0.3) : .clear, radius: isDragging ? 8 : 0, x: 0, y: 4)
+            .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: 4)
+            .scaleEffect(componentScale)
+            .overlay(
+                // Inspector highlight glow
+                Rectangle()
+                    .stroke(Color.white, lineWidth: 2)
+                    .opacity(showInspectorHighlight ? 0.6 : 0)
+                    .blur(radius: 4)
+            )
+            .animation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 0), value: componentScale)
+            .animation(.easeInOut(duration: 0.2), value: showInspectorHighlight)
+            .animation(.spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0), value: strokeColor)
+    }
+    
+    private var strokeLineWidth: CGFloat {
+        if isDragging || isResizing {
+            return 3
+        } else if showInspectorHighlight {
+            return 2.5
+        } else {
+            return 2
+        }
+    }
+    
+    private var backgroundOpacity: CGFloat {
+        if isDragging || isResizing {
+            return 0.3
+        } else if showInspectorHighlight {
+            return 0.25
+        } else {
+            return 0.2
+        }
+    }
+    
+    private var shadowColor: Color {
+        if isDragging {
+            return .black.opacity(0.3)
+        } else if showInspectorHighlight {
+            return strokeColor.opacity(0.4)
+        } else {
+            return .clear
+        }
+    }
+    
+    private var shadowRadius: CGFloat {
+        if isDragging {
+            return 8
+        } else if showInspectorHighlight {
+            return 6
+        } else {
+            return 0
+        }
+    }
+    
+    private var componentScale: CGFloat {
+        if isDragging {
+            return 1.0
+        } else if showInspectorHighlight && longPressProgress > 0.5 {
+            return 1.05
+        } else {
+            return 1.0
+        }
     }
     
     // MARK: - Resize Handles as Component Attributes
@@ -109,6 +174,8 @@ struct ComponentOverlayView: View {
     private var strokeColor: Color {
         if isDragging || isResizing {
             return .green
+        } else if showInspectorHighlight {
+            return .purple
         } else if isSelected {
             return .orange
         } else {
@@ -149,6 +216,9 @@ struct ComponentOverlayView: View {
             .onChanged { value in
                 if !isDragging && !isResizing && !isLongPressing {
                     isDragging = true
+                    // Cancel long press feedback when dragging starts
+                    showInspectorHighlight = false
+                    longPressProgress = 0.0
                     print("🤏 Started dragging component \(idx + 1): \(comp.type.description)")
                 }
                 if isDragging {
@@ -174,11 +244,53 @@ struct ComponentOverlayView: View {
         }
     }
     
+    private func handleLongPressStateChange(pressing: Bool) {
+        if !isDragging && !isResizing {
+            if pressing {
+                // Start long press feedback
+                showInspectorHighlight = true
+                longPressProgress = 0.0
+                
+                // Light haptic feedback at start
+                provideTactileFeedback(.light)
+                print("🔍 Started long press on component \(idx + 1)")
+                
+                // Progressive feedback animation
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    longPressProgress = 1.0
+                }
+                
+                // Medium haptic at halfway point
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    if self.showInspectorHighlight && !self.isDragging && !self.isResizing {
+                        self.provideTactileFeedback(.medium)
+                    }
+                }
+                
+            } else {
+                // Cancelled long press
+                showInspectorHighlight = false
+                longPressProgress = 0.0
+                print("🔍 Cancelled long press on component \(idx + 1)")
+            }
+        }
+    }
+    
     private func handleLongPress() {
         if !isDragging && !isResizing {
             isLongPressing = true
-            print("🔍 Long press detected on component \(idx + 1) - opening inspector")
-            provideTactileFeedback(.heavy) // Strong haptic feedback for inspector
+            showInspectorHighlight = false
+            longPressProgress = 0.0
+            
+            print("🔍 Long press completed on component \(idx + 1) - opening inspector")
+            
+            // Strong haptic feedback for inspector opening
+            provideTactileFeedback(.heavy)
+            
+            // Select component if not already selected (auto-selection)
+            onTap()
+            
+            // Open inspector
             onInspect()
             
             // Reset long press state after a short delay
@@ -192,10 +304,14 @@ struct ComponentOverlayView: View {
     
     private func handleResizeStart() {
         isResizing = true
+        // Cancel long press feedback when resizing starts
+        showInspectorHighlight = false
+        longPressProgress = 0.0
     }
     
     private func handleResize(position: HandlePosition, translation: CGSize) {
         let newRect = calculateNewRect(for: position, with: translation)
+        print("🔧 Resize handle \(position): translation=\(translation), newRect=\(newRect)")
         onResize(newRect)
     }
     
@@ -241,26 +357,26 @@ struct ResizeHandle: View {
     let onResizeEnd: () -> Void
     
     @State private var isBeingDragged = false
-    private let handleSize: CGFloat = 10 // Made smaller as requested
+    private let handleSize: CGFloat = 12 // Back to larger size for easier interaction
     
     var body: some View {
         ZStack {
             // Larger invisible touch area for easier interaction
-            Rectangle()
+            Circle()
                 .fill(Color.clear)
-                .frame(width: handleSize + 8, height: handleSize + 8)
-                .contentShape(Rectangle())
+                .frame(width: handleSize + 12, height: handleSize + 12)
+                .contentShape(Circle())
             
-            // Visible handle - changed to white square
-            Rectangle()
+            // Visible handle - back to white circle
+            Circle()
                 .fill(Color.white)
                 .overlay(
-                    Rectangle()
-                        .stroke(isBeingDragged ? Color.green : Color.gray.opacity(0.5), lineWidth: 1)
+                    Circle()
+                        .stroke(isBeingDragged ? Color.green : Color.blue, lineWidth: 2)
                 )
                 .frame(width: handleSize, height: handleSize)
-                .scaleEffect(isBeingDragged ? 1.2 : 1.0) // Subtle scaling
-                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                .scaleEffect(isBeingDragged ? 1.3 : 1.0) // More pronounced scaling
+                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
         }
         .simultaneousGesture(
             DragGesture(minimumDistance: 0) // Allow immediate response
@@ -278,7 +394,7 @@ struct ResizeHandle: View {
                     print("🔧 Finished resizing with \(position) handle")
                 }
         )
-        .animation(.easeInOut(duration: 0.15), value: isBeingDragged)
+        .animation(.easeInOut(duration: 0.2), value: isBeingDragged)
         .zIndex(2000) // Highest possible z-index for handles
         .allowsHitTesting(true) // Ensure this view can receive touches
     }

@@ -166,17 +166,25 @@ struct CanvasContainerView: View {
             }
         }
         .sheet(isPresented: $showInspector) {
-            if let selectedID = componentManager.selectedComponentID,
-               let componentIndex = componentManager.components.firstIndex(where: { $0.id == selectedID }) {
+            if let selectedID = componentManager.selectedComponentID {
                 NavigationView {
-                    InspectorView(component: Binding(
-                        get: { 
-                            componentManager.components[componentIndex]
-                        },
-                        set: { newComponent in
-                            componentManager.updateComponent(at: componentIndex, with: newComponent)
-                        }
-                    ))
+                    InspectorView(
+                        component: Binding(
+                            get: { 
+                                // Always find the current component by ID to avoid stale references
+                                componentManager.components.first { $0.id == selectedID } ?? DetectedComponent(
+                                    rect: CGRect(x: 0, y: 0, width: 100, height: 50),
+                                    type: .ui(.label),
+                                    label: nil
+                                )
+                            },
+                            set: { newComponent in
+                                // Update by ID to ensure we're updating the correct component
+                                componentManager.updateComponent(withID: selectedID, newComponent: newComponent)
+                            }
+                        ),
+                        canvasSize: canvasSize
+                    )
                     .navigationTitle("Edit Component")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
@@ -189,6 +197,30 @@ struct CanvasContainerView: View {
                     }
                 }
                 .presentationDetents([.medium, .large])
+            } else {
+                // Fallback view if no component is selected
+                NavigationView {
+                    VStack {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.largeTitle)
+                            .foregroundColor(.orange)
+                        Text("No Component Selected")
+                            .font(.headline)
+                        Text("Please select a component to inspect.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .navigationTitle("Inspector")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { 
+                                showInspector = false
+                            }
+                        }
+                    }
+                }
+                .presentationDetents([.medium])
             }
         }
         .alert("Error", isPresented: $errorManager.showErrorAlert) {

@@ -9,7 +9,7 @@ struct InspectorView: View {
     @State private var usePercentages: Bool = false
     
     // Canvas size for percentage calculations (passed from parent)
-    @State private var canvasSize: CGSize = UIScreen.main.bounds.size
+    var canvasSize: CGSize = UIScreen.main.bounds.size
 
     var body: some View {
         Form {
@@ -163,9 +163,6 @@ struct InspectorView: View {
         } else {
             type = UIComponentType.allCases.first ?? .label
         }
-        
-        // Get canvas size from the screen or component context
-        canvasSize = UIScreen.main.bounds.size
         
         // Initialize with pixel values
         width = component.rect.width
