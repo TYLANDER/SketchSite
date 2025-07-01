@@ -188,7 +188,7 @@ public class RectangleComponentDetector {
     /// Heuristically infers the UI component type for a single rectangle, using annotation hints if available.
     private static func inferType(for rect: CGRect, canvasSize: CGSize, annotation: String? = nil) -> UIComponentType {
         let aspect = rect.width / max(rect.height, 1)
-        let area = rect.width * rect.height
+        _ = rect.width * rect.height // Area calculation - currently unused but may be needed for future heuristics
         let relWidth = rect.width / canvasSize.width
         let relHeight = rect.height / canvasSize.height
         let label = annotation?.lowercased() ?? ""
@@ -237,8 +237,8 @@ public class RectangleComponentDetector {
     /// Heuristically infers the group type for a set of rectangles.
     private static func inferGroupType(for group: [CGRect], canvasSize: CGSize) -> GroupType {
         // Heuristic: if group is wide and short, it's a navbar; if grid-like, card grid; if many small, button group
-        let avgWidth = group.map { $0.width }.reduce(0, +) / CGFloat(group.count)
-        let avgHeight = group.map { $0.height }.reduce(0, +) / CGFloat(group.count)
+        _ = group.map { $0.width }.reduce(0, +) / CGFloat(group.count) // Average width - currently unused but may be needed for future heuristics
+        _ = group.map { $0.height }.reduce(0, +) / CGFloat(group.count) // Average height - currently unused but may be needed for future heuristics
         let minX = group.map { $0.minX }.min() ?? 0
         let maxX = group.map { $0.maxX }.max() ?? 0
         let minY = group.map { $0.minY }.min() ?? 0

@@ -9,29 +9,6 @@
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
-		<key>SketchSiteTests.xcscheme_^#shared#^_</key>
-		<dict>
-			<key>orderHint</key>
-			<integer>0</integer>
-		</dict>
-		<key>SketchSiteUITests.xcscheme_^#shared#^_</key>
-		<dict>
-			<key>orderHint</key>
-			<integer>0</integer>
-		</dict>
-	</dict>
-	<key>SuppressBuildableAutocreation</key>
-	<dict>
-		<key>4056AC127B19C7A5D6458F02</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>FC456995F73010626B028C13</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
 	</dict>
 </dict>
 </plist>

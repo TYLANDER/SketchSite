@@ -101,7 +101,7 @@ struct CodePreviewView: View {
                 }
                 ToolbarItemGroup(placement: .confirmationAction) {
                     Button("Export") {
-                        ExportService.shared.export(code: code)
+                        _ = ExportService.shared.export(code: code)
                     }
                     Button(action: {
                         shareCodeViaAirDrop(code, title: title)

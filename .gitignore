@@ -3,3 +3,4 @@ build/
 DerivedData/
 # Ignore Xcode scheme files (to avoid committing secrets)
 *.xcscheme
+build/

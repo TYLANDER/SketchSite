@@ -176,18 +176,18 @@ struct CategoryButton: View {
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 6) {
-                Image(systemName: category.icon)
-                    .font(.caption)
-                Text(category.rawValue)
-                    .font(.caption.weight(.medium))
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(isSelected ? .blue : .clear)
-            .foregroundColor(isSelected ? .white : .primary)
-            .overlay(
+                                    Image(systemName: category.icon)
+                        .font(.caption)
+                    Text(category.rawValue)
+                        .font(.caption.weight(.medium))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(isSelected ? Color.blue : Color.clear)
+                .foregroundColor(isSelected ? Color.white : Color.primary)
+                            .overlay(
                 RoundedRectangle(cornerRadius: 20)
-                    .stroke(isSelected ? .clear : Color.secondary.opacity(0.3), lineWidth: 1)
+                    .stroke(isSelected ? Color.clear : Color.secondary.opacity(0.3), lineWidth: 1)
             )
             .cornerRadius(20)
         }
@@ -232,7 +232,7 @@ struct ComponentCard: View {
                     // Size info
                     Text("\(Int(template.defaultSize.width)) × \(Int(template.defaultSize.height))")
                         .font(.caption2)
-                        .foregroundColor(.tertiary)
+                        .foregroundColor(Color(UIColor.tertiaryLabel))
                         .padding(.top, 2)
                 }
             }

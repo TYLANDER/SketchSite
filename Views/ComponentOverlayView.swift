@@ -17,7 +17,7 @@ struct ComponentOverlayView: View {
     @State private var isResizing: Bool = false
     
     // Resize handle properties
-    private let handleSize: CGFloat = 12
+    private let handleSize: CGFloat = 10
     private let handlePositions: [HandlePosition] = [
         .topLeft, .topRight, .bottomLeft, .bottomRight,
         .top, .bottom, .left, .right
@@ -234,26 +234,26 @@ struct ResizeHandle: View {
     let onResizeEnd: () -> Void
     
     @State private var isBeingDragged = false
-    private let handleSize: CGFloat = 14 // Slightly larger for easier touch
+    private let handleSize: CGFloat = 10 // Made smaller as requested
     
     var body: some View {
         ZStack {
             // Larger invisible touch area for easier interaction
-            Circle()
+            Rectangle()
                 .fill(Color.clear)
                 .frame(width: handleSize + 8, height: handleSize + 8)
-                .contentShape(Circle())
+                .contentShape(Rectangle())
             
-            // Visible handle
-            Circle()
+            // Visible handle - changed to white square
+            Rectangle()
                 .fill(Color.white)
                 .overlay(
-                    Circle()
-                        .stroke(isBeingDragged ? Color.green : Color.orange, lineWidth: 2)
+                    Rectangle()
+                        .stroke(isBeingDragged ? Color.green : Color.gray.opacity(0.5), lineWidth: 1)
                 )
                 .frame(width: handleSize, height: handleSize)
-                .scaleEffect(isBeingDragged ? 1.4 : 1.2) // More prominent scaling
-                .shadow(color: .black.opacity(0.4), radius: 4, x: 0, y: 2)
+                .scaleEffect(isBeingDragged ? 1.2 : 1.0) // Subtle scaling
+                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
         }
         .simultaneousGesture(
             DragGesture(minimumDistance: 0) // Allow immediate response
