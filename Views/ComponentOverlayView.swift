@@ -15,6 +15,7 @@ struct ComponentOverlayView: View {
     
     @State private var isDragging: Bool = false
     @State private var isResizing: Bool = false
+    @State private var isLongPressing: Bool = false
     
     // Resize handle properties
     private let handleSize: CGFloat = 10
@@ -34,17 +35,13 @@ struct ComponentOverlayView: View {
                 .onTapGesture {
                     handleTap()
                 }
-                .onLongPressGesture(minimumDuration: 0.5) {
-                    // Long press to open inspector when selected
-                    if isSelected {
-                        print("🔍 Long press detected - opening inspector")
-                        onInspect()
-                    }
+                .onLongPressGesture(minimumDuration: 0.6, maximumDistance: 10) {
+                    handleLongPress()
                 }
-                .gesture(isResizing ? nil : dragGesture) // Only allow dragging when not resizing
+                .simultaneousGesture(dragGesture) // Allow dragging regardless of selection state
             
             // Resize handles (positioned as overlay attributes)
-            if isSelected && !isDragging {
+            if isSelected && !isDragging && !isLongPressing {
                 resizeHandles
                     .zIndex(1000) // Very high z-index to ensure handles are always on top
                     .allowsHitTesting(true) // Explicitly allow hit testing for handles
@@ -56,7 +53,7 @@ struct ComponentOverlayView: View {
         .position(x: clampedX, y: clampedY)
         .zIndex(isDragging ? 20 : (isSelected ? 10 : 5))
         .accessibilityLabel("Component: \(comp.type.description)")
-        .accessibilityHint("Tap to select, drag to move, or use handles to resize component.")
+        .accessibilityHint("Tap to select, long press to inspect, drag to move, or use handles to resize component.")
     }
     
     // MARK: - Component Rectangle
@@ -148,11 +145,10 @@ struct ComponentOverlayView: View {
     // MARK: - Gesture Handlers
     
     private var dragGesture: some Gesture {
-        DragGesture()
+        DragGesture(minimumDistance: 8) // Require minimum distance to distinguish from tap/long press
             .onChanged { value in
-                if !isDragging && !isResizing {
+                if !isDragging && !isResizing && !isLongPressing {
                     isDragging = true
-                    provideTactileFeedback(.medium)
                     print("🤏 Started dragging component \(idx + 1): \(comp.type.description)")
                 }
                 if isDragging {
@@ -166,16 +162,29 @@ struct ComponentOverlayView: View {
             .onEnded { value in
                 if isDragging {
                     isDragging = false
-                    provideTactileFeedback(.light)
                     print("🎯 Finished dragging component \(idx + 1)")
                 }
             }
     }
     
     private func handleTap() {
-        if !isDragging && !isResizing {
+        if !isDragging && !isResizing && !isLongPressing {
             print("🔘 Component \(idx + 1) tapped: \(comp.type.description)")
             onTap()
+        }
+    }
+    
+    private func handleLongPress() {
+        if !isDragging && !isResizing {
+            isLongPressing = true
+            print("🔍 Long press detected on component \(idx + 1) - opening inspector")
+            provideTactileFeedback(.heavy) // Strong haptic feedback for inspector
+            onInspect()
+            
+            // Reset long press state after a short delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                isLongPressing = false
+            }
         }
     }
     
@@ -183,7 +192,6 @@ struct ComponentOverlayView: View {
     
     private func handleResizeStart() {
         isResizing = true
-        provideTactileFeedback(.medium)
     }
     
     private func handleResize(position: HandlePosition, translation: CGSize) {
@@ -193,7 +201,6 @@ struct ComponentOverlayView: View {
     
     private func handleResizeEnd() {
         isResizing = false
-        provideTactileFeedback(.light)
     }
     
     // MARK: - Resize Calculation Logic
@@ -262,10 +269,6 @@ struct ResizeHandle: View {
                         isBeingDragged = true
                         onResizeStart()
                         print("🔧 Started resizing with \(position) handle")
-                        
-                        // Provide strong haptic feedback to indicate resize mode
-                        let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
-                        impactFeedback.impactOccurred()
                     }
                     onResize(value.translation)
                 }
@@ -273,10 +276,6 @@ struct ResizeHandle: View {
                     isBeingDragged = false
                     onResizeEnd()
                     print("🔧 Finished resizing with \(position) handle")
-                    
-                    // Light haptic feedback on completion
-                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                    impactFeedback.impactOccurred()
                 }
         )
         .animation(.easeInOut(duration: 0.15), value: isBeingDragged)

@@ -102,13 +102,8 @@ struct CanvasContainerView: View {
                         idx: index,
                         isSelected: componentManager.selectedComponentID == component.id,
                         onTap: {
-                            if componentManager.selectedComponentID == component.id {
-                                // Second tap on same component - open inspector
-                                showInspector = true
-                            } else {
-                                // First tap or different component - select it
-                                componentManager.selectComponent(withID: component.id)
-                            }
+                            // Always just select the component on tap
+                            componentManager.selectComponent(withID: component.id)
                         },
                         onDrag: { newPosition in
                             componentManager.updateComponentPosition(at: index, to: newPosition)
@@ -373,6 +368,10 @@ struct CanvasContainerView: View {
         canvasStateManager.clearCanvas()
         componentManager.clearAllComponents()
         generatedCode = ""
+        
+        // Provide haptic feedback for clearing
+        let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+        impactFeedback.impactOccurred()
     }
 
     private func pick(_ source: UIImagePickerController.SourceType) {
