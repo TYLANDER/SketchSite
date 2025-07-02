@@ -47,6 +47,7 @@ struct CanvasContainerView: View {
     @State private var isGeneratingCode = false
     @State private var showCodePreview = false
     @State private var showBrowserPreview = false
+    @State private var shouldShowPreviewAfterGeneration = false
     @State private var selectedModel = "gpt-4o"
     @State private var showInspector = false
     @State private var showComponentLibrary = false
@@ -392,6 +393,16 @@ struct CanvasContainerView: View {
             
             Spacer()
             
+            // Preview button
+            Button(action: openPreview) {
+                Image(systemName: "safari")
+                    .font(.title2)
+                    .foregroundColor(.blue)
+            }
+            .disabled(componentManager.components.isEmpty)
+            
+            Spacer()
+            
             // Camera button
             Button(action: { pick(.camera) }) {
                 Image(systemName: "camera")
@@ -433,6 +444,17 @@ struct CanvasContainerView: View {
     private func pick(_ source: UIImagePickerController.SourceType) {
         imagePickerSource = source
         showImagePicker = true
+    }
+    
+    private func openPreview() {
+        if generatedCode.isEmpty {
+            // Generate code first, then show preview
+            shouldShowPreviewAfterGeneration = true
+            generateCode()
+        } else {
+            // Code already exists, show preview immediately
+            showBrowserPreview = true
+        }
     }
     
     // MARK: - Vision Analysis
@@ -500,7 +522,11 @@ struct CanvasContainerView: View {
                 switch result {
                 case .success(let code):
                     self.generatedCode = code
-                    self.showCodePreview = true
+                    // Show browser preview if it was requested via openPreview()
+                    if self.shouldShowPreviewAfterGeneration {
+                        self.shouldShowPreviewAfterGeneration = false
+                        self.showBrowserPreview = true
+                    }
                     
                 case .failure(let error):
                     self.errorManager.handleError(.codeGenerationFailed(error.localizedDescription))
