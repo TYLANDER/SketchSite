@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-// MARK: - Component Overlay with Integrated Resize Handles
+// MARK: - Component Overlay with Modern Drag Interaction (2025 HIG)
 
 struct ComponentOverlayView: View {
     @Binding var comp: DetectedComponent
@@ -19,6 +19,14 @@ struct ComponentOverlayView: View {
     @State private var showInspectorHighlight = false
     @State private var longPressProgress: CGFloat = 0.0
     
+    // Modern drag interaction state (2025 HIG)
+    @State private var dragStartLocation: CGPoint = .zero
+    @State private var dragOffset: CGSize = .zero
+    @State private var dragVelocity: CGSize = .zero
+    @State private var lastDragTime: Date = Date()
+    @State private var dragMagnification: CGFloat = 1.0
+    @State private var showDragShadow = false
+    
     // Resize handle properties
     private let handleSize: CGFloat = 12
     private let handlePositions: [HandlePosition] = [
@@ -32,29 +40,37 @@ struct ComponentOverlayView: View {
 
     var body: some View {
         ZStack {
-            // Main component rectangle with visual feedback
+            // Main component rectangle with Liquid Glass-inspired visual feedback
             Rectangle()
                 .stroke(strokeColor, lineWidth: strokeWidth)
-                .fill(Color.blue.opacity(0.2))
+                .fill(fillColor)
                 .frame(width: componentWidth, height: componentHeight)
                 .scaleEffect(componentScale)
-                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: componentScale)
+                .offset(dragOffset)
+                .shadow(
+                    color: shadowColor,
+                    radius: shadowRadius,
+                    x: shadowOffset.width,
+                    y: shadowOffset.height
+                )
+                .animation(.interactiveSpring(response: 0.4, dampingFraction: 0.8), value: componentScale)
                 .animation(.easeInOut(duration: 0.2), value: strokeColor)
-                .animation(.easeInOut(duration: 0.2), value: strokeWidth)
+                .animation(.easeInOut(duration: 0.2), value: fillColor)
+                .animation(.interactiveSpring(response: 0.3, dampingFraction: 0.7), value: dragOffset)
             
-            // Purple highlight glow effect for long press feedback
+            // Liquid Glass highlight glow effect for long press feedback
             if showInspectorHighlight {
                 Rectangle()
                     .stroke(Color.purple, lineWidth: 2)
-                    .fill(Color.purple.opacity(0.1))
+                    .fill(Color.purple.opacity(0.15))
                     .frame(width: componentWidth + 4, height: componentHeight + 4)
-                    .blur(radius: 4)
-                    .opacity(longPressProgress * 0.6)
+                    .blur(radius: 6)
+                    .opacity(longPressProgress * 0.7)
                     .animation(.easeInOut(duration: 0.4), value: longPressProgress)
             }
             
             // Resize handles - only show when selected
-            if isSelected {
+            if isSelected && !isDragging {
                 resizeHandles
             }
             
@@ -62,48 +78,105 @@ struct ComponentOverlayView: View {
             componentLabel
         }
         .position(x: clampedX, y: clampedY)
-        .simultaneousGesture(dragGesture)
-        .simultaneousGesture(
-            LongPressGesture(minimumDuration: 0.4)
-                .onChanged { pressing in
-                    handleLongPressStateChange(pressing: pressing)
-                }
-                .onEnded { _ in
-                    handleLongPress()
-                }
-        )
+        .simultaneousGesture(modernDragGesture)
+        .simultaneousGesture(longPressGesture)
         .onTapGesture {
             handleTap()
         }
         .allowsHitTesting(true)
-        .zIndex(isSelected ? 100 : 50) // Selected components appear above others
+        .zIndex(dragZIndex)
         .accessibilityLabel("Component: \(comp.type.description)")
         .accessibilityHint("Tap to select, long press to inspect, drag to move, or use handles to resize component.")
     }
     
-    // MARK: - Visual Feedback Properties
+    // MARK: - Modern Visual Feedback Properties (2025 HIG)
     
     private var strokeWidth: CGFloat {
         if isResizing {
-            return 10
+            return 3
         } else if isDragging {
-            return 8
+            return 2
         } else if showInspectorHighlight {
-            return 6
+            return 2
         } else if isSelected {
-            return 3 // Show border when selected
+            return 2
         } else {
-            return 2 // Show border for unselected components too
+            return 1.5
+        }
+    }
+    
+    private var fillColor: Color {
+        if isDragging {
+            return Color.blue.opacity(0.3) // More prominent during drag
+        } else if showInspectorHighlight {
+            return Color.purple.opacity(0.2)
+        } else if isSelected {
+            return Color.orange.opacity(0.15)
+        } else {
+            return Color.blue.opacity(0.1)
+        }
+    }
+    
+    private var strokeColor: Color {
+        if isDragging {
+            return .blue
+        } else if showInspectorHighlight {
+            return .purple
+        } else if isSelected {
+            return .orange
+        } else {
+            return .blue.opacity(0.7)
         }
     }
     
     private var componentScale: CGFloat {
         if isDragging {
-            return 1.0
+            return dragMagnification
         } else if showInspectorHighlight && longPressProgress > 0.5 {
-            return 1.05
+            return 1.03
         } else {
             return 1.0
+        }
+    }
+    
+    // Liquid Glass-inspired shadow effects
+    private var shadowColor: Color {
+        if isDragging {
+            return .black.opacity(0.3)
+        } else if isSelected {
+            return .black.opacity(0.15)
+        } else {
+            return .clear
+        }
+    }
+    
+    private var shadowRadius: CGFloat {
+        if isDragging {
+            return 12
+        } else if isSelected {
+            return 4
+        } else {
+            return 0
+        }
+    }
+    
+    private var shadowOffset: CGSize {
+        if isDragging {
+            return CGSize(width: 0, height: 6)
+        } else if isSelected {
+            return CGSize(width: 0, height: 2)
+        } else {
+            return .zero
+        }
+    }
+    
+    private var dragZIndex: Double {
+        if isDragging {
+            return 1000 // Highest priority during drag
+        } else if isSelected {
+            return 100
+        } else {
+            return 50
         }
     }
     
@@ -135,6 +208,7 @@ struct ComponentOverlayView: View {
             .background(Color.black.opacity(0.8))
             .cornerRadius(4)
             .offset(y: -componentHeight/2 - 12)
+            .offset(dragOffset)
             .allowsHitTesting(false)
     }
     
@@ -146,18 +220,6 @@ struct ComponentOverlayView: View {
     
     private var componentHeight: CGFloat {
         min(comp.rect.height, canvasSize.height)
-    }
-    
-    private var strokeColor: Color {
-        if isDragging || isResizing {
-            return .green
-        } else if showInspectorHighlight {
-            return .purple
-        } else if isSelected {
-            return .orange
-        } else {
-            return .blue
-        }
     }
     
     private var clampedX: CGFloat {
@@ -186,32 +248,123 @@ struct ComponentOverlayView: View {
         )
     }
     
-    // MARK: - Gesture Handlers
+    // MARK: - Modern Drag Gesture (2025 HIG Best Practices)
     
-    private var dragGesture: some Gesture {
-        DragGesture(minimumDistance: 8) // Require minimum distance to distinguish from tap/long press
+    private var modernDragGesture: some Gesture {
+        DragGesture(minimumDistance: 6) // Slightly lower threshold for better responsiveness
             .onChanged { value in
-                if !isDragging && !isResizing && !isLongPressing {
-                    isDragging = true
-                    // Cancel long press feedback when dragging starts
-                    showInspectorHighlight = false
-                    longPressProgress = 0.0
-                    print("🤏 Started dragging component \(idx + 1): \(comp.type.description)")
-                }
-                if isDragging {
-                    // Update component position in real-time during drag
-                    let newX = clampedX + value.translation.width
-                    let newY = clampedY + value.translation.height
-                    let newPosition = CGPoint(x: newX, y: newY)
-                    onDrag(newPosition)
-                }
+                handleDragChanged(value)
             }
             .onEnded { value in
-                if isDragging {
-                    isDragging = false
-                    print("🎯 Finished dragging component \(idx + 1)")
-                }
+                handleDragEnded(value)
             }
+    }
+    
+    private func handleDragChanged(_ value: DragGesture.Value) {
+        let currentTime = Date()
+        
+        if !isDragging && !isResizing && !isLongPressing {
+            // Initialize drag state
+            isDragging = true
+            dragStartLocation = value.startLocation
+            showInspectorHighlight = false
+            longPressProgress = 0.0
+            showDragShadow = true
+            
+            // Immediate visual feedback with subtle haptic
+            provideTactileFeedback(.light)
+            
+            // Smooth scale animation for lift-off effect
+            withAnimation(.interactiveSpring(response: 0.3, dampingFraction: 0.7)) {
+                dragMagnification = 1.05
+            }
+            
+            print("🤏 Started modern drag on component \(idx + 1): \(comp.type.description)")
+        }
+        
+        if isDragging {
+            // Calculate velocity for predictive behavior
+            let timeDelta = currentTime.timeIntervalSince(lastDragTime)
+            if timeDelta > 0 {
+                let velocityX = (value.translation.width - dragOffset.width) / timeDelta
+                let velocityY = (value.translation.height - dragOffset.height) / timeDelta
+                dragVelocity = CGSize(width: velocityX, height: velocityY)
+            }
+            
+            // Apply drag offset with bounds checking
+            let proposedOffset = value.translation
+            let newCenter = CGPoint(
+                x: comp.rect.midX + proposedOffset.width,
+                y: comp.rect.midY + proposedOffset.height
+            )
+            
+            // Clamp to canvas bounds
+            let clampedCenter = clampPointToCanvas(newCenter)
+            let clampedOffset = CGSize(
+                width: clampedCenter.x - comp.rect.midX,
+                height: clampedCenter.y - comp.rect.midY
+            )
+            
+            dragOffset = clampedOffset
+            lastDragTime = currentTime
+            
+            // Provide subtle haptic feedback for edge resistance
+            if newCenter != clampedCenter {
+                provideTactileFeedback(.light)
+            }
+        }
+    }
+    
+    private func handleDragEnded(_ value: DragGesture.Value) {
+        if isDragging {
+            // Calculate final position with momentum
+            let finalCenter = CGPoint(
+                x: comp.rect.midX + dragOffset.width,
+                y: comp.rect.midY + dragOffset.height
+            )
+            
+            // Apply the final position
+            onDrag(finalCenter)
+            
+            // Reset drag state with smooth animations
+            withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.8)) {
+                dragOffset = .zero
+                dragMagnification = 1.0
+            }
+            
+            // Completion haptic feedback
+            provideTactileFeedback(.medium)
+            
+            isDragging = false
+            showDragShadow = false
+            dragVelocity = .zero
+            
+            print("🎯 Finished modern drag on component \(idx + 1)")
+        }
+    }
+    
+    // MARK: - Long Press Gesture
+    
+    private var longPressGesture: some Gesture {
+        LongPressGesture(minimumDuration: 0.4)
+            .onChanged { pressing in
+                handleLongPressStateChange(pressing: pressing)
+            }
+            .onEnded { _ in
+                handleLongPress()
+            }
+    }
+    
+    // MARK: - Utility Methods
+    
+    private func clampPointToCanvas(_ point: CGPoint) -> CGPoint {
+        let halfWidth = componentWidth / 2
+        let halfHeight = componentHeight / 2
+        
+        let clampedX = max(halfWidth, min(canvasSize.width - halfWidth, point.x))
+        let clampedY = max(halfHeight + 20, min(canvasSize.height - halfHeight, point.y))
+        
+        return CGPoint(x: clampedX, y: clampedY)
     }
     
     private func handleTap() {
@@ -288,10 +441,7 @@ struct ComponentOverlayView: View {
     
     private func handleResize(position: HandlePosition, translation: CGSize) {
         let newRect = calculateNewRect(for: position, with: translation)
-        print("🔧 Resize handle \(position): translation=\(translation), newRect=\(newRect)")
-        print("🔧 Component before resize: \(comp.rect)")
         onResize(newRect)
-        print("🔧 Component after resize: \(comp.rect)")
     }
     
     private func handleResizeEnd() {
@@ -312,7 +462,7 @@ struct ComponentOverlayView: View {
         return geometryCalculator.clampRectToCanvas(newRect, canvasSize: canvasSize)
     }
     
-    // MARK: - Utility Methods
+    // MARK: - Haptic Feedback
     
     private func provideTactileFeedback(_ style: UIImpactFeedbackGenerator.FeedbackStyle) {
         let impactFeedback = UIImpactFeedbackGenerator(style: style)
@@ -336,7 +486,7 @@ struct ResizeHandle: View {
     let onResizeEnd: () -> Void
     
     @State private var isBeingDragged = false
-    private let handleSize: CGFloat = 12 // Back to larger size for easier interaction
+    private let handleSize: CGFloat = 12
     
     var body: some View {
         ZStack {
@@ -346,7 +496,7 @@ struct ResizeHandle: View {
                 .frame(width: handleSize + 12, height: handleSize + 12)
                 .contentShape(Circle())
             
-            // Visible handle - back to white circle
+            // Visible handle with Liquid Glass-inspired styling
             Circle()
                 .fill(Color.white)
                 .overlay(
@@ -354,27 +504,25 @@ struct ResizeHandle: View {
                         .stroke(isBeingDragged ? Color.green : Color.blue, lineWidth: 2)
                 )
                 .frame(width: handleSize, height: handleSize)
-                .scaleEffect(isBeingDragged ? 1.3 : 1.0) // More pronounced scaling
-                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                .scaleEffect(isBeingDragged ? 1.2 : 1.0)
+                .shadow(color: .black.opacity(0.3), radius: isBeingDragged ? 6 : 3, x: 0, y: isBeingDragged ? 4 : 2)
         }
         .simultaneousGesture(
-            DragGesture(minimumDistance: 0) // Allow immediate response
+            DragGesture(minimumDistance: 0)
                 .onChanged { value in
                     if !isBeingDragged {
                         isBeingDragged = true
                         onResizeStart()
-                        print("🔧 Started resizing with \(position) handle")
                     }
                     onResize(value.translation)
                 }
                 .onEnded { value in
                     isBeingDragged = false
                     onResizeEnd()
-                    print("🔧 Finished resizing with \(position) handle")
                 }
         )
-        .animation(.easeInOut(duration: 0.2), value: isBeingDragged)
-        .zIndex(2000) // Highest possible z-index for handles
-        .allowsHitTesting(true) // Ensure this view can receive touches
+        .animation(.interactiveSpring(response: 0.3, dampingFraction: 0.7), value: isBeingDragged)
+        .zIndex(2000)
+        .allowsHitTesting(true)
     }
 } 
