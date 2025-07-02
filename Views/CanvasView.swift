@@ -98,7 +98,19 @@ struct CanvasContainerView: View {
                 // Component overlays with individual tap, drag, and resize handling
                 ForEach(Array(componentManager.components.enumerated()), id: \.element.id) { index, component in
                     ComponentOverlayView(
-                        comp: component,
+                        comp: Binding(
+                            get: { 
+                                // Use ID-based lookup to avoid stale index references
+                                let foundComponent = componentManager.components.first { $0.id == component.id } ?? component
+                                print("🔍 ComponentOverlayView binding get: component \(index + 1) - \(foundComponent.type.description) at \(foundComponent.rect)")
+                                return foundComponent
+                            },
+                            set: { newComponent in 
+                                // Update by ID to ensure we're updating the correct component
+                                print("🔍 ComponentOverlayView binding set: updating component \(component.id)")
+                                componentManager.updateComponent(withID: component.id, newComponent: newComponent)
+                            }
+                        ),
                         idx: index,
                         isSelected: componentManager.selectedComponentID == component.id,
                         onTap: {
@@ -106,10 +118,10 @@ struct CanvasContainerView: View {
                             componentManager.selectComponent(withID: component.id)
                         },
                         onDrag: { newPosition in
-                            componentManager.updateComponentPosition(at: index, to: newPosition)
+                            componentManager.updateComponentPosition(withID: component.id, to: newPosition)
                         },
                         onResize: { newRect in
-                            componentManager.updateComponentSize(at: index, to: newRect)
+                            componentManager.updateComponentSize(withID: component.id, to: newRect)
                         },
                         onInspect: {
                             showInspector = true
@@ -118,6 +130,18 @@ struct CanvasContainerView: View {
                     )
                     .allowsHitTesting(true)
                     .zIndex(10) // Component overlays
+                    .onAppear {
+                        print("🎯 ComponentOverlayView appeared: component \(index + 1) - \(component.type.description) at \(component.rect)")
+                    }
+                    .onDisappear {
+                        print("❌ ComponentOverlayView disappeared: component \(index + 1) - \(component.type.description)")
+                    }
+                }
+                .onAppear {
+                    print("📋 ForEach appeared with \(componentManager.components.count) components")
+                    for (i, comp) in componentManager.components.enumerated() {
+                        print("  Component \(i + 1): \(comp.type.description) at \(comp.rect)")
+                    }
                 }
                 
                 // Invisible overlay to handle background taps for deselecting components
@@ -413,28 +437,47 @@ struct CanvasContainerView: View {
     
     // MARK: - Vision Analysis
     private func generateComponents() {
-        guard canvasStateManager.hasStrokes else { return }
+        guard canvasStateManager.hasStrokes else { 
+            print("🚫 Generate components: No strokes on canvas")
+            return 
+        }
+        
+        print("🎯 Generate components: Starting analysis...")
+        print("📊 Current components before generation: \(componentManager.components.count)")
         
         isAnalyzing = true
         componentManager.deselectComponent()
         
         guard let canvasImage = canvasStateManager.captureSnapshot() else {
+            print("❌ Generate components: Failed to capture canvas image")
             errorManager.handleCanvasError("Failed to capture canvas image")
             isAnalyzing = false
             return
         }
         
+        print("📸 Generate components: Canvas image captured successfully")
+        
         visionService.detectLayoutAndAnnotations(in: canvasImage, canvasSize: canvasSize) { newComponents in
             DispatchQueue.main.async {
                 self.isAnalyzing = false
                 
+                print("🔍 Vision analysis completed with \(newComponents.count) new components:")
+                for (i, comp) in newComponents.enumerated() {
+                    print("  New component \(i + 1): \(comp.type.description) at \(comp.rect)")
+                }
+                
                 if newComponents.isEmpty {
+                    print("⚠️ No new components detected")
                     if self.componentManager.components.isEmpty {
                         self.errorManager.handleError(.visionAnalysisFailed("No UI components detected. Try drawing clearer rectangles or shapes."))
                     }
                 } else {
+                    print("🔄 Merging components...")
                     let mergedComponents = self.componentManager.mergeComponents(existing: self.componentManager.components, new: newComponents)
+                    print("📦 Setting \(mergedComponents.count) merged components")
                     self.componentManager.setComponents(mergedComponents)
+                    
+                    print("✅ Components set successfully. Current count: \(self.componentManager.components.count)")
                 }
             }
         }

@@ -4,7 +4,7 @@ import UIKit
 // MARK: - Component Overlay with Integrated Resize Handles
 
 struct ComponentOverlayView: View {
-    let comp: DetectedComponent
+    @Binding var comp: DetectedComponent
     let idx: Int
     let isSelected: Bool
     let onTap: () -> Void
@@ -13,17 +13,18 @@ struct ComponentOverlayView: View {
     let onInspect: () -> Void
     let canvasSize: CGSize
     
-    @State private var isDragging: Bool = false
-    @State private var isResizing: Bool = false
-    @State private var isLongPressing: Bool = false
+    @State private var isDragging = false
+    @State private var isResizing = false
+    @State private var isLongPressing = false
+    @State private var showInspectorHighlight = false
     @State private var longPressProgress: CGFloat = 0.0
-    @State private var showInspectorHighlight: Bool = false
     
     // Resize handle properties
-    private let handleSize: CGFloat = 10
+    private let handleSize: CGFloat = 12
     private let handlePositions: [HandlePosition] = [
-        .topLeft, .topRight, .bottomLeft, .bottomRight,
-        .top, .bottom, .left, .right
+        .topLeft, .top, .topRight,
+        .left, .right,
+        .bottomLeft, .bottom, .bottomRight
     ]
     
     // Geometry calculator for centralized calculations
@@ -31,93 +32,68 @@ struct ComponentOverlayView: View {
 
     var body: some View {
         ZStack {
-            // Main component rectangle
-            componentRectangle
-                .allowsHitTesting(!isResizing) // Disable hit testing when resizing
-                .onTapGesture {
-                    handleTap()
-                }
-                .onLongPressGesture(minimumDuration: 0.4, maximumDistance: 10) {
-                    handleLongPress()
-                } onPressingChanged: { pressing in
-                    handleLongPressStateChange(pressing: pressing)
-                }
-                .simultaneousGesture(dragGesture) // Allow dragging regardless of selection state
+            // Main component rectangle with visual feedback
+            Rectangle()
+                .stroke(strokeColor, lineWidth: strokeWidth)
+                .fill(Color.blue.opacity(0.2))
+                .frame(width: componentWidth, height: componentHeight)
+                .scaleEffect(componentScale)
+                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: componentScale)
+                .animation(.easeInOut(duration: 0.2), value: strokeColor)
+                .animation(.easeInOut(duration: 0.2), value: strokeWidth)
             
-            // Resize handles (positioned as overlay attributes)
-            if isSelected && !isDragging && !isLongPressing {
-                resizeHandles
-                    .zIndex(1000) // Very high z-index to ensure handles are always on top
-                    .allowsHitTesting(true) // Explicitly allow hit testing for handles
+            // Purple highlight glow effect for long press feedback
+            if showInspectorHighlight {
+                Rectangle()
+                    .stroke(Color.purple, lineWidth: 2)
+                    .fill(Color.purple.opacity(0.1))
+                    .frame(width: componentWidth + 4, height: componentHeight + 4)
+                    .blur(radius: 4)
+                    .opacity(longPressProgress * 0.6)
+                    .animation(.easeInOut(duration: 0.4), value: longPressProgress)
             }
             
-            // Component label
+            // Resize handles - only show when selected
+            if isSelected {
+                resizeHandles
+            }
+            
+            // Component label - always visible
             componentLabel
         }
         .position(x: clampedX, y: clampedY)
-        .zIndex(isDragging ? 20 : (isSelected ? 10 : 5))
+        .simultaneousGesture(dragGesture)
+        .simultaneousGesture(
+            LongPressGesture(minimumDuration: 0.4)
+                .onChanged { pressing in
+                    handleLongPressStateChange(pressing: pressing)
+                }
+                .onEnded { _ in
+                    handleLongPress()
+                }
+        )
+        .onTapGesture {
+            handleTap()
+        }
+        .allowsHitTesting(true)
+        .zIndex(isSelected ? 100 : 50) // Selected components appear above others
         .accessibilityLabel("Component: \(comp.type.description)")
         .accessibilityHint("Tap to select, long press to inspect, drag to move, or use handles to resize component.")
     }
     
-    // MARK: - Component Rectangle
+    // MARK: - Visual Feedback Properties
     
-    private var componentRectangle: some View {
-        Rectangle()
-            .stroke(strokeColor, lineWidth: strokeLineWidth)
-            .background(strokeColor.opacity(backgroundOpacity))
-            .frame(width: componentWidth, height: componentHeight)
-            .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: 4)
-            .scaleEffect(componentScale)
-            .overlay(
-                // Inspector highlight glow
-                Rectangle()
-                    .stroke(Color.white, lineWidth: 2)
-                    .opacity(showInspectorHighlight ? 0.6 : 0)
-                    .blur(radius: 4)
-            )
-            .animation(.spring(response: 0.3, dampingFraction: 0.8, blendDuration: 0), value: componentScale)
-            .animation(.easeInOut(duration: 0.2), value: showInspectorHighlight)
-            .animation(.spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0), value: strokeColor)
-    }
-    
-    private var strokeLineWidth: CGFloat {
-        if isDragging || isResizing {
-            return 3
-        } else if showInspectorHighlight {
-            return 2.5
-        } else {
-            return 2
-        }
-    }
-    
-    private var backgroundOpacity: CGFloat {
-        if isDragging || isResizing {
-            return 0.3
-        } else if showInspectorHighlight {
-            return 0.25
-        } else {
-            return 0.2
-        }
-    }
-    
-    private var shadowColor: Color {
-        if isDragging {
-            return .black.opacity(0.3)
-        } else if showInspectorHighlight {
-            return strokeColor.opacity(0.4)
-        } else {
-            return .clear
-        }
-    }
-    
-    private var shadowRadius: CGFloat {
-        if isDragging {
+    private var strokeWidth: CGFloat {
+        if isResizing {
+            return 10
+        } else if isDragging {
             return 8
         } else if showInspectorHighlight {
             return 6
+        } else if isSelected {
+            return 3 // Show border when selected
         } else {
-            return 0
+            return 2 // Show border for unselected components too
         }
     }
     
@@ -151,13 +127,14 @@ struct ComponentOverlayView: View {
     // MARK: - Component Label
     
     private var componentLabel: some View {
-        Text(comp.type.description.capitalized + " \(idx + 1)")
+        Text(comp.type.description.capitalized)
             .font(.caption2.bold())
             .foregroundColor(.white)
-            .padding(4)
-            .background(Color.black.opacity(0.7))
-            .cornerRadius(6)
-            .offset(y: -componentHeight/2 - 15)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
+            .background(Color.black.opacity(0.8))
+            .cornerRadius(4)
+            .offset(y: -componentHeight/2 - 12)
             .allowsHitTesting(false)
     }
     
@@ -312,7 +289,9 @@ struct ComponentOverlayView: View {
     private func handleResize(position: HandlePosition, translation: CGSize) {
         let newRect = calculateNewRect(for: position, with: translation)
         print("🔧 Resize handle \(position): translation=\(translation), newRect=\(newRect)")
+        print("🔧 Component before resize: \(comp.rect)")
         onResize(newRect)
+        print("🔧 Component after resize: \(comp.rect)")
     }
     
     private func handleResizeEnd() {
