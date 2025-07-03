@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		02D1432F5237AE8EE255E8C0 /* SketchManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9E634B15A76E2D81A1CF5D7 /* SketchManagerView.swift */; };
 		123EC7087EA968CABB0A2055 /* ComponentLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = A167E6CE41FEFF25682630AC /* ComponentLibrary.swift */; };
 		2C5575242DECE39F6D4568FF /* ComponentDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1235E2BC145C35AE84DF526 /* ComponentDetector.swift */; };
 		2E6A160C341649F517AC82D3 /* AnnotationProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70034ABAD8FF5C469444B75F /* AnnotationProcessor.swift */; };
@@ -18,6 +19,8 @@
 		48ADECE8F3DE56EC3030BF2F /* CodePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE52F54ABC774C40CF9C098A /* CodePreviewView.swift */; };
 		50E55870D3E56B60FE5D1930 /* SketchSiteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF86342ECB4F7B54C62434FF /* SketchSiteApp.swift */; };
 		60EB1EB0E8ED33CC3111F424 /* TypePickerSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4343C384DD0E14A707B3022 /* TypePickerSheetView.swift */; };
+		60EF8D66F00187C9AF67207C /* SketchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC763326C3A164DBD086CB25 /* SketchManager.swift */; };
+		70888EAF490B6E5B88078BE7 /* MainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4916225EC00BE8B514D40008 /* MainMenuView.swift */; };
 		84BB71E204F9E7383E152A1C /* SketchSiteUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C93EC8F15147EE4B21B81E6 /* SketchSiteUITestsLaunchTests.swift */; };
 		865CB193FC5A7CFB832016AA /* CanvasSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5993A6D636E56DC2F33F90E5 /* CanvasSnapshot.swift */; };
 		87DA6630C6381B03EF8E00DA /* ComponentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 716ED01FAEAAD07936538AE9 /* ComponentManager.swift */; };
@@ -65,6 +68,7 @@
 		2A4891CC8844DD39F4A9047D /* InspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorView.swift; sourceTree = "<group>"; };
 		2CA621F3EA28984E9142BE97 /* ProfessionalColorPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfessionalColorPickerView.swift; sourceTree = "<group>"; };
 		36B0713A878FB40F45CBAD0E /* SketchSiteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchSiteTests.swift; sourceTree = "<group>"; };
+		4916225EC00BE8B514D40008 /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
 		5993A6D636E56DC2F33F90E5 /* CanvasSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasSnapshot.swift; sourceTree = "<group>"; };
 		62CE953D5633E57279BDB538 /* ToolbarButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarButton.swift; sourceTree = "<group>"; };
 		64EA9320DDA162BD563DD9A9 /* ChatGPTService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatGPTService.swift; sourceTree = "<group>"; };
@@ -84,6 +88,7 @@
 		B3406DDD7110D0E7742B876C /* DiagnosticsRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsRunner.swift; sourceTree = "<group>"; };
 		B8EDE1C89BC517C4F151452C /* SketchSiteTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SketchSiteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C5AB2C9102D3F1CDB0BF5C0F /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
+		CC763326C3A164DBD086CB25 /* SketchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchManager.swift; sourceTree = "<group>"; };
 		D04A58361C7CB09CC3E6077A /* ComponentOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentOverlayView.swift; sourceTree = "<group>"; };
 		D4343C384DD0E14A707B3022 /* TypePickerSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypePickerSheetView.swift; sourceTree = "<group>"; };
 		D50F5B3032BFADB556AEBB7C /* SketchSite.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SketchSite.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -91,6 +96,7 @@
 		D838E9C19365A9FA54B4FE9A /* ComponentLibraryDemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentLibraryDemoView.swift; sourceTree = "<group>"; };
 		DF86342ECB4F7B54C62434FF /* SketchSiteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchSiteApp.swift; sourceTree = "<group>"; };
 		E1235E2BC145C35AE84DF526 /* ComponentDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentDetector.swift; sourceTree = "<group>"; };
+		E9E634B15A76E2D81A1CF5D7 /* SketchManagerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchManagerView.swift; sourceTree = "<group>"; };
 		F0801B484E8711DAA386A2DF /* VisionAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionAnalysisService.swift; sourceTree = "<group>"; };
 		F6139AAD55EAB3D15A79FE8D /* DebugOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverlayView.swift; sourceTree = "<group>"; };
 		FC9F08B2903EF2C4ADE884C7 /* ComponentLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentLibraryView.swift; sourceTree = "<group>"; };
@@ -111,6 +117,7 @@
 				6ABA2A2F24F2674568F48411 /* GeometryCalculator.swift */,
 				82B3C0D6D6404387F385662C /* LayoutDescriptor.swift */,
 				8FDC29A2E902C23C136D7FC5 /* RectangleComponentDetector.swift */,
+				CC763326C3A164DBD086CB25 /* SketchManager.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -128,7 +135,9 @@
 				7B0EF7F94C39CB69062AA0B2 /* FollowUpChatView.swift */,
 				C5AB2C9102D3F1CDB0BF5C0F /* ImagePicker.swift */,
 				2A4891CC8844DD39F4A9047D /* InspectorView.swift */,
+				4916225EC00BE8B514D40008 /* MainMenuView.swift */,
 				2CA621F3EA28984E9142BE97 /* ProfessionalColorPickerView.swift */,
+				E9E634B15A76E2D81A1CF5D7 /* SketchManagerView.swift */,
 				62CE953D5633E57279BDB538 /* ToolbarButton.swift */,
 				D4343C384DD0E14A707B3022 /* TypePickerSheetView.swift */,
 			);
@@ -313,8 +322,11 @@
 				BE78C3D7EE51A3E0019103E9 /* ImagePicker.swift in Sources */,
 				3DFA247FA89A9B13D785C8DA /* InspectorView.swift in Sources */,
 				3E31136304B99C84BC5C1F1E /* LayoutDescriptor.swift in Sources */,
+				70888EAF490B6E5B88078BE7 /* MainMenuView.swift in Sources */,
 				8BA4DF1590B851CD4DBD95DC /* ProfessionalColorPickerView.swift in Sources */,
 				E4CD271A15163BAA744285DA /* RectangleComponentDetector.swift in Sources */,
+				60EF8D66F00187C9AF67207C /* SketchManager.swift in Sources */,
+				02D1432F5237AE8EE255E8C0 /* SketchManagerView.swift in Sources */,
 				50E55870D3E56B60FE5D1930 /* SketchSiteApp.swift in Sources */,
 				3102511A02A4BCEFFE6ED5EF /* ToolbarButton.swift in Sources */,
 				60EB1EB0E8ED33CC3111F424 /* TypePickerSheetView.swift in Sources */,

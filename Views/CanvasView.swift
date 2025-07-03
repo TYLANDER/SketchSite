@@ -35,6 +35,7 @@ struct CanvasContainerView: View {
     @StateObject private var canvasStateManager = CanvasStateManager()
     @StateObject private var componentManager = ComponentManager()
     @StateObject private var errorManager = ErrorManager()
+    @StateObject private var sketchManager = SketchManager.shared
     
     // UI state
     @State private var selectedImage: UIImage? = nil
@@ -52,6 +53,10 @@ struct CanvasContainerView: View {
     @State private var selectedModel = "gpt-4o"
     @State private var showInspector = false
     @State private var showComponentLibrary = false
+    
+    // Menu and project management
+    @State private var showMainMenu = false
+    @State private var showSketchManager = false
     
     // Conversation manager for follow-up chat
     @StateObject private var conversationManager = ConversationManager()
@@ -143,12 +148,20 @@ struct CanvasContainerView: View {
                     
                     VStack(spacing: 6) {
                         HStack(spacing: 8) {
-                            Text("SketchSite")
-                                .font(.system(size: 28, weight: .bold, design: .rounded))
-                                .foregroundColor(.primary)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
-                                .allowsTightening(true)
+                            HStack(spacing: 4) {
+                                Text("SketchSite")
+                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                    .foregroundColor(.primary)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
+                                    .allowsTightening(true)
+                                
+                                Button(action: { showMainMenu = true }) {
+                                    Image(systemName: "chevron.down")
+                                        .font(.title3)
+                                        .foregroundColor(.primary)
+                                }
+                            }
                             
                             Spacer(minLength: 8)
                             
@@ -247,6 +260,10 @@ struct CanvasContainerView: View {
             canvasSize = UIScreen.main.bounds.size
             canvasStateManager.updateCanvasSize(canvasSize)
             componentManager.updateCanvasSize(canvasSize)
+            loadCurrentProject()
+        }
+        .onDisappear {
+            saveCurrentProject()
         }
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(sourceType: imagePickerSource) { image in
@@ -354,6 +371,30 @@ struct CanvasContainerView: View {
                 componentManager.addLibraryComponent(from: template)
                 showComponentLibrary = false
             }
+        }
+        .sheet(isPresented: $showMainMenu) {
+            MainMenuView(
+                onOpenFiles: { 
+                    showMainMenu = false
+                    showSketchManager = true
+                },
+                onOpenSettings: {
+                    // TODO: Implement settings when needed
+                    print("Settings tapped - Coming soon!")
+                }
+            )
+            .presentationDetents([.height(200)])
+            .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showSketchManager) {
+            SketchManagerView(
+                onProjectSelected: { project in
+                    loadProject(project)
+                },
+                onNewProject: { name in
+                    createNewProject(name: name)
+                }
+            )
         }
     }
 
@@ -501,6 +542,73 @@ struct CanvasContainerView: View {
                 }
             }
         }
+    }
+    
+    // MARK: - Project Management
+    
+    private func loadCurrentProject() {
+        guard let currentProject = sketchManager.currentProject else {
+            print("📁 No current project to load")
+            return
+        }
+        
+        // Load components
+        componentManager.setComponents(currentProject.components)
+        
+        // Load drawing if available
+        if let drawing = currentProject.drawing {
+            canvasStateManager.loadDrawing(drawing)
+        }
+        
+        // Update canvas size if different
+        if currentProject.canvasSize != canvasSize {
+            canvasSize = currentProject.canvasSize
+            canvasStateManager.updateCanvasSize(canvasSize)
+            componentManager.updateCanvasSize(canvasSize)
+        }
+        
+        print("📂 Loaded project: \(currentProject.name)")
+    }
+    
+    private func saveCurrentProject() {
+        // Auto-save current state
+        sketchManager.saveCurrentState(
+            components: componentManager.components,
+            drawing: canvasStateManager.currentDrawing,
+            canvasSize: canvasSize
+        )
+        
+        // Generate thumbnail from canvas
+        if let canvasImage = canvasStateManager.captureSnapshot(),
+           let currentProject = sketchManager.currentProject {
+            sketchManager.generateThumbnail(for: currentProject, from: canvasImage)
+        }
+    }
+    
+    private func loadProject(_ project: SketchProject) {
+        // Save current state before switching
+        saveCurrentProject()
+        
+        // Load the selected project
+        sketchManager.loadProject(project)
+        loadCurrentProject()
+        
+        print("🔄 Switched to project: \(project.name)")
+    }
+    
+    private func createNewProject(name: String) {
+        // Save current state before creating new
+        saveCurrentProject()
+        
+        // Create new project
+        let newProject = sketchManager.createNewProject(name: name, canvasSize: canvasSize)
+        
+        // Clear canvas for new project
+        canvasStateManager.resetToInitialState()
+        componentManager.clearAllComponents()
+        generatedCode = ""
+        
+        print("📁 Created new project: \(name)")
     }
 }
 

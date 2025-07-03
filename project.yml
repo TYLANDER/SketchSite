@@ -1,6 +1,18 @@
    name: SketchSite
    options:
      bundleIdPrefix: com.tylerschmidt
+   schemes:
+     SketchSite:
+       build:
+         targets:
+           SketchSite: all
+       run:
+         config: Debug
+       test:
+         config: Debug
+         targets:
+           - SketchSiteTests
+           - SketchSiteUITests
    targets:
      SketchSite:
        type: application

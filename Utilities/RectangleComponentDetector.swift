@@ -263,7 +263,7 @@ public struct ComponentProperties: Codable, Hashable {
 // MARK: - DetectedComponent
 
 /// Represents a detected UI component or group on the canvas.
-public struct DetectedComponent: Identifiable, Hashable {
+public struct DetectedComponent: Identifiable, Hashable, Codable {
     public let id = UUID()                // Unique identifier for SwiftUI/ForEach
     public var rect: CGRect               // The bounding box of the component
     public var type: DetectedComponentType// The inferred type (single or group)
@@ -494,28 +494,7 @@ public struct DetectedComponent: Identifiable, Hashable {
     }
 }
 
-/// Enum for detected component types: single UI, group, or unknown.
-public enum DetectedComponentType: Hashable, CustomStringConvertible {
-    case ui(UIComponentType)      // A single UI component (e.g., button, image)
-    case group(GroupType)         // A grouped component (e.g., nav bar, card grid)
-    case unknown                  // Fallback for unclassified
 
-    public var description: String {
-        switch self {
-        case .ui(let t): return t.rawValue
-        case .group(let g): return g.rawValue
-        case .unknown: return "unknown"
-        }
-    }
-}
-
-/// Enum for grouped component types (e.g., nav bar, card grid).
-public enum GroupType: String, CaseIterable, Hashable {
-    case navbar
-    case cardGrid = "card grid"
-    case buttonGroup = "button group"
-    case formFieldGroup = "form field group"
-}
 
 // MARK: - RectangleComponentDetector
 

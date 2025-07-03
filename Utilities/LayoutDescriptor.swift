@@ -2,7 +2,7 @@ import Foundation
 import CoreGraphics
 
 /// Enum representing common UI component types for detection and code generation.
-public enum UIComponentType: String, CaseIterable {
+public enum UIComponentType: String, CaseIterable, Codable {
     case alert
     case badge
     case breadcrumb
@@ -28,6 +28,29 @@ public enum UIComponentType: String, CaseIterable {
     case thumbnail
     case tooltip
     case well
+}
+
+/// Represents the type of detected component: single UI, group, or unknown.
+public enum DetectedComponentType: Hashable, Codable, CustomStringConvertible {
+    case ui(UIComponentType)      // A single UI component (e.g., button, image)
+    case group(GroupType)         // A grouped component (e.g., nav bar, card grid)
+    case unknown                  // Fallback for unclassified
+
+    public var description: String {
+        switch self {
+        case .ui(let t): return t.rawValue
+        case .group(let g): return g.rawValue
+        case .unknown: return "unknown"
+        }
+    }
+}
+
+/// Represents grouped component types (e.g., nav bar, card grid).
+public enum GroupType: String, CaseIterable, Hashable, Codable {
+    case navbar
+    case cardGrid = "card grid"
+    case buttonGroup = "button group"
+    case formFieldGroup = "form field group"
 }
 
 /// Utility for describing detected UI components in a human-readable format with advanced properties.
@@ -178,8 +201,33 @@ public struct LayoutDescriptor {
                 elementInstructions.append("navigation items: \(navItems.joined(separator: ", "))")
             }
             
+            // Navigation Items Instructions
+            for navProp in component.properties.navigationItemsProperties {
+                let navItems = navProp.items.map { item in
+                    let activeMarker = item.isActive ? " (active)" : ""
+                    let iconMarker = item.icon != nil ? " with \(item.icon!) icon" : ""
+                    return "\(item.text)\(activeMarker)\(iconMarker)"
+                }
+                elementInstructions.append("navigation items: \(navItems.joined(separator: ", "))")
+            }
+            
             if !elementInstructions.isEmpty {
                 instructions.append("Element \(elementNumber): \(elementInstructions.joined(separator: ", "))")
+            }
+        }
+        
+        // Add navigation items instructions
+        for (idx, component) in components.enumerated() {
+            for navProp in component.properties.navigationItemsProperties {
+                let elementNumber = idx + 1
+                let navItems = navProp.items.map { item in
+                    let activeMarker = item.isActive ? " (active)" : ""
+                    let iconMarker = item.icon != nil ? " with \(item.icon!) icon" : ""
+                    return "\(item.text)\(activeMarker)\(iconMarker)"
+                }
+                if !navItems.isEmpty {
+                    instructions.append("Element \(elementNumber) navigation items: \(navItems.joined(separator: ", "))")
+                }
             }
         }
         
