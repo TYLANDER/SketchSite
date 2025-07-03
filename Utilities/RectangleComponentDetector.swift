@@ -1,5 +1,264 @@
 import Foundation
 import CoreGraphics
+import SwiftUI
+
+// MARK: - Component Properties
+
+/// Represents a single navigation item in a navbar
+public struct NavigationItem: Identifiable, Codable, Hashable {
+    public let id = UUID()
+    public var text: String
+    public var isActive: Bool
+    public var icon: String?
+    
+    public init(text: String, isActive: Bool = false, icon: String? = nil) {
+        self.text = text
+        self.isActive = isActive
+        self.icon = icon
+    }
+}
+
+/// Navigation items property for managing navbar navigation elements
+public struct NavigationItemsProperty: Identifiable, Codable, Hashable {
+    public let id = UUID()
+    public var name: String
+    public var items: [NavigationItem]
+    public var maxItems: Int
+    
+    public init(name: String, items: [NavigationItem] = [], maxItems: Int = 6) {
+        self.name = name
+        self.items = items
+        self.maxItems = maxItems
+    }
+    
+    public mutating func addItem(_ item: NavigationItem) {
+        if items.count < maxItems {
+            items.append(item)
+        }
+    }
+    
+    public mutating func removeItem(withId id: UUID) {
+        items.removeAll { $0.id == id }
+    }
+    
+    public mutating func moveItem(from source: IndexSet, to destination: Int) {
+        items.move(fromOffsets: source, toOffset: destination)
+    }
+    
+    public var itemsText: String {
+        return items.map { $0.text }.joined(separator: " | ")
+    }
+}
+
+/// Boolean property for toggling visibility and states
+public struct BooleanProperty: Identifiable, Codable, Hashable {
+    public let id = UUID()
+    public var name: String
+    public var defaultValue: Bool
+    public var currentValue: Bool
+    public var affectedLayers: [String] // Layer IDs that this property controls
+    
+    public init(name: String, defaultValue: Bool, affectedLayers: [String] = []) {
+        self.name = name
+        self.defaultValue = defaultValue
+        self.currentValue = defaultValue
+        self.affectedLayers = affectedLayers
+    }
+}
+
+/// Instance swap property for replacing nested components
+public struct InstanceSwapProperty: Identifiable, Codable, Hashable {
+    public let id = UUID()
+    public var name: String
+    public var availableOptions: [String] // Available component options
+    public var defaultOption: String
+    public var currentOption: String
+    
+    public init(name: String, availableOptions: [String], defaultOption: String) {
+        self.name = name
+        self.availableOptions = availableOptions
+        self.defaultOption = defaultOption
+        self.currentOption = defaultOption
+    }
+}
+
+/// Enhanced text property for advanced text customization
+public struct EnhancedTextProperty: Identifiable, Codable, Hashable {
+    public let id = UUID()
+    public var name: String
+    public var content: String
+    public var style: TextStyle
+    public var alignment: TextAlignment
+    
+    public enum TextStyle: String, CaseIterable, Codable {
+        case regular = "regular"
+        case bold = "bold"
+        case italic = "italic"
+        case light = "light"
+        
+        public var displayName: String {
+            switch self {
+            case .regular: return "Regular"
+            case .bold: return "Bold"
+            case .italic: return "Italic"
+            case .light: return "Light"
+            }
+        }
+    }
+    
+    public enum TextAlignment: String, CaseIterable, Codable {
+        case left = "left"
+        case center = "center"
+        case right = "right"
+        
+        public var displayName: String {
+            switch self {
+            case .left: return "Left"
+            case .center: return "Center"
+            case .right: return "Right"
+            }
+        }
+    }
+    
+    public init(name: String, content: String, style: TextStyle = .regular, alignment: TextAlignment = .left) {
+        self.name = name
+        self.content = content
+        self.style = style
+        self.alignment = alignment
+    }
+}
+
+/// Color property for theme-aware color customization
+public struct ColorProperty: Identifiable, Codable, Hashable {
+    public let id = UUID()
+    public var name: String
+    public var colorScheme: [String: String] // "light": hex, "dark": hex
+    public var semanticRole: ColorRole
+    public var currentMode: ColorMode
+    
+    public enum ColorRole: String, CaseIterable, Codable {
+        case primary = "primary"
+        case secondary = "secondary"
+        case accent = "accent"
+        case success = "success"
+        case warning = "warning"
+        case error = "error"
+        case info = "info"
+        case custom = "custom"
+        
+        public var displayName: String {
+            switch self {
+            case .primary: return "Primary"
+            case .secondary: return "Secondary"
+            case .accent: return "Accent"
+            case .success: return "Success"
+            case .warning: return "Warning"
+            case .error: return "Error"
+            case .info: return "Info"
+            case .custom: return "Custom"
+            }
+        }
+        
+        public var defaultColor: String {
+            switch self {
+            case .primary: return "#007AFF"
+            case .secondary: return "#8E8E93"
+            case .accent: return "#FF9500"
+            case .success: return "#34C759"
+            case .warning: return "#FF9500"
+            case .error: return "#FF3B30"
+            case .info: return "#5AC8FA"
+            case .custom: return "#000000"
+            }
+        }
+    }
+    
+    public enum ColorMode: String, CaseIterable, Codable {
+        case light = "light"
+        case dark = "dark"
+        case auto = "auto"
+        
+        public var displayName: String {
+            switch self {
+            case .light: return "Light"
+            case .dark: return "Dark"
+            case .auto: return "Auto"
+            }
+        }
+    }
+    
+    public init(name: String, semanticRole: ColorRole, currentMode: ColorMode = .auto) {
+        self.name = name
+        self.semanticRole = semanticRole
+        self.currentMode = currentMode
+        self.colorScheme = [
+            "light": semanticRole.defaultColor,
+            "dark": semanticRole.defaultColor
+        ]
+    }
+    
+    public var currentColor: String {
+        switch currentMode {
+        case .light: return colorScheme["light"] ?? semanticRole.defaultColor
+        case .dark: return colorScheme["dark"] ?? semanticRole.defaultColor
+        case .auto: return colorScheme["light"] ?? semanticRole.defaultColor // Default to light for now
+        }
+    }
+}
+
+// MARK: - Component Properties Container
+
+/// Container for all component properties
+public struct ComponentProperties: Codable, Hashable {
+    public var booleanProperties: [BooleanProperty] = []
+    public var instanceSwapProperties: [InstanceSwapProperty] = []
+    public var enhancedTextProperties: [EnhancedTextProperty] = []
+    public var colorProperties: [ColorProperty] = []
+    public var navigationItemsProperties: [NavigationItemsProperty] = []
+    
+    public init() {}
+    
+    // Helper methods for property management
+    public mutating func addBooleanProperty(_ property: BooleanProperty) {
+        booleanProperties.append(property)
+    }
+    
+    public mutating func addInstanceSwapProperty(_ property: InstanceSwapProperty) {
+        instanceSwapProperties.append(property)
+    }
+    
+    public mutating func addEnhancedTextProperty(_ property: EnhancedTextProperty) {
+        enhancedTextProperties.append(property)
+    }
+    
+    public mutating func addColorProperty(_ property: ColorProperty) {
+        colorProperties.append(property)
+    }
+    
+    public mutating func addNavigationItemsProperty(_ property: NavigationItemsProperty) {
+        navigationItemsProperties.append(property)
+    }
+    
+    public func getBooleanProperty(named name: String) -> BooleanProperty? {
+        return booleanProperties.first { $0.name == name }
+    }
+    
+    public func getInstanceSwapProperty(named name: String) -> InstanceSwapProperty? {
+        return instanceSwapProperties.first { $0.name == name }
+    }
+    
+    public func getEnhancedTextProperty(named name: String) -> EnhancedTextProperty? {
+        return enhancedTextProperties.first { $0.name == name }
+    }
+    
+    public func getColorProperty(named name: String) -> ColorProperty? {
+        return colorProperties.first { $0.name == name }
+    }
+    
+    public func getNavigationItemsProperty(named name: String) -> NavigationItemsProperty? {
+        return navigationItemsProperties.first { $0.name == name }
+    }
+}
 
 // MARK: - DetectedComponent
 
@@ -9,12 +268,229 @@ public struct DetectedComponent: Identifiable, Hashable {
     public var rect: CGRect               // The bounding box of the component
     public var type: DetectedComponentType// The inferred type (single or group)
     public var label: String?             // Optional user annotation label
+    public var textContent: String?       // Editable text content for components that display text
+    public var properties: ComponentProperties // Advanced component properties
     
     // Custom initializer to maintain immutable ID
-    public init(rect: CGRect, type: DetectedComponentType, label: String?) {
+    public init(rect: CGRect, type: DetectedComponentType, label: String?, textContent: String? = nil) {
         self.rect = rect
         self.type = type
         self.label = label
+        self.textContent = textContent ?? DetectedComponent.defaultTextContent(for: type)
+        self.properties = ComponentProperties()
+        
+        // Initialize default properties based on component type
+        self.initializeDefaultProperties()
+    }
+    
+    // Initialize default properties based on component type
+    private mutating func initializeDefaultProperties() {
+        switch type {
+        case .ui(let uiType):
+            initializeUIComponentProperties(for: uiType)
+        case .group(let groupType):
+            initializeGroupComponentProperties(for: groupType)
+        case .unknown:
+            break
+        }
+    }
+    
+    private mutating func initializeUIComponentProperties(for uiType: UIComponentType) {
+        switch uiType {
+        case .button:
+            // Boolean properties
+            properties.addBooleanProperty(BooleanProperty(name: "Has Icon", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Is Disabled", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Loading State", defaultValue: false))
+            
+            // Instance swap properties
+            properties.addInstanceSwapProperty(InstanceSwapProperty(
+                name: "Icon Type",
+                availableOptions: ["arrow.right", "plus", "star", "heart", "download", "share"],
+                defaultOption: "arrow.right"
+            ))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(
+                name: "Button Style",
+                availableOptions: ["Primary", "Secondary", "Outline", "Ghost"],
+                defaultOption: "Primary"
+            ))
+            
+            // Enhanced text properties
+            properties.addEnhancedTextProperty(EnhancedTextProperty(
+                name: "Primary Text",
+                content: textContent ?? "Button",
+                style: .bold,
+                alignment: .center
+            ))
+            
+            // Color properties
+            properties.addColorProperty(ColorProperty(name: "Primary Color", semanticRole: .primary))
+            properties.addColorProperty(ColorProperty(name: "Text Color", semanticRole: .secondary))
+            
+        case .label:
+            // Enhanced text properties
+            properties.addEnhancedTextProperty(EnhancedTextProperty(
+                name: "Text Content",
+                content: textContent ?? "Label",
+                style: .regular,
+                alignment: .left
+            ))
+            
+            // Color properties
+            properties.addColorProperty(ColorProperty(name: "Text Color", semanticRole: .primary))
+            
+        case .formControl:
+            // Boolean properties
+            properties.addBooleanProperty(BooleanProperty(name: "Is Required", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Has Error", defaultValue: false))
+            
+            // Enhanced text properties
+            properties.addEnhancedTextProperty(EnhancedTextProperty(
+                name: "Placeholder Text",
+                content: "Enter text",
+                style: .regular,
+                alignment: .left
+            ))
+            
+            // Color properties
+            properties.addColorProperty(ColorProperty(name: "Border Color", semanticRole: .secondary))
+            
+        case .alert:
+            // Instance swap properties
+            properties.addInstanceSwapProperty(InstanceSwapProperty(
+                name: "Alert Type",
+                availableOptions: ["Info", "Success", "Warning", "Error"],
+                defaultOption: "Info"
+            ))
+            
+            // Boolean properties
+            properties.addBooleanProperty(BooleanProperty(name: "Show Icon", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Dismissible", defaultValue: true))
+            
+            // Color properties
+            properties.addColorProperty(ColorProperty(name: "Alert Color", semanticRole: .info))
+            
+        case .navbar:
+            // Boolean properties
+            properties.addBooleanProperty(BooleanProperty(name: "Show Logo", defaultValue: true))
+            
+            // Instance swap properties
+            properties.addInstanceSwapProperty(InstanceSwapProperty(
+                name: "Navigation Style",
+                availableOptions: ["Fixed", "Sticky", "Static"],
+                defaultOption: "Fixed"
+            ))
+            
+            // Add navigation items for navbar
+            let defaultNavItems = NavigationItemsProperty(
+                name: "Navigation Items",
+                items: [
+                    NavigationItem(text: "Home", isActive: true),
+                    NavigationItem(text: "About", isActive: false),
+                    NavigationItem(text: "Services", isActive: false),
+                    NavigationItem(text: "Contact", isActive: false)
+                ],
+                maxItems: 6
+            )
+            properties.addNavigationItemsProperty(defaultNavItems)
+            
+            // Color properties
+            properties.addColorProperty(ColorProperty(name: "Background Color", semanticRole: .primary))
+            properties.addColorProperty(ColorProperty(name: "Text Color", semanticRole: .secondary))
+            
+        default:
+            // Basic text and color properties for other components
+            if componentSupportsText(uiType) {
+                properties.addEnhancedTextProperty(EnhancedTextProperty(
+                    name: "Text Content",
+                    content: textContent ?? DetectedComponent.defaultTextContent(for: type) ?? "",
+                    style: .regular,
+                    alignment: .left
+                ))
+            }
+            
+            properties.addColorProperty(ColorProperty(name: "Primary Color", semanticRole: .primary))
+        }
+    }
+    
+    private mutating func initializeGroupComponentProperties(for groupType: GroupType) {
+        // Group-specific properties
+        properties.addColorProperty(ColorProperty(name: "Background Color", semanticRole: .secondary))
+        
+        switch groupType {
+        case .navbar:
+            properties.addBooleanProperty(BooleanProperty(name: "Show Logo", defaultValue: true))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(
+                name: "Navigation Style",
+                availableOptions: ["Fixed", "Sticky", "Static"],
+                defaultOption: "Fixed"
+            ))
+            
+            // Add default navigation items
+            let defaultNavItems = NavigationItemsProperty(
+                name: "Navigation Items",
+                items: [
+                    NavigationItem(text: "Home", isActive: true),
+                    NavigationItem(text: "About", isActive: false),
+                    NavigationItem(text: "Services", isActive: false),
+                    NavigationItem(text: "Contact", isActive: false)
+                ],
+                maxItems: 6
+            )
+            properties.addNavigationItemsProperty(defaultNavItems)
+            
+        case .buttonGroup:
+            properties.addInstanceSwapProperty(InstanceSwapProperty(
+                name: "Orientation",
+                availableOptions: ["Horizontal", "Vertical"],
+                defaultOption: "Horizontal"
+            ))
+            
+        default:
+            break
+        }
+    }
+    
+    // Helper function to check if component type supports text
+    private func componentSupportsText(_ componentType: UIComponentType) -> Bool {
+        switch componentType {
+        case .button, .label, .navbar, .tab, .breadcrumb, .badge, .alert, 
+             .formControl, .dropdown, .tooltip, .pagination, .modal, .well:
+            return true
+        case .image, .icon, .thumbnail, .carousel, .table, .progressBar, 
+             .form, .listGroup, .mediaObject, .buttonGroup, .navs, .collapse:
+            return false
+        }
+    }
+    
+    // Helper function to provide default text content based on component type
+    public static func defaultTextContent(for type: DetectedComponentType) -> String? {
+        switch type {
+        case .ui(let uiType):
+            switch uiType {
+            case .button: return "Button"
+            case .label: return "Label"
+            case .navbar: return "Navigation"
+            case .tab: return "Tab"
+            case .breadcrumb: return "Home > Page"
+            case .badge: return "Badge"
+            case .alert: return "Alert Message"
+            case .formControl: return "Enter text"
+            case .dropdown: return "Select option"
+            case .tooltip: return "Tooltip"
+            case .pagination: return "1 2 3"
+            case .modal: return "Modal Title"
+            default: return nil
+            }
+        case .group(let groupType):
+            switch groupType {
+            case .navbar: return "Navigation"
+            case .buttonGroup: return "Button Group"
+            case .formFieldGroup: return "Form Fields"
+            default: return nil
+            }
+        case .unknown: return nil
+        }
     }
 }
 

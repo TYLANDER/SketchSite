@@ -22,8 +22,8 @@ class ChatGPTService {
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.addValue(model, forHTTPHeaderField: "anthropic-version")
         } else {
-            request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         }
         var requestBody: [String: Any] = [:]
         if isClaude {
@@ -37,8 +37,8 @@ class ChatGPTService {
             requestBody = [
                 "model": model,
                 "messages": (conversation ?? [["role": "user", "content": prompt]]),
-                "temperature": 0.2
-            ]
+            "temperature": 0.2
+        ]
         }
         request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
@@ -67,7 +67,7 @@ class ChatGPTService {
                    let choices = json["choices"] as? [[String: Any]],
                    let message = choices.first?["message"] as? [String: Any],
                    let content = message["content"] as? String {
-                    completion(.success(content))
+            completion(.success(content))
                 } else {
                     completion(.failure(NSError(domain: "ChatGPTService", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to parse OpenAI response"])))
                 }

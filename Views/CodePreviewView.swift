@@ -28,6 +28,7 @@ extension AttributedString {
 
 struct CodePreviewView: View {
     var code: String
+    var onRefineWithAI: (() -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -43,7 +44,7 @@ struct CodePreviewView: View {
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.vertical, 2)
 
-                    ForEach(splitCodeBlocks(code), id: \.self) { segment in
+                    ForEach(Array(cleanCodeBlocks(code).enumerated()), id: \.offset) { index, segment in
                         VStack(alignment: .leading, spacing: 0) {
                             HStack {
                                 Text(detectFileType(from: segment))
@@ -100,6 +101,14 @@ struct CodePreviewView: View {
                     }
                 }
                 ToolbarItemGroup(placement: .confirmationAction) {
+                    if let onRefineWithAI = onRefineWithAI {
+                        Button(action: {
+                            onRefineWithAI()
+                        }) {
+                            Label("Refine with AI", systemImage: "message.and.wand.2")
+                        }
+                    }
+                    
                     Button("Export") {
                         _ = ExportService.shared.export(code: code)
                     }
@@ -117,8 +126,24 @@ struct CodePreviewView: View {
         UIPasteboard.general.setValue(text, forPasteboardType: UTType.plainText.identifier)
     }
 
-    private func splitCodeBlocks(_ code: String) -> [String] {
-        return code.components(separatedBy: "```").filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    private func cleanCodeBlocks(_ code: String) -> [String] {
+        // Remove markdown code block markers and clean up the code
+        var cleanedCode = code
+        
+        // Remove ```html, ```css, ```javascript, etc. markers
+        cleanedCode = cleanedCode.replacingOccurrences(of: "```html", with: "")
+        cleanedCode = cleanedCode.replacingOccurrences(of: "```css", with: "")
+        cleanedCode = cleanedCode.replacingOccurrences(of: "```javascript", with: "")
+        cleanedCode = cleanedCode.replacingOccurrences(of: "```js", with: "")
+        cleanedCode = cleanedCode.replacingOccurrences(of: "```", with: "")
+        
+        // Split by double newlines to separate different code sections
+        let blocks = cleanedCode.components(separatedBy: "\n\n")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        
+        // If no blocks found, treat the entire code as one block
+        return blocks.isEmpty ? [cleanedCode.trimmingCharacters(in: .whitespacesAndNewlines)] : blocks
     }
     
     private func detectFileType(from code: String) -> String {

@@ -81,7 +81,8 @@ class ComponentLibrary {
         return DetectedComponent(
             rect: clampedRect,
             type: .ui(template.type),
-            label: template.name
+            label: template.name,
+            textContent: nil // Will use default text content from the initializer
         )
     }
     

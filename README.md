@@ -72,6 +72,12 @@ The app features a professional full-screen canvas experience with Instagram-lik
 - **Photo Library:** Import existing images for component detection
 - **Image Analysis:** Extract UI components from screenshots and mockups
 
+### 🔮 **Coming Soon: Multi-Project Support**
+- **Sketch Manager:** Figma-style home screen with project thumbnails and metadata
+- **Auto-Save & Sync:** Automatic project saving with iCloud synchronization
+- **Project Templates:** Pre-built templates for common app design patterns
+- **Search & Organization:** Filter and organize sketches by date, name, or tags
+
 ---
 
 ## Recent Major Updates
@@ -126,21 +132,37 @@ The app features a professional full-screen canvas experience with Instagram-lik
 - [x] **Professional Mobile UX**  
   Touch-optimized interface with modern design patterns
 
+### ✅ **Completed (High Priority)**
+- [x] **Ask ChatGPT Follow-Up (Prompt Chaining UI)**  
+  Complete chat interface for iterative code refinement with conversation history, real-time updates, and multi-model support
+- [x] **Editable Text Content**  
+  Inspector-based text editing for all text-supporting components with intelligent defaults and type-aware visibility
+
 ### 🚧 **In Progress**
-- [ ] **Ask ChatGPT Follow-Up (Prompt Chaining UI)**  
-  UI for follow-up questions and iterative code refinement
-- [ ] **Advanced Component Properties**  
-  Color, styling, and behavioral property editing
+- [ ] **Advanced Component Properties (Phase 1)**  
+  Boolean properties, instance swap properties, enhanced text properties, and color properties
+
+### 🔮 **Planned (Beta Features)**
+- [ ] **Advanced Component Properties (Phase 2)**  
+  Size & spacing properties, interactive properties, conditional properties, and theme integration
+- [ ] **Sketch Manager & Multi-Project Support**  
+  Figma-style project management with thumbnail grid, recent files, search/filter, auto-save, and iCloud sync
+- [ ] **Project Templates Gallery**  
+  Pre-built sketch templates for common app patterns (login screens, dashboards, e-commerce, etc.)
+- [ ] **Advanced Export Pipeline**  
+  Export to multiple formats (SwiftUI, React, Flutter) with customizable templates and styling
+- [ ] **Collaboration & Sharing**  
+  Share sketches via link, real-time collaboration, and team workspaces
 
 ### 📋 **Planned (Low Priority)**
 - [ ] **Resizable Drawer**  
   Draggable/expandable code or inspector drawer
 - [ ] **Prompt Customization UI**  
   UI for editing system/user messages before sending to AI
-- [ ] **Export to Multiple Formats**  
-  SwiftUI, React, Flutter code generation options
-- [ ] **Collaboration Features**  
-  Share sketches and collaborate on designs
+- [ ] **Version History**  
+  Timeline view of sketch iterations with restore capability
+- [ ] **Advanced Analytics**  
+  Usage metrics, component statistics, and design insights
 
 ---
 

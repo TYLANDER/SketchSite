@@ -47,10 +47,14 @@ struct CanvasContainerView: View {
     @State private var isGeneratingCode = false
     @State private var showCodePreview = false
     @State private var showBrowserPreview = false
+    @State private var showFollowUpChat = false
     @State private var shouldShowPreviewAfterGeneration = false
     @State private var selectedModel = "gpt-4o"
     @State private var showInspector = false
     @State private var showComponentLibrary = false
+    
+    // Conversation manager for follow-up chat
+    @StateObject private var conversationManager = ConversationManager()
     
     // Canvas size tracking
     @State private var canvasSize: CGSize = UIScreen.main.bounds.size
@@ -76,46 +80,32 @@ struct CanvasContainerView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Grey canvas background
-                Color(.systemGray6)
-                    .ignoresSafeArea(.all)
-                
-                // Full-screen canvas - true edge-to-edge
+                // Full-screen canvas background
                 CanvasView(canvasView: $canvasStateManager.canvasView, isDrawingEnabled: !componentManager.isComponentSelected)
-                    .ignoresSafeArea(.all)
                     .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
                         canvasStateManager.updateStrokeCount()
-                        
-                        // Update canvas size from screen bounds for true full-screen
-                        let newSize = UIScreen.main.bounds.size
+                        let newSize = geometry.size
                         if newSize != canvasSize {
                             canvasSize = newSize
                             canvasStateManager.updateCanvasSize(newSize)
                             componentManager.updateCanvasSize(newSize)
                         }
                     }
-                    .background(Color(.systemGray6))
-                
-                // Component overlays with individual tap, drag, and resize handling
+                // Component overlays
                 ForEach(Array(componentManager.components.enumerated()), id: \.element.id) { index, component in
                     ComponentOverlayView(
                         comp: Binding(
-                            get: { 
-                                // Use ID-based lookup to avoid stale index references
+                            get: {
                                 let foundComponent = componentManager.components.first { $0.id == component.id } ?? component
-                                print("🔍 ComponentOverlayView binding get: component \(index + 1) - \(foundComponent.type.description) at \(foundComponent.rect)")
                                 return foundComponent
                             },
-                            set: { newComponent in 
-                                // Update by ID to ensure we're updating the correct component
-                                print("🔍 ComponentOverlayView binding set: updating component \(component.id)")
+                            set: { newComponent in
                                 componentManager.updateComponent(withID: component.id, newComponent: newComponent)
                             }
                         ),
                         idx: index,
                         isSelected: componentManager.selectedComponentID == component.id,
                         onTap: {
-                            // Always just select the component on tap
                             componentManager.selectComponent(withID: component.id)
                         },
                         onDrag: { newPosition in
@@ -130,53 +120,129 @@ struct CanvasContainerView: View {
                         canvasSize: canvasSize
                     )
                     .allowsHitTesting(true)
-                    .zIndex(10) // Component overlays
-                    .onAppear {
-                        print("🎯 ComponentOverlayView appeared: component \(index + 1) - \(component.type.description) at \(component.rect)")
-                    }
-                    .onDisappear {
-                        print("❌ ComponentOverlayView disappeared: component \(index + 1) - \(component.type.description)")
-                    }
+                    .zIndex(10)
                 }
-                .onAppear {
-                    print("📋 ForEach appeared with \(componentManager.components.count) components")
-                    for (i, comp) in componentManager.components.enumerated() {
-                        print("  Component \(i + 1): \(comp.type.description) at \(comp.rect)")
-                    }
-                }
-                
-                // Invisible overlay to handle background taps for deselecting components
-                // This needs to be AFTER components in the view hierarchy but with higher zIndex
                 if componentManager.isComponentSelected {
                     Color.clear
-                        .ignoresSafeArea(.all)
-                        .contentShape(Rectangle()) // Ensure it captures taps everywhere
+                        .contentShape(Rectangle())
                         .onTapGesture {
                             componentManager.deselectComponent()
                         }
                         .allowsHitTesting(true)
-                        .zIndex(15) // Higher than components to intercept background taps
+                        .zIndex(15)
                 }
-                
-                // Top header overlay - positioned below status bar
-                VStack {
-                    topBar(geometry: geometry)
+                // Top header overlay
+                VStack(spacing: 0) {
+                    // Status bar area
+                    Color.clear
+                        .frame(height: geometry.safeAreaInsets.top)
+                    
+                    // Reduced spacer - bring header down by 64px
+                    Color.clear
+                        .frame(height: 80) // Was 16, now 80 (64px more)
+                    
+                    VStack(spacing: 6) {
+                        HStack(spacing: 8) {
+                            Text("SketchSite")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .foregroundColor(.primary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                                .allowsTightening(true)
+                            
+                            Spacer(minLength: 8)
+                            
+                            Picker("Model", selection: $selectedModel) {
+                                Text("gpt-4o").tag("gpt-4o")
+                                Text("gpt-3.5").tag("gpt-3.5-turbo")
+                                Text("claude").tag("claude-3-opus")
+                            }
+                            .pickerStyle(MenuPickerStyle())
+                            .frame(minWidth: 60, maxWidth: 100)
+                            .layoutPriority(-1)
+                        }
+                        
+                        // Status text
+                        Text(statusText)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.leading)
+                            .lineLimit(2)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+                    .background(Color(.systemGray5).opacity(0.95))
+                    
+                    // Push everything else down
                     Spacer()
                 }
+                .ignoresSafeArea(edges: .top)
                 .zIndex(20)
                 
-                // Bottom toolbar overlay - positioned above home indicator
-                VStack {
+                // Bottom toolbar overlay
+                VStack(spacing: 0) {
+                    // Push everything up
                     Spacer()
-                    bottomToolbar(geometry: geometry)
-                    // Add spacer to raise toolbar above home indicator
+                    
+                    HStack(spacing: 0) {
+                        Spacer(minLength: 8)
+                        Button(action: { canvasStateManager.undo() }) {
+                            Image(systemName: "arrow.uturn.backward").font(.title)
+                        }
+                        .disabled(!canvasStateManager.canUndo)
+                        Spacer()
+                        Button(action: clearCanvas) {
+                            Image(systemName: "trash").font(.title)
+                        }
+                        Spacer()
+                        Button(action: { canvasStateManager.redo() }) {
+                            Image(systemName: "arrow.uturn.forward").font(.title)
+                        }
+                        .disabled(!canvasStateManager.canRedo)
+                        Spacer()
+                        Button(action: { showComponentLibrary = true }) {
+                            Image(systemName: "square.grid.2x2").font(.title)
+                        }
+                        Spacer()
+                        Button(action: generateComponents) {
+                            Image(systemName: isAnalyzing ? "wand.and.rays.inverse" : "wand.and.rays")
+                                .font(.title)
+                        }
+                        .disabled(isAnalyzing || !canvasStateManager.hasStrokes)
+                        Spacer()
+                        Button(action: openPreview) {
+                            Image(systemName: "safari").font(.title)
+                        }
+                        .disabled(componentManager.components.isEmpty)
+                        Spacer()
+                        Button(action: { pick(.camera) }) {
+                            Image(systemName: "camera").font(.title)
+                        }
+                        Spacer()
+                        Button(action: { pick(.photoLibrary) }) {
+                            Image(systemName: "photo").font(.title)
+                        }
+                        Spacer(minLength: 8)
+                    }
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+                    .background(Color(.systemGray5).opacity(0.95))
+                    
+                    // Reduced spacer - bring toolbar up by 64px
                     Color.clear
-                        .frame(height: max(geometry.safeAreaInsets.bottom + 48, 48))
+                        .frame(height: 80) // Was 16, now 80 (64px more)
+                    
+                    // Home indicator area
+                    Color.clear
+                        .frame(height: geometry.safeAreaInsets.bottom)
                 }
+                .ignoresSafeArea(edges: .bottom)
                 .zIndex(20)
             }
         }
-        .ignoresSafeArea(.all)
+        .ignoresSafeArea(edges: .all)
         .onAppear {
             canvasSize = UIScreen.main.bounds.size
             canvasStateManager.updateCanvasSize(canvasSize)
@@ -256,7 +322,14 @@ struct CanvasContainerView: View {
             Text(errorManager.currentError?.errorDescription ?? "Unknown error occurred")
         }
         .sheet(isPresented: $showCodePreview) {
-            CodePreviewView(code: generatedCode)
+            CodePreviewView(code: generatedCode) {
+                // Dismiss code preview and show follow-up chat
+                showCodePreview = false
+                openFollowUpChat()
+            }
+        }
+        .sheet(isPresented: $showFollowUpChat) {
+            FollowUpChatView(conversationManager: conversationManager)
         }
         .sheet(isPresented: $showBrowserPreview) {
             NavigationView {
@@ -267,10 +340,10 @@ struct CanvasContainerView: View {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { showBrowserPreview = false }
                         }
-                        ToolbarItem(placement: .primaryAction) {
-                            Button("View Code") { 
+                        ToolbarItemGroup(placement: .primaryAction) {
+                            Button("Refine") { 
                                 showBrowserPreview = false
-                                showCodePreview = true
+                                openFollowUpChat()
                             }
                         }
                     }
@@ -278,156 +351,10 @@ struct CanvasContainerView: View {
         }
         .sheet(isPresented: $showComponentLibrary) {
             ComponentLibraryView { template in
-                addLibraryComponent(template)
+                componentManager.addLibraryComponent(from: template)
+                showComponentLibrary = false
             }
         }
-    }
-
-    // MARK: - Top Header
-    private func topBar(geometry: GeometryProxy) -> some View {
-        VStack(spacing: 0) {
-            // Dynamic status bar spacer + extra padding to move header down
-            Color.clear
-                .frame(height: geometry.safeAreaInsets.top + 56)
-            
-            VStack(spacing: 6) {
-                HStack(spacing: 8) {
-                    Text("SketchSite")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                        .allowsTightening(true)
-                    
-                    Spacer(minLength: 8)
-                    
-                    // Model picker with flexible width
-                    Picker("Model", selection: $selectedModel) {
-                        Text("gpt-4o").tag("gpt-4o")
-                        Text("gpt-3.5").tag("gpt-3.5-turbo")
-                        Text("claude").tag("claude-3-opus")
-                    }
-                    .pickerStyle(MenuPickerStyle())
-                    .frame(minWidth: 60, maxWidth: 100)
-                    .layoutPriority(-1)
-                }
-                
-                // Status subcopy
-                HStack {
-                    Text(statusText)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                    
-                    Spacer()
-                    
-                    if componentManager.components.count > 0 {
-                        Text("\(componentManager.components.count) component\(componentManager.components.count != 1 ? "s" : "")")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 12)
-            .background(
-                Color(.systemGray5)
-                    .opacity(0.95)
-            )
-            .cornerRadius(12)
-            .padding(.horizontal, 8)
-        }
-        .frame(maxWidth: .infinity, alignment: .top)
-    }
-
-    // MARK: - Bottom Toolbar
-    private func bottomToolbar(geometry: GeometryProxy) -> some View {
-        HStack(spacing: 0) {
-            Spacer(minLength: 8)
-            
-            // Undo button
-            Button(action: { canvasStateManager.undo() }) {
-                Image(systemName: "arrow.uturn.backward")
-                    .font(.title2)
-                    .foregroundColor(.blue)
-            }
-            .disabled(!canvasStateManager.canUndo)
-            
-            Spacer()
-            
-            // Clear button
-            Button(action: clearCanvas) {
-                Image(systemName: "trash")
-                    .font(.title2)
-                    .foregroundColor(.blue)
-            }
-            
-            Spacer()
-            
-            // Redo button
-            Button(action: { canvasStateManager.redo() }) {
-                Image(systemName: "arrow.uturn.forward")
-                    .font(.title2)
-                    .foregroundColor(.blue)
-            }
-            .disabled(!canvasStateManager.canRedo)
-            
-            Spacer()
-            
-            // Library button
-            Button(action: { showComponentLibrary = true }) {
-                Image(systemName: "square.grid.2x2")
-                    .font(.title2)
-                    .foregroundColor(.blue)
-            }
-            
-            Spacer()
-            
-            // Generate button
-            Button(action: generateComponents) {
-                Image(systemName: isAnalyzing ? "wand.and.rays.inverse" : "wand.and.rays")
-                    .font(.title2)
-                    .foregroundColor(.blue)
-            }
-            .disabled(isAnalyzing || !canvasStateManager.hasStrokes)
-            
-            Spacer()
-            
-            // Preview button
-            Button(action: openPreview) {
-                Image(systemName: "safari")
-                    .font(.title2)
-                    .foregroundColor(.blue)
-            }
-            .disabled(componentManager.components.isEmpty)
-            
-            Spacer()
-            
-            // Camera button
-            Button(action: { pick(.camera) }) {
-                Image(systemName: "camera")
-                    .font(.title2)
-                    .foregroundColor(.blue)
-            }
-            
-            Spacer()
-            
-            // Photo library button
-            Button(action: { pick(.photoLibrary) }) {
-                Image(systemName: "photo")
-                    .font(.title2)
-                    .foregroundColor(.blue)
-            }
-            
-            Spacer(minLength: 8)
-        }
-        .padding(.vertical, 12)
-        .background(
-            Color(.systemGray5)
-                .opacity(0.95)
-        )
-        .cornerRadius(12)
-        .padding(.horizontal, 8)
     }
 
     // MARK: - Actions
@@ -455,6 +382,17 @@ struct CanvasContainerView: View {
             // Code already exists, show preview immediately
             showBrowserPreview = true
         }
+    }
+    
+    private func openFollowUpChat() {
+        // Configure conversation manager with current context
+        conversationManager.configure(
+            model: selectedModel,
+            components: componentManager.components,
+            canvasSize: canvasSize,
+            initialCode: generatedCode
+        )
+        showFollowUpChat = true
     }
     
     // MARK: - Vision Analysis
@@ -504,16 +442,42 @@ struct CanvasContainerView: View {
             }
         }
     }
-
     
     // MARK: - Code Generation
     private func generateCode() {
-        guard !componentManager.components.isEmpty else { return }
+        guard !componentManager.components.isEmpty else {
+            print("🚫 Generate code: No components to generate code for")
+            errorManager.handleError(.codeGenerationFailed("No components detected. Please draw some UI elements first."))
+            return
+        }
         
+        print("🎯 Generate code: Starting code generation...")
         isGeneratingCode = true
         
         let layoutDescription = LayoutDescriptor.describe(components: componentManager.components, canvasSize: canvasSize)
-        let prompt = buildCodeGenerationPrompt(layoutDescription: layoutDescription, canvasSize: canvasSize)
+        let propertyInstructions = LayoutDescriptor.generatePropertyInstructions(for: componentManager.components)
+        
+        let prompt = """
+        Generate clean, modern HTML and CSS code for this UI layout:
+        
+        **Canvas Size:** \(Int(canvasSize.width)) × \(Int(canvasSize.height)) pixels
+        
+        **Components:**
+        \(layoutDescription)
+        
+        **Requirements:**
+        - Use semantic HTML5 elements
+        - Create responsive CSS with flexbox/grid
+        - Use modern CSS with variables for colors
+        - Ensure good accessibility with proper ARIA labels
+        - Make it mobile-friendly
+        - Use a clean, modern design aesthetic
+        - Include hover states and smooth transitions
+        - Optimize for performance and maintainability\(propertyInstructions)
+        
+        **Output Format:**
+        Provide a complete HTML file with embedded CSS. Include proper DOCTYPE, meta tags, and viewport settings.
+        """
         
         ChatGPTService.shared.generateCode(prompt: prompt, model: selectedModel) { result in
             DispatchQueue.main.async {
@@ -521,61 +485,22 @@ struct CanvasContainerView: View {
                 
                 switch result {
                 case .success(let code):
+                    print("✅ Code generation successful")
                     self.generatedCode = code
-                    // Show browser preview if it was requested via openPreview()
+                    
                     if self.shouldShowPreviewAfterGeneration {
                         self.shouldShowPreviewAfterGeneration = false
                         self.showBrowserPreview = true
+                    } else {
+                        self.showCodePreview = true
                     }
                     
                 case .failure(let error):
+                    print("❌ Code generation failed: \(error.localizedDescription)")
                     self.errorManager.handleError(.codeGenerationFailed(error.localizedDescription))
                 }
             }
         }
-    }
-    
-    private func buildCodeGenerationPrompt(layoutDescription: String, canvasSize: CGSize) -> String {
-        return """
-        You are an expert frontend developer. Generate clean, modern HTML and CSS code based on this UI sketch analysis.
-
-        **Canvas Size:** \(Int(canvasSize.width)) × \(Int(canvasSize.height)) pixels
-
-        **Detected Components:**
-        \(layoutDescription)
-
-        **Requirements:**
-        - Generate complete, valid HTML5 with embedded CSS
-        - Use modern CSS (flexbox/grid for layout)
-        - Make it responsive and mobile-friendly
-        - Use semantic HTML elements
-        - Include hover effects and smooth transitions
-        - Use a modern color scheme (avoid default browser styles)
-        - Make buttons and interactive elements accessible
-        - Include proper meta tags and viewport settings
-
-        **Style Guidelines:**
-        - Use a clean, professional design system
-        - Consistent spacing and typography
-        - Subtle shadows and rounded corners where appropriate
-        - Modern color palette (consider blues, grays, whites)
-        - Ensure good contrast for accessibility
-
-        Please provide only the complete HTML file with embedded CSS. No explanations needed.
-        """
-    }
-    
-    // MARK: - Component Library
-    
-    private func addLibraryComponent(_ template: ComponentTemplate) {
-        let centerX = canvasSize.width / 2 + CGFloat.random(in: -50...50)
-        let centerY = canvasSize.height / 2 + CGFloat.random(in: -50...50)
-        let position = CGPoint(x: centerX, y: centerY)
-        
-        componentManager.addLibraryComponent(from: template, at: position)
-        
-        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-        impactFeedback.impactOccurred()
     }
 }
 
