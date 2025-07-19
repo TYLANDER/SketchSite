@@ -53,6 +53,8 @@ struct CanvasContainerView: View {
     @State private var selectedModel = "gpt-4o"
     @State private var showInspector = false
     @State private var showComponentLibrary = false
+    @State private var showLibraryManager = false
+    @State private var showLibraryCreator = false
     
     // Menu and project management
     @State private var showMainMenu = false
@@ -60,6 +62,7 @@ struct CanvasContainerView: View {
     
     // Conversation manager for follow-up chat
     @StateObject private var conversationManager = ConversationManager()
+    @StateObject private var libraryManager = ComponentLibraryManager.shared
     
     // Canvas size tracking
     @State private var canvasSize: CGSize = UIScreen.main.bounds.size
@@ -72,11 +75,13 @@ struct CanvasContainerView: View {
         if isAnalyzing {
             return "Analyzing drawing..."
         } else if isGeneratingCode {
-            return "Generating code..."
+            return "Generating \(libraryManager.currentPack.name) code..."
         } else if canvasStateManager.hasStrokes && componentManager.components.isEmpty {
             return "Draw shapes, then tap Generate"
-        } else if !canvasStateManager.hasStrokes {
+        } else if !canvasStateManager.hasStrokes && componentManager.components.isEmpty {
             return "Start drawing or add components"
+        } else if !componentManager.components.isEmpty {
+            return "\(componentManager.components.count) components • \(libraryManager.currentPack.name)"
         } else {
             return "Ready to generate code"
         }
@@ -142,15 +147,14 @@ struct CanvasContainerView: View {
                     Color.clear
                         .frame(height: geometry.safeAreaInsets.top)
                     
-                    // Reduced spacer - bring header down by 64px
                     Color.clear
-                        .frame(height: 80) // Was 16, now 80 (64px more)
+                        .frame(height: 16)
                     
                     VStack(spacing: 6) {
                         HStack(spacing: 8) {
                             HStack(spacing: 4) {
                                 Text("SketchSite")
-                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                    .font(.system(size: 24, weight: .bold, design: .rounded))
                                     .foregroundColor(.primary)
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.8)
@@ -158,20 +162,20 @@ struct CanvasContainerView: View {
                                 
                                 Button(action: { showMainMenu = true }) {
                                     Image(systemName: "chevron.down")
-                                        .font(.title3)
+                                        .font(.caption)
                                         .foregroundColor(.primary)
                                 }
                             }
                             
-                            Spacer(minLength: 8)
+                            Spacer(minLength: 4)
                             
                             Picker("Model", selection: $selectedModel) {
-                                Text("gpt-4o").tag("gpt-4o")
-                                Text("gpt-3.5").tag("gpt-3.5-turbo")
-                                Text("claude").tag("claude-3-opus")
+                                Text("GPT-4o").tag("gpt-4o")
+                                Text("GPT-3.5").tag("gpt-3.5-turbo")
+                                Text("Claude").tag("claude-3-opus")
                             }
                             .pickerStyle(MenuPickerStyle())
-                            .frame(minWidth: 60, maxWidth: 100)
+                            .frame(minWidth: 60, maxWidth: 90)
                             .layoutPriority(-1)
                         }
                         
@@ -215,20 +219,20 @@ struct CanvasContainerView: View {
                         }
                         .disabled(!canvasStateManager.canRedo)
                         Spacer()
-                        Button(action: { showComponentLibrary = true }) {
-                            Image(systemName: "square.grid.2x2").font(.title)
-                        }
-                        Spacer()
-                        Button(action: generateComponents) {
+                        Button(action: generateComponentsAndCode) {
                             Image(systemName: isAnalyzing ? "wand.and.rays.inverse" : "wand.and.rays")
                                 .font(.title)
                         }
-                        .disabled(isAnalyzing || !canvasStateManager.hasStrokes)
+                        .disabled(isAnalyzing || isGeneratingCode)
                         Spacer()
                         Button(action: openPreview) {
                             Image(systemName: "safari").font(.title)
                         }
                         .disabled(componentManager.components.isEmpty)
+                        Spacer()
+                        Button(action: { showComponentLibrary = true }) {
+                            Image(systemName: "plus.square").font(.title)
+                        }
                         Spacer()
                         Button(action: { pick(.camera) }) {
                             Image(systemName: "camera").font(.title)
@@ -243,9 +247,8 @@ struct CanvasContainerView: View {
                     .frame(maxWidth: .infinity)
                     .background(Color(.systemGray5).opacity(0.95))
                     
-                    // Reduced spacer - bring toolbar up by 64px
                     Color.clear
-                        .frame(height: 80) // Was 16, now 80 (64px more)
+                        .frame(height: 16)
                     
                     // Home indicator area
                     Color.clear
@@ -295,14 +298,28 @@ struct CanvasContainerView: View {
                     )
                     .navigationTitle("Edit Component")
                     .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
+                    .toolbar(content: {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { 
                                 showInspector = false
-                                componentManager.deselectComponent()
+                                
+                                // Force refresh after a short delay to ensure component updates are processed
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    componentManager.deselectComponent()
+                                    
+                                    // Force refresh the component list
+                                    let currentComponents = componentManager.components
+                                    print("🔄 Inspector closed, refreshing \(currentComponents.count) components")
+                                    for (i, comp) in currentComponents.enumerated() {
+                                        print("  Updated component \(i + 1): \(comp.type.description)")
+                                    }
+                                    
+                                    // Clear and regenerate code to ensure fresh state
+                                    generatedCode = ""
+                                }
                             }
                         }
-                    }
+                    })
                 }
                 .presentationDetents([.medium, .large])
             } else {
@@ -320,13 +337,13 @@ struct CanvasContainerView: View {
                     }
                     .navigationTitle("Inspector")
                     .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
+                    .toolbar(content: {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { 
                                 showInspector = false
                             }
                         }
-                    }
+                    })
                 }
                 .presentationDetents([.medium])
             }
@@ -353,7 +370,7 @@ struct CanvasContainerView: View {
                 BrowserPreviewView(html: generatedCode)
                     .navigationTitle("Live Preview")
                     .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
+                    .toolbar(content: {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { showBrowserPreview = false }
                         }
@@ -363,13 +380,25 @@ struct CanvasContainerView: View {
                                 openFollowUpChat()
                             }
                         }
-                    }
+                    })
             }
         }
         .sheet(isPresented: $showComponentLibrary) {
             ComponentLibraryView { template in
                 componentManager.addLibraryComponent(from: template)
                 showComponentLibrary = false
+                
+                // Force refresh after adding library component
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    let currentComponents = componentManager.components
+                    print("📚 Library component added, now have \(currentComponents.count) components")
+                    for (i, comp) in currentComponents.enumerated() {
+                        print("  Component \(i + 1): \(comp.type.description) - \(comp.label ?? "no label")")
+                    }
+                    
+                    // Clear generated code to force regeneration
+                    generatedCode = ""
+                }
             }
         }
         .sheet(isPresented: $showMainMenu) {
@@ -381,9 +410,17 @@ struct CanvasContainerView: View {
                 onOpenSettings: {
                     // TODO: Implement settings when needed
                     print("Settings tapped - Coming soon!")
+                },
+                onSwitchLibrary: {
+                    showMainMenu = false
+                    showLibraryManager = true
+                },
+                onAddLibrary: {
+                    showMainMenu = false
+                    showLibraryCreator = true
                 }
             )
-            .presentationDetents([.height(200)])
+            .presentationDetents([.height(400)])
             .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $showSketchManager) {
@@ -395,6 +432,12 @@ struct CanvasContainerView: View {
                     createNewProject(name: name)
                 }
             )
+        }
+        .sheet(isPresented: $showLibraryManager) {
+            LibraryManagerView()
+        }
+        .sheet(isPresented: $showLibraryCreator) {
+            LibraryCreatorView()
         }
     }
 
@@ -415,14 +458,9 @@ struct CanvasContainerView: View {
     }
     
     private func openPreview() {
-        if generatedCode.isEmpty {
-            // Generate code first, then show preview
-            shouldShowPreviewAfterGeneration = true
-            generateCode()
-        } else {
-            // Code already exists, show preview immediately
-            showBrowserPreview = true
-        }
+        // Always regenerate code to ensure latest component changes
+        shouldShowPreviewAfterGeneration = true
+        generateCode()
     }
     
     private func openFollowUpChat() {
@@ -437,9 +475,25 @@ struct CanvasContainerView: View {
     }
     
     // MARK: - Vision Analysis
-    private func generateComponents() {
+    
+    private func generateComponentsAndCode() {
+        if canvasStateManager.hasStrokes {
+            // If there are strokes, analyze first then generate code
+            generateComponents { success in
+                if success || !componentManager.components.isEmpty {
+                    generateCode()
+                }
+            }
+        } else if !componentManager.components.isEmpty {
+            // If no strokes but we have components, just generate code
+            generateCode()
+        }
+    }
+    
+    private func generateComponents(completion: @escaping (Bool) -> Void = { _ in }) {
         guard canvasStateManager.hasStrokes else { 
             print("🚫 Generate components: No strokes on canvas")
+            completion(false)
             return 
         }
         
@@ -453,6 +507,7 @@ struct CanvasContainerView: View {
             print("❌ Generate components: Failed to capture canvas image")
             errorManager.handleCanvasError("Failed to capture canvas image")
             isAnalyzing = false
+            completion(false)
             return
         }
         
@@ -471,6 +526,9 @@ struct CanvasContainerView: View {
                     print("⚠️ No new components detected")
                     if self.componentManager.components.isEmpty {
                         self.errorManager.handleError(.visionAnalysisFailed("No UI components detected. Try drawing clearer rectangles or shapes."))
+                        completion(false)
+                    } else {
+                        completion(true) // We have existing components
                     }
                 } else {
                     print("🔄 Merging components...")
@@ -479,6 +537,7 @@ struct CanvasContainerView: View {
                     self.componentManager.setComponents(mergedComponents)
                     
                     print("✅ Components set successfully. Current count: \(self.componentManager.components.count)")
+                    completion(true)
                 }
             }
         }
@@ -488,36 +547,96 @@ struct CanvasContainerView: View {
     private func generateCode() {
         guard !componentManager.components.isEmpty else {
             print("🚫 Generate code: No components to generate code for")
-            errorManager.handleError(.codeGenerationFailed("No components detected. Please draw some UI elements first."))
+            errorManager.handleError(.codeGenerationFailed("No components detected. Please draw some UI elements or add from library first."))
+            return
+        }
+        
+        // Validate component data before sending to AI
+        let validComponents = componentManager.components.filter { comp in
+            return comp.rect.width > 0 && comp.rect.height > 0
+        }
+        
+        guard !validComponents.isEmpty else {
+            print("🚫 Generate code: All components have invalid dimensions")
+            errorManager.handleError(.codeGenerationFailed("Component data is invalid. Please recreate your components."))
             return
         }
         
         print("🎯 Generate code: Starting code generation...")
+        print("📊 Valid components for code generation (\(validComponents.count) total):")
+        for (i, comp) in validComponents.enumerated() {
+            print("  Component \(i + 1): TYPE=\(comp.type.description) - LABEL='\(comp.label ?? "none")' - TEXT='\(comp.textContent ?? "none")' - RECT=\(comp.rect)")
+        }
+        
+        // Verify we have actual components, not just placeholders
+        let componentTypes = validComponents.map { $0.type.description }
+        print("🔍 Component types being sent to AI: \(componentTypes)")
+        
+        // Count component types
+        let typeCounts = Dictionary(grouping: componentTypes, by: { $0 }).mapValues { $0.count }
+        print("📈 Component type breakdown: \(typeCounts)")
+        
+        // Check for suspicious patterns
+        if typeCounts.count == 1 && typeCounts.keys.first == "form control" {
+            print("⚠️ WARNING: Only form controls detected - this might be incorrect component detection")
+        }
+        
         isGeneratingCode = true
         
-        let layoutDescription = LayoutDescriptor.describe(components: componentManager.components, canvasSize: canvasSize)
-        let propertyInstructions = LayoutDescriptor.generatePropertyInstructions(for: componentManager.components)
+        let layoutDescription = LayoutDescriptor.describe(components: validComponents, canvasSize: canvasSize)
+        let propertyInstructions = LayoutDescriptor.generatePropertyInstructions(for: validComponents)
+        
+        let designSystemInstructions = getDesignSystemInstructions()
+        
+        // Build explicit component list for AI
+        let explicitComponentList = validComponents.enumerated().map { (index, comp) in
+            return "Component \(index + 1): **\(comp.type.description.uppercased())** (position: \(Int(comp.rect.midX)), \(Int(comp.rect.midY)), size: \(Int(comp.rect.width))×\(Int(comp.rect.height)))"
+        }.joined(separator: "\n")
         
         let prompt = """
-        Generate clean, modern HTML and CSS code for this UI layout:
+        Generate HTML/CSS for this UI layout. READ EACH COMPONENT TYPE CAREFULLY:
         
-        **Canvas Size:** \(Int(canvasSize.width)) × \(Int(canvasSize.height)) pixels
+        **Canvas:** \(Int(canvasSize.width))×\(Int(canvasSize.height))px
+        **Component Count:** \(validComponents.count)
         
-        **Components:**
-        \(layoutDescription)
+        **EXACT COMPONENTS TO CREATE:**
+        \(explicitComponentList)
         
-        **Requirements:**
-        - Use semantic HTML5 elements
-        - Create responsive CSS with flexbox/grid
-        - Use modern CSS with variables for colors
-        - Ensure good accessibility with proper ARIA labels
-        - Make it mobile-friendly
-        - Use a clean, modern design aesthetic
-        - Include hover states and smooth transitions
-        - Optimize for performance and maintainability\(propertyInstructions)
+        **STRICT REQUIREMENTS - FOLLOW EXACTLY:**
+        🚫 DO NOT create "form fields" unless the component type explicitly says "form control"
+        🚫 DO NOT use placeholder or dummy text
+        🚫 DO NOT repeat the same component type multiple times unless specified
+        ✅ CREATE the exact HTML element for each component type:
         
-        **Output Format:**
-        Provide a complete HTML file with embedded CSS. Include proper DOCTYPE, meta tags, and viewport settings.
+        **TYPE MAPPINGS (MANDATORY):**
+        - "icon" → <i class="fa fa-star"></i> or <svg> icon
+        - "button" → <button class="btn">Button Text</button>
+        - "navbar" → <nav class="navbar"> with navigation links
+        - "label" → <span> or <p> with text
+        - "image" → <img> or placeholder div
+        - "form control" → <input> or <textarea>
+        - "dropdown" → <select> with options
+        - "alert" → <div class="alert"> notification
+        - "badge" → <span class="badge"> status
+        - "table" → <table> with rows/columns
+        - "modal" → <div class="modal"> dialog
+        - "well" → <div class="well"> container
+        - "carousel" → <div class="carousel"> slider
+        - "progress bar" → <div class="progress"> bar
+        - "pagination" → <nav> with page links
+        - "tab" → <div class="tabs"> navigation
+        - "breadcrumb" → <nav class="breadcrumb"> trail
+        - "tooltip" → <div class="tooltip"> popup
+        - "thumbnail" → <img class="thumbnail"> small image
+        - "media object" → <div class="card"> content card
+        - "list group" → <ul class="list"> items
+        
+        \(designSystemInstructions)
+        
+        **VERIFICATION:**
+        Before writing HTML, verify you have exactly \(validComponents.count) different components matching the types above.
+        
+        **OUTPUT:** Complete HTML file with embedded CSS.
         """
         
         ChatGPTService.shared.generateCode(prompt: prompt, model: selectedModel) { result in
@@ -541,6 +660,59 @@ struct CanvasContainerView: View {
                     self.errorManager.handleError(.codeGenerationFailed(error.localizedDescription))
                 }
             }
+        }
+    }
+    
+    // MARK: - Design System Instructions
+    
+    private func getDesignSystemInstructions() -> String {
+        let libraryName = libraryManager.currentPack.name.lowercased()
+        let colorScheme = libraryManager.currentPack.colorScheme
+        
+        if libraryName.contains("bootstrap") {
+            return """
+            - Use Bootstrap 5.3 CSS framework (include CDN link in head)
+            - Use Bootstrap classes: btn, btn-primary, navbar, nav, form-control, etc.
+            - Use Bootstrap's grid system with container, row, col classes
+            - Use Bootstrap components like cards, buttons, forms, navigation
+            - Apply Bootstrap utility classes for spacing, colors, and layout
+            - Primary color: \(colorScheme.primary), Secondary: \(colorScheme.secondary)
+            """
+        } else if libraryName.contains("tailwind") {
+            return """
+            - Use Tailwind CSS 3.x framework (include CDN link in head)
+            - Use Tailwind utility classes: bg-blue-500, text-white, p-4, flex, etc.
+            - Use Tailwind's responsive prefixes: sm:, md:, lg:, xl:
+            - Use Tailwind component classes for buttons, forms, navigation
+            - Apply Tailwind's modern color palette and spacing system
+            - Primary color: \(colorScheme.primary), Secondary: \(colorScheme.secondary)
+            """
+        } else if libraryName.contains("material") {
+            return """
+            - Use Material Design 3 principles and components
+            - Use Material UI CSS framework or custom Material Design styles
+            - Apply Material Design elevation, typography, and spacing
+            - Use Material Design color system and elevation shadows
+            - Implement Material Design interaction patterns (ripples, transitions)
+            - Primary color: \(colorScheme.primary), Secondary: \(colorScheme.secondary)
+            """
+        } else if libraryName.contains("ios") || libraryName.contains("human interface") {
+            return """
+            - Use iOS Human Interface Guidelines design patterns
+            - Apply iOS-style typography, spacing, and visual hierarchy
+            - Use iOS color system and SF Symbols where appropriate
+            - Implement iOS-style navigation and interaction patterns
+            - Use rounded corners, subtle shadows, and iOS visual elements
+            - Primary color: \(colorScheme.primary), Secondary: \(colorScheme.secondary)
+            """
+        } else {
+            return """
+            - Use custom CSS with modern design patterns from \(libraryManager.currentPack.name)
+            - Create responsive design with CSS Grid and Flexbox
+            - Use CSS custom properties (variables) for colors and spacing
+            - Apply modern typography and spacing conventions
+            - Primary color: \(colorScheme.primary), Secondary: \(colorScheme.secondary), Accent: \(colorScheme.accent)
+            """
         }
     }
     

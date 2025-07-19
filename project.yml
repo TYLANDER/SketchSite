@@ -23,8 +23,27 @@
          - Services
          - SketchSiteApp.swift
          - DiagnosticsRunner.swift
+         - PrivacyInfo.xcprivacy
        info:
          path: Info.plist
+         properties:
+           UILaunchScreen:
+             UIColorName: ""
+             UIImageName: ""
+           UISupportedInterfaceOrientations:
+             - UIInterfaceOrientationPortrait
+           UIRequiresFullScreen: true
+           UIStatusBarHidden: false
+           UIViewControllerBasedStatusBarAppearance: false
+           LSRequiresIPhoneOS: true
+           UIApplicationSceneManifest:
+             UIApplicationSupportsMultipleScenes: false
+             UISceneConfigurations:
+               UIWindowSceneSessionRoleApplication:
+                 - UISceneConfigurationName: "Default Configuration"
+                   UISceneDelegateClassName: "$(PRODUCT_MODULE_NAME).SceneDelegate"
+           NSCameraUsageDescription: "SketchSite uses the camera to analyze existing UI screenshots and mockups for component detection."
+           NSPhotoLibraryUsageDescription: "SketchSite accesses your photo library to import images for UI analysis and component detection."
        settings:
          base:
            PRODUCT_BUNDLE_IDENTIFIER: com.tylerschmidt.SketchSite

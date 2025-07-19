@@ -4,8 +4,8 @@ import CoreGraphics
 // MARK: - Component Library
 
 /// Represents a pre-built component template that can be added to the canvas
-struct ComponentTemplate: Identifiable, Hashable {
-    let id = UUID()
+struct ComponentTemplate: Identifiable, Hashable, Codable {
+    let id: UUID
     let name: String
     let type: UIComponentType
     let category: ComponentCategory
@@ -15,6 +15,7 @@ struct ComponentTemplate: Identifiable, Hashable {
     let icon: String
     
     init(name: String, type: UIComponentType, category: ComponentCategory, description: String, defaultSize: CGSize, icon: String) {
+        self.id = UUID()
         self.name = name
         self.type = type
         self.category = category
@@ -26,7 +27,7 @@ struct ComponentTemplate: Identifiable, Hashable {
 }
 
 /// Categories for organizing component templates
-enum ComponentCategory: String, CaseIterable {
+enum ComponentCategory: String, CaseIterable, Codable {
     case basic = "Basic"
     case navigation = "Navigation"
     case forms = "Forms"

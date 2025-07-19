@@ -8,7 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		02D1432F5237AE8EE255E8C0 /* SketchManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9E634B15A76E2D81A1CF5D7 /* SketchManagerView.swift */; };
+		11E114BA4F33ECDE61443AE0 /* LibraryManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CB5EC5420863F6A1AD8FC5B /* LibraryManagerView.swift */; };
 		123EC7087EA968CABB0A2055 /* ComponentLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = A167E6CE41FEFF25682630AC /* ComponentLibrary.swift */; };
+		2AD5074724DCA7EADF2143DA /* ColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204771A5E1DC8FE13F45A60C /* ColorExtensions.swift */; };
 		2C5575242DECE39F6D4568FF /* ComponentDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1235E2BC145C35AE84DF526 /* ComponentDetector.swift */; };
 		2E6A160C341649F517AC82D3 /* AnnotationProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70034ABAD8FF5C469444B75F /* AnnotationProcessor.swift */; };
 		2ECBECB91A7334ED8AC2245A /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08DCC32E16F9ABFFF9BAE798 /* CanvasView.swift */; };
@@ -18,9 +20,11 @@
 		3E31136304B99C84BC5C1F1E /* LayoutDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82B3C0D6D6404387F385662C /* LayoutDescriptor.swift */; };
 		48ADECE8F3DE56EC3030BF2F /* CodePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE52F54ABC774C40CF9C098A /* CodePreviewView.swift */; };
 		50E55870D3E56B60FE5D1930 /* SketchSiteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF86342ECB4F7B54C62434FF /* SketchSiteApp.swift */; };
+		60C000627EE939D51E8BD8CD /* ComponentLibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74E825A4B980C67B5066711A /* ComponentLibraryManager.swift */; };
 		60EB1EB0E8ED33CC3111F424 /* TypePickerSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4343C384DD0E14A707B3022 /* TypePickerSheetView.swift */; };
 		60EF8D66F00187C9AF67207C /* SketchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC763326C3A164DBD086CB25 /* SketchManager.swift */; };
 		70888EAF490B6E5B88078BE7 /* MainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4916225EC00BE8B514D40008 /* MainMenuView.swift */; };
+		71D4D76017954AA9F1E12EFC /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 25FB42289633B8F6A90897AA /* PrivacyInfo.xcprivacy */; };
 		84BB71E204F9E7383E152A1C /* SketchSiteUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C93EC8F15147EE4B21B81E6 /* SketchSiteUITestsLaunchTests.swift */; };
 		865CB193FC5A7CFB832016AA /* CanvasSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5993A6D636E56DC2F33F90E5 /* CanvasSnapshot.swift */; };
 		87DA6630C6381B03EF8E00DA /* ComponentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 716ED01FAEAAD07936538AE9 /* ComponentManager.swift */; };
@@ -40,6 +44,7 @@
 		D8DBA8323AABE060D81DBDA1 /* GeometryCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABA2A2F24F2674568F48411 /* GeometryCalculator.swift */; };
 		DE3A6C2C87AFAE421419C5DB /* SketchSiteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36B0713A878FB40F45CBAD0E /* SketchSiteTests.swift */; };
 		E4CD271A15163BAA744285DA /* RectangleComponentDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FDC29A2E902C23C136D7FC5 /* RectangleComponentDetector.swift */; };
+		E51D7986541425A061DAC6E3 /* LibraryCreatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F340B2B12B357F160BA4FAF /* LibraryCreatorView.swift */; };
 		EA93F3126F5B1B0A6046E473 /* ComponentOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04A58361C7CB09CC3E6077A /* ComponentOverlayView.swift */; };
 		EC3B898074C85D1E5D58602A /* SketchSiteUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5234C3AAC0625A85AF27789 /* SketchSiteUITests.swift */; };
 /* End PBXBuildFile section */
@@ -65,17 +70,22 @@
 		08DCC32E16F9ABFFF9BAE798 /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
 		0ACC89816597C55263423AF1 /* ConversationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationManager.swift; sourceTree = "<group>"; };
 		0C93EC8F15147EE4B21B81E6 /* SketchSiteUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchSiteUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		204771A5E1DC8FE13F45A60C /* ColorExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorExtensions.swift; sourceTree = "<group>"; };
+		25FB42289633B8F6A90897AA /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		2A4891CC8844DD39F4A9047D /* InspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorView.swift; sourceTree = "<group>"; };
 		2CA621F3EA28984E9142BE97 /* ProfessionalColorPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfessionalColorPickerView.swift; sourceTree = "<group>"; };
 		36B0713A878FB40F45CBAD0E /* SketchSiteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchSiteTests.swift; sourceTree = "<group>"; };
+		3CB5EC5420863F6A1AD8FC5B /* LibraryManagerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryManagerView.swift; sourceTree = "<group>"; };
 		4916225EC00BE8B514D40008 /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
 		5993A6D636E56DC2F33F90E5 /* CanvasSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasSnapshot.swift; sourceTree = "<group>"; };
 		62CE953D5633E57279BDB538 /* ToolbarButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarButton.swift; sourceTree = "<group>"; };
 		64EA9320DDA162BD563DD9A9 /* ChatGPTService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatGPTService.swift; sourceTree = "<group>"; };
 		6ABA2A2F24F2674568F48411 /* GeometryCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeometryCalculator.swift; sourceTree = "<group>"; };
+		6F340B2B12B357F160BA4FAF /* LibraryCreatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryCreatorView.swift; sourceTree = "<group>"; };
 		6F88B8C58B03A62E2736518D /* ErrorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorManager.swift; sourceTree = "<group>"; };
 		70034ABAD8FF5C469444B75F /* AnnotationProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationProcessor.swift; sourceTree = "<group>"; };
 		716ED01FAEAAD07936538AE9 /* ComponentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentManager.swift; sourceTree = "<group>"; };
+		74E825A4B980C67B5066711A /* ComponentLibraryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentLibraryManager.swift; sourceTree = "<group>"; };
 		7565884C3353639DDF85078A /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
 		75CFF6EEC1DE52A7ACA95102 /* BrowserPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserPreviewView.swift; sourceTree = "<group>"; };
 		7B0EF7F94C39CB69062AA0B2 /* FollowUpChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowUpChatView.swift; sourceTree = "<group>"; };
@@ -109,8 +119,10 @@
 				70034ABAD8FF5C469444B75F /* AnnotationProcessor.swift */,
 				5993A6D636E56DC2F33F90E5 /* CanvasSnapshot.swift */,
 				A5776417915CE6F7A1AF7212 /* CanvasStateManager.swift */,
+				204771A5E1DC8FE13F45A60C /* ColorExtensions.swift */,
 				E1235E2BC145C35AE84DF526 /* ComponentDetector.swift */,
 				A167E6CE41FEFF25682630AC /* ComponentLibrary.swift */,
+				74E825A4B980C67B5066711A /* ComponentLibraryManager.swift */,
 				716ED01FAEAAD07936538AE9 /* ComponentManager.swift */,
 				0ACC89816597C55263423AF1 /* ConversationManager.swift */,
 				6F88B8C58B03A62E2736518D /* ErrorManager.swift */,
@@ -135,6 +147,8 @@
 				7B0EF7F94C39CB69062AA0B2 /* FollowUpChatView.swift */,
 				C5AB2C9102D3F1CDB0BF5C0F /* ImagePicker.swift */,
 				2A4891CC8844DD39F4A9047D /* InspectorView.swift */,
+				6F340B2B12B357F160BA4FAF /* LibraryCreatorView.swift */,
+				3CB5EC5420863F6A1AD8FC5B /* LibraryManagerView.swift */,
 				4916225EC00BE8B514D40008 /* MainMenuView.swift */,
 				2CA621F3EA28984E9142BE97 /* ProfessionalColorPickerView.swift */,
 				E9E634B15A76E2D81A1CF5D7 /* SketchManagerView.swift */,
@@ -148,6 +162,7 @@
 			isa = PBXGroup;
 			children = (
 				B3406DDD7110D0E7742B876C /* DiagnosticsRunner.swift */,
+				25FB42289633B8F6A90897AA /* PrivacyInfo.xcprivacy */,
 				DF86342ECB4F7B54C62434FF /* SketchSiteApp.swift */,
 				CFC198C4417DE7ABB9702CE0 /* Services */,
 				98DDF9C5D7484D0D704AF9DF /* SketchSiteTests */,
@@ -221,6 +236,7 @@
 			buildConfigurationList = 6D5555AB80D03B0DD332C386 /* Build configuration list for PBXNativeTarget "SketchSite" */;
 			buildPhases = (
 				2AC063D76A8AD6D509204FFA /* Sources */,
+				B668E3ED6D59EBE90FD0F5AE /* Resources */,
 			);
 			buildRules = (
 			);
@@ -294,6 +310,17 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		B668E3ED6D59EBE90FD0F5AE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				71D4D76017954AA9F1E12EFC /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		2AC063D76A8AD6D509204FFA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -306,9 +333,11 @@
 				2ECBECB91A7334ED8AC2245A /* CanvasView.swift in Sources */,
 				B202969C5EC7F7D103ED76AA /* ChatGPTService.swift in Sources */,
 				48ADECE8F3DE56EC3030BF2F /* CodePreviewView.swift in Sources */,
+				2AD5074724DCA7EADF2143DA /* ColorExtensions.swift in Sources */,
 				2C5575242DECE39F6D4568FF /* ComponentDetector.swift in Sources */,
 				123EC7087EA968CABB0A2055 /* ComponentLibrary.swift in Sources */,
 				3566337904B40652AB2F016C /* ComponentLibraryDemoView.swift in Sources */,
+				60C000627EE939D51E8BD8CD /* ComponentLibraryManager.swift in Sources */,
 				ACBC336875206956AC0ABF94 /* ComponentLibraryView.swift in Sources */,
 				87DA6630C6381B03EF8E00DA /* ComponentManager.swift in Sources */,
 				EA93F3126F5B1B0A6046E473 /* ComponentOverlayView.swift in Sources */,
@@ -322,6 +351,8 @@
 				BE78C3D7EE51A3E0019103E9 /* ImagePicker.swift in Sources */,
 				3DFA247FA89A9B13D785C8DA /* InspectorView.swift in Sources */,
 				3E31136304B99C84BC5C1F1E /* LayoutDescriptor.swift in Sources */,
+				E51D7986541425A061DAC6E3 /* LibraryCreatorView.swift in Sources */,
+				11E114BA4F33ECDE61443AE0 /* LibraryManagerView.swift in Sources */,
 				70888EAF490B6E5B88078BE7 /* MainMenuView.swift in Sources */,
 				8BA4DF1590B851CD4DBD95DC /* ProfessionalColorPickerView.swift in Sources */,
 				E4CD271A15163BAA744285DA /* RectangleComponentDetector.swift in Sources */,

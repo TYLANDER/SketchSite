@@ -10,7 +10,7 @@ struct ComponentLibraryView: View {
     @State private var searchText = ""
     @State private var showingQuickAdd = false
     
-    private let componentLibrary = ComponentLibrary.shared
+    @StateObject private var libraryManager = ComponentLibraryManager.shared
     
     var body: some View {
         NavigationView {
@@ -31,7 +31,7 @@ struct ComponentLibraryView: View {
             }
             .navigationTitle("Component Library")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
+            .toolbar(content: {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
@@ -40,7 +40,7 @@ struct ComponentLibraryView: View {
                         Image(systemName: showingQuickAdd ? "minus.circle" : "plus.circle")
                     }
                 }
-            }
+            })
         }
     }
     
@@ -74,7 +74,7 @@ struct ComponentLibraryView: View {
     private var categoryPicker: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
-                ForEach(ComponentCategory.allCases, id: \.self) { category in
+                ForEach(libraryManager.availableCategories, id: \.self) { category in
                     CategoryButton(
                         category: category,
                         isSelected: selectedCategory == category,
@@ -85,6 +85,12 @@ struct ComponentLibraryView: View {
             .padding(.horizontal)
         }
         .padding(.vertical, 12)
+        .onAppear {
+            // Set initial category to first available category
+            if let firstCategory = libraryManager.availableCategories.first {
+                selectedCategory = firstCategory
+            }
+        }
     }
     
     // MARK: - Component Grid
@@ -134,7 +140,7 @@ struct ComponentLibraryView: View {
     // MARK: - Computed Properties
     
     private var filteredComponents: [ComponentTemplate] {
-        let categoryComponents = componentLibrary.templates(for: selectedCategory)
+        let categoryComponents = libraryManager.templates(for: selectedCategory)
         
         if searchText.isEmpty {
             return categoryComponents
@@ -149,7 +155,7 @@ struct ComponentLibraryView: View {
     
     private var quickAddComponents: [ComponentTemplate] {
         // Most commonly used components for quick access
-        componentLibrary.allTemplates.filter { template in
+        libraryManager.currentTemplates.filter { template in
             ["Button", "Text Label", "Image", "Text Input"].contains(template.name)
         }
     }

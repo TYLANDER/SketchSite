@@ -3,12 +3,19 @@ import SwiftUI
 /// Main menu view accessible from the canvas header
 struct MainMenuView: View {
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var libraryManager = ComponentLibraryManager.shared
     
     let onOpenFiles: () -> Void
     let onOpenSettings: () -> Void
+    let onSwitchLibrary: () -> Void
+    let onAddLibrary: () -> Void
     
     var body: some View {
         VStack(spacing: 0) {
+            // Top padding to avoid iPhone toolbar
+            Color.clear
+                .frame(height: 100)
+            
             // Header
             HStack {
                 Text("Menu")
@@ -33,6 +40,72 @@ struct MainMenuView: View {
                     subtitle: "Manage your sketches",
                     action: {
                         onOpenFiles()
+                        dismiss()
+                    }
+                )
+                
+                Divider()
+                    .padding(.leading, 60)
+                
+                // Current Library Display
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 16) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color(hexString: libraryManager.currentPack.colorScheme.primary).opacity(0.1))
+                                .frame(width: 44, height: 44)
+                            
+                            Image(systemName: libraryManager.currentPack.icon)
+                                .font(.title3)
+                                .foregroundColor(Color(hexString: libraryManager.currentPack.colorScheme.primary))
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack {
+                                Text("Current Library")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                            }
+                            
+                            Text(libraryManager.currentPack.name)
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                            
+                            Text("\(libraryManager.currentPack.templates.count) components")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+                }
+                .background(.regularMaterial.opacity(0.5))
+                
+                Divider()
+                    .padding(.leading, 60)
+                
+                MenuItemRow(
+                    icon: "arrow.2.squarepath",
+                    title: "Switch Library",
+                    subtitle: "Change design system",
+                    action: {
+                        onSwitchLibrary()
+                        dismiss()
+                    }
+                )
+                
+                Divider()
+                    .padding(.leading, 60)
+                
+                MenuItemRow(
+                    icon: "plus.rectangle.on.folder",
+                    title: "Add Library",
+                    subtitle: "Create custom library",
+                    action: {
+                        onAddLibrary()
                         dismiss()
                     }
                 )
@@ -129,7 +202,9 @@ struct MainMenuView_Previews: PreviewProvider {
     static var previews: some View {
         MainMenuView(
             onOpenFiles: { },
-            onOpenSettings: { }
+            onOpenSettings: { },
+            onSwitchLibrary: { },
+            onAddLibrary: { }
         )
     }
 }
