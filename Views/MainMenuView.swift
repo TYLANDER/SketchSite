@@ -1,46 +1,55 @@
 import SwiftUI
 
-/// Main menu view accessible from the canvas header
+/// Main menu view accessible from the canvas header - now as a sidebar
 struct MainMenuView: View {
-    @Environment(\.dismiss) private var dismiss
     @StateObject private var libraryManager = ComponentLibraryManager.shared
     
     let onOpenFiles: () -> Void
     let onOpenSettings: () -> Void
     let onSwitchLibrary: () -> Void
     let onAddLibrary: () -> Void
+    let onDismiss: () -> Void
     
     var body: some View {
         VStack(spacing: 0) {
-            // Top padding to avoid iPhone toolbar
-            Color.clear
-                .frame(height: 100)
-            
-            // Header
-            HStack {
-                Text("Menu")
-                    .font(.title2.weight(.bold))
-                
-                Spacer()
-                
-                Button(action: { dismiss() }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.secondary)
+            // Header with app branding
+            VStack(spacing: 12) {
+                HStack {
+                    HStack(spacing: 4) {
+                        Text("SketchSite")
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .foregroundColor(.primary)
+                        
+                        Image(systemName: "chevron.down")
+                            .font(.caption)
+                            .foregroundColor(.primary)
+                            .rotationEffect(.degrees(90)) // Rotate to point right for sidebar
+                    }
+                    
+                    Spacer()
+                    
+                    Button(action: onDismiss) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.secondary)
+                    }
                 }
+                
+                Divider()
             }
             .padding()
             .background(.regularMaterial)
             
             // Menu Items
-            VStack(spacing: 0) {
+            ScrollView {
+                VStack(spacing: 0) {
                 MenuItemRow(
                     icon: "folder",
                     title: "Files",
                     subtitle: "Manage your sketches",
                     action: {
                         onOpenFiles()
-                        dismiss()
+                        onDismiss()
                     }
                 )
                 
@@ -93,7 +102,7 @@ struct MainMenuView: View {
                     subtitle: "Change design system",
                     action: {
                         onSwitchLibrary()
-                        dismiss()
+                        onDismiss()
                     }
                 )
                 
@@ -106,7 +115,7 @@ struct MainMenuView: View {
                     subtitle: "Create custom library",
                     action: {
                         onAddLibrary()
-                        dismiss()
+                        onDismiss()
                     }
                 )
                 
@@ -120,15 +129,17 @@ struct MainMenuView: View {
                     isComingSoon: true,
                     action: {
                         onOpenSettings()
-                        dismiss()
+                        onDismiss()
                     }
                 )
+                }
+                .background(.regularMaterial)
             }
-            .background(.regularMaterial)
             
             Spacer()
         }
-        .background(Color.black.opacity(0.3))
+        .frame(maxWidth: .infinity)
+        .background(.regularMaterial)
         .ignoresSafeArea()
     }
 }
@@ -204,7 +215,8 @@ struct MainMenuView_Previews: PreviewProvider {
             onOpenFiles: { },
             onOpenSettings: { },
             onSwitchLibrary: { },
-            onAddLibrary: { }
+            onAddLibrary: { },
+            onDismiss: { }
         )
     }
 }

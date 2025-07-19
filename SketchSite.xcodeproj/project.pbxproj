@@ -19,6 +19,7 @@
 		38EC114C941D2F019FA74DC7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DA1278C92F7FD134A8968607 /* Assets.xcassets */; };
 		3DFA247FA89A9B13D785C8DA /* InspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4891CC8844DD39F4A9047D /* InspectorView.swift */; };
 		3E31136304B99C84BC5C1F1E /* LayoutDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82B3C0D6D6404387F385662C /* LayoutDescriptor.swift */; };
+		41739BD4D00DA108D2745A95 /* SidebarMenuOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9E3A343DEDA9E1B70462195 /* SidebarMenuOverlay.swift */; };
 		48ADECE8F3DE56EC3030BF2F /* CodePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE52F54ABC774C40CF9C098A /* CodePreviewView.swift */; };
 		50E55870D3E56B60FE5D1930 /* SketchSiteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF86342ECB4F7B54C62434FF /* SketchSiteApp.swift */; };
 		60C000627EE939D51E8BD8CD /* ComponentLibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74E825A4B980C67B5066711A /* ComponentLibraryManager.swift */; };
@@ -105,6 +106,7 @@
 		D50F5B3032BFADB556AEBB7C /* SketchSite.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SketchSite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D5234C3AAC0625A85AF27789 /* SketchSiteUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchSiteUITests.swift; sourceTree = "<group>"; };
 		D838E9C19365A9FA54B4FE9A /* ComponentLibraryDemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentLibraryDemoView.swift; sourceTree = "<group>"; };
+		D9E3A343DEDA9E1B70462195 /* SidebarMenuOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarMenuOverlay.swift; sourceTree = "<group>"; };
 		DA1278C92F7FD134A8968607 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DF86342ECB4F7B54C62434FF /* SketchSiteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchSiteApp.swift; sourceTree = "<group>"; };
 		E1235E2BC145C35AE84DF526 /* ComponentDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentDetector.swift; sourceTree = "<group>"; };
@@ -153,6 +155,7 @@
 				3CB5EC5420863F6A1AD8FC5B /* LibraryManagerView.swift */,
 				4916225EC00BE8B514D40008 /* MainMenuView.swift */,
 				2CA621F3EA28984E9142BE97 /* ProfessionalColorPickerView.swift */,
+				D9E3A343DEDA9E1B70462195 /* SidebarMenuOverlay.swift */,
 				E9E634B15A76E2D81A1CF5D7 /* SketchManagerView.swift */,
 				62CE953D5633E57279BDB538 /* ToolbarButton.swift */,
 				D4343C384DD0E14A707B3022 /* TypePickerSheetView.swift */,
@@ -360,6 +363,7 @@
 				70888EAF490B6E5B88078BE7 /* MainMenuView.swift in Sources */,
 				8BA4DF1590B851CD4DBD95DC /* ProfessionalColorPickerView.swift in Sources */,
 				E4CD271A15163BAA744285DA /* RectangleComponentDetector.swift in Sources */,
+				41739BD4D00DA108D2745A95 /* SidebarMenuOverlay.swift in Sources */,
 				60EF8D66F00187C9AF67207C /* SketchManager.swift in Sources */,
 				02D1432F5237AE8EE255E8C0 /* SketchManagerView.swift in Sources */,
 				50E55870D3E56B60FE5D1930 /* SketchSiteApp.swift in Sources */,

@@ -394,7 +394,7 @@ struct CanvasContainerView: View {
                 }
             }
         }
-        .sheet(isPresented: $showMainMenu) {
+        .sidebarOverlay(isPresented: $showMainMenu) {
             MainMenuView(
                 onOpenFiles: { 
                     showMainMenu = false
@@ -411,10 +411,11 @@ struct CanvasContainerView: View {
                 onAddLibrary: {
                     showMainMenu = false
                     showLibraryCreator = true
+                },
+                onDismiss: {
+                    showMainMenu = false
                 }
             )
-            .presentationDetents([.height(400)])
-            .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $showSketchManager) {
             SketchManagerView(
