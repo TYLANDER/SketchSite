@@ -232,7 +232,7 @@ struct CanvasContainerView: View {
                         }
                         Spacer()
                         Button(action: { pick(.camera) }) {
-                            Image(systemName: "camera").font(.title)
+                            Image(systemName: "photo").font(.title)
                         }
                         Spacer(minLength: 16)
                     }
