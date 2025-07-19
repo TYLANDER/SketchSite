@@ -148,10 +148,10 @@ struct CanvasContainerView: View {
                         .frame(height: geometry.safeAreaInsets.top)
                     
                     Color.clear
-                        .frame(height: 16)
+                        .frame(height: 40)
                     
                     VStack(spacing: 6) {
-                        HStack(spacing: 8) {
+                        HStack(spacing: 0) {
                             HStack(spacing: 4) {
                                 Text("SketchSite")
                                     .font(.system(size: 24, weight: .bold, design: .rounded))
@@ -167,7 +167,7 @@ struct CanvasContainerView: View {
                                 }
                             }
                             
-                            Spacer(minLength: 4)
+                            Spacer()
                             
                             Picker("Model", selection: $selectedModel) {
                                 Text("GPT-4o").tag("gpt-4o")
@@ -175,8 +175,10 @@ struct CanvasContainerView: View {
                                 Text("Claude").tag("claude-3-opus")
                             }
                             .pickerStyle(MenuPickerStyle())
-                            .frame(minWidth: 60, maxWidth: 90)
-                            .layoutPriority(-1)
+                            .frame(minWidth: 70, maxWidth: 120)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .padding(.trailing, 4)
                         }
                         
                         // Status text
@@ -204,7 +206,7 @@ struct CanvasContainerView: View {
                     Spacer()
                     
                     HStack(spacing: 0) {
-                        Spacer(minLength: 8)
+                        Spacer(minLength: 16)
                         Button(action: { canvasStateManager.undo() }) {
                             Image(systemName: "arrow.uturn.backward").font(.title)
                         }
@@ -213,11 +215,6 @@ struct CanvasContainerView: View {
                         Button(action: clearCanvas) {
                             Image(systemName: "trash").font(.title)
                         }
-                        Spacer()
-                        Button(action: { canvasStateManager.redo() }) {
-                            Image(systemName: "arrow.uturn.forward").font(.title)
-                        }
-                        .disabled(!canvasStateManager.canRedo)
                         Spacer()
                         Button(action: generateComponentsAndCode) {
                             Image(systemName: isAnalyzing ? "wand.and.rays.inverse" : "wand.and.rays")
@@ -237,18 +234,14 @@ struct CanvasContainerView: View {
                         Button(action: { pick(.camera) }) {
                             Image(systemName: "camera").font(.title)
                         }
-                        Spacer()
-                        Button(action: { pick(.photoLibrary) }) {
-                            Image(systemName: "photo").font(.title)
-                        }
-                        Spacer(minLength: 8)
+                        Spacer(minLength: 16)
                     }
-                    .padding(.vertical, 12)
+                    .padding(.vertical, 20)
                     .frame(maxWidth: .infinity)
                     .background(Color(.systemGray5).opacity(0.95))
                     
                     Color.clear
-                        .frame(height: 16)
+                        .frame(height: 24)
                     
                     // Home indicator area
                     Color.clear
