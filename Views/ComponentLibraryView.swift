@@ -117,24 +117,77 @@ struct ComponentLibraryView: View {
     
     private var quickAddSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Quick Add")
-                .font(.headline)
-                .padding(.horizontal)
-            
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(quickAddComponents, id: \.id) { template in
-                        QuickAddButton(
-                            template: template,
-                            onTap: { handleComponentSelection(template) }
-                        )
+            HStack {
+                Text("Quick Add")
+                    .font(.headline)
+                
+                Spacer()
+                
+                // Show status indicator
+                if hasUsageData {
+                    HStack(spacing: 4) {
+                        Image(systemName: "brain.head.profile")
+                            .font(.caption)
+                        Text("Personalized")
+                            .font(.caption)
                     }
+                    .foregroundColor(.blue)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(4)
+                } else {
+                    HStack(spacing: 4) {
+                        Image(systemName: "sparkles")
+                            .font(.caption)
+                        Text("Common")
+                            .font(.caption)
+                    }
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(4)
                 }
-                .padding(.horizontal)
+            }
+            .padding(.horizontal)
+            
+            if quickAddComponents.isEmpty {
+                // Fallback when no quick add components available
+                Text("No components available for quick add")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(quickAddComponents, id: \.id) { template in
+                            QuickAddButton(
+                                template: template,
+                                usageCount: getUsageCount(for: template),
+                                onTap: { handleComponentSelection(template) }
+                            )
+                        }
+                    }
+                    .padding(.horizontal)
+                }
             }
         }
         .padding(.vertical, 12)
         .background(.ultraThinMaterial)
+    }
+    
+    // MARK: - Helper Properties
+    
+    private var hasUsageData: Bool {
+        quickAddComponents.contains { template in
+            getUsageCount(for: template) > 0
+        }
+    }
+    
+    private func getUsageCount(for template: ComponentTemplate) -> Int {
+        libraryManager.usageData.getUsageCount(for: template.id)
     }
     
     // MARK: - Computed Properties
@@ -154,15 +207,16 @@ struct ComponentLibraryView: View {
     }
     
     private var quickAddComponents: [ComponentTemplate] {
-        // Most commonly used components for quick access
-        libraryManager.currentTemplates.filter { template in
-            ["Button", "Text Label", "Image", "Text Input"].contains(template.name)
-        }
+        // Get most frequently used components, falls back to common types
+        return libraryManager.getQuickAddTemplates(limit: 4)
     }
     
     // MARK: - Actions
     
     private func handleComponentSelection(_ template: ComponentTemplate) {
+        // Record usage for better quick add suggestions
+        libraryManager.recordTemplateUsage(template)
+        
         onComponentSelected(template)
         dismiss()
         
@@ -261,22 +315,44 @@ struct ComponentCard: View {
 
 struct QuickAddButton: View {
     let template: ComponentTemplate
+    let usageCount: Int
     let onTap: () -> Void
     
     var body: some View {
         Button(action: onTap) {
-            VStack(spacing: 6) {
-                Image(systemName: template.icon)
-                    .font(.title2)
-                    .foregroundColor(.blue)
+            ZStack {
+                VStack(spacing: 6) {
+                    Image(systemName: template.icon)
+                        .font(.title2)
+                        .foregroundColor(.blue)
+                    
+                    Text(template.name)
+                        .font(.caption2.weight(.medium))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                }
+                .frame(width: 80, height: 70)
+                .background(.regularMaterial)
+                .cornerRadius(12)
                 
-                Text(template.name)
-                    .font(.caption2.weight(.medium))
-                    .multilineTextAlignment(.center)
+                // Usage count badge
+                if usageCount > 0 {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            
+                            Text("\(usageCount)")
+                                .font(.caption2.bold())
+                                .foregroundColor(.white)
+                                .frame(minWidth: 16, minHeight: 16)
+                                .background(Color.red)
+                                .clipShape(Circle())
+                                .offset(x: 4, y: -4)
+                        }
+                        Spacer()
+                    }
+                }
             }
-            .frame(width: 80, height: 70)
-            .background(.regularMaterial)
-            .cornerRadius(12)
         }
         .buttonStyle(PlainButtonStyle())
     }

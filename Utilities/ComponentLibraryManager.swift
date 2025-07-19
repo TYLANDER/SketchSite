@@ -1,6 +1,41 @@
 import Foundation
 import SwiftUI
 
+// MARK: - Component Usage Tracking
+
+/// Tracks usage statistics for component templates
+struct ComponentUsageData: Codable {
+    var templateUsageCount: [UUID: Int] = [:]
+    var lastUsed: [UUID: Date] = [:]
+    
+    mutating func recordUsage(for templateId: UUID) {
+        templateUsageCount[templateId, default: 0] += 1
+        lastUsed[templateId] = Date()
+    }
+    
+    func getUsageCount(for templateId: UUID) -> Int {
+        return templateUsageCount[templateId, default: 0]
+    }
+    
+    func getMostUsedTemplates(from templates: [ComponentTemplate], limit: Int = 4) -> [ComponentTemplate] {
+        let sortedByUsage = templates.sorted { template1, template2 in
+            let usage1 = getUsageCount(for: template1.id)
+            let usage2 = getUsageCount(for: template2.id)
+            
+            if usage1 != usage2 {
+                return usage1 > usage2
+            }
+            
+            // If usage is equal, sort by most recently used
+            let date1 = lastUsed[template1.id] ?? Date.distantPast
+            let date2 = lastUsed[template2.id] ?? Date.distantPast
+            return date1 > date2
+        }
+        
+        return Array(sortedByUsage.prefix(limit))
+    }
+}
+
 // MARK: - Component Library Pack
 
 /// Represents a complete set of component templates
@@ -71,10 +106,12 @@ struct PackColorScheme: Codable {
 class ComponentLibraryManager: ObservableObject {
     @Published var availablePacks: [ComponentLibraryPack] = []
     @Published var currentPack: ComponentLibraryPack
+    @Published var usageData = ComponentUsageData()
     
     private let userDefaults = UserDefaults.standard
     private let currentPackKey = "SketchSite_CurrentComponentPack"
     private let customPacksKey = "SketchSite_CustomComponentPacks"
+    private let usageDataKey = "SketchSite_ComponentUsageData"
     
     static let shared = ComponentLibraryManager()
     
@@ -86,6 +123,7 @@ class ComponentLibraryManager: ObservableObject {
         loadBuiltInPacks()
         loadCustomPacks()
         loadCurrentPack()
+        loadUsageData()
     }
     
     // MARK: - Pack Management
@@ -148,6 +186,53 @@ class ComponentLibraryManager: ObservableObject {
         return currentPack.categories
     }
     
+    // MARK: - Usage Tracking
+    
+    func recordTemplateUsage(_ template: ComponentTemplate) {
+        usageData.recordUsage(for: template.id)
+        saveUsageData()
+        print("📊 Recorded usage for template: \(template.name)")
+    }
+    
+    func getQuickAddTemplates(limit: Int = 4) -> [ComponentTemplate] {
+        // If we have usage data, use most frequently used
+        let mostUsed = usageData.getMostUsedTemplates(from: currentPack.templates, limit: limit)
+        
+        if !mostUsed.isEmpty {
+            return mostUsed
+        }
+        
+        // Fallback to common component types (works across all design systems)
+        let commonTypes: [UIComponentType] = [.button, .label, .formControl, .image]
+        var quickAddTemplates: [ComponentTemplate] = []
+        
+        for type in commonTypes {
+            if let template = currentPack.templates.first(where: { $0.type == type }) {
+                quickAddTemplates.append(template)
+            }
+            
+            if quickAddTemplates.count >= limit {
+                break
+            }
+        }
+        
+        // If we still don't have enough, add the first few templates from basic category
+        if quickAddTemplates.count < limit {
+            let basicTemplates = currentPack.templates.filter { $0.category == .basic }
+            for template in basicTemplates {
+                if !quickAddTemplates.contains(where: { $0.id == template.id }) {
+                    quickAddTemplates.append(template)
+                    
+                    if quickAddTemplates.count >= limit {
+                        break
+                    }
+                }
+            }
+        }
+        
+        return quickAddTemplates
+    }
+    
     // MARK: - Persistence
     
     private func saveCurrentPack() {
@@ -190,6 +275,30 @@ class ComponentLibraryManager: ObservableObject {
             availablePacks.append(contentsOf: customPacks)
         } catch {
             print("❌ Failed to load custom packs: \(error)")
+        }
+    }
+    
+    private func saveUsageData() {
+        do {
+            let data = try JSONEncoder().encode(usageData)
+            userDefaults.set(data, forKey: usageDataKey)
+        } catch {
+            print("❌ Failed to save usage data: \(error)")
+        }
+    }
+    
+    private func loadUsageData() {
+        guard let data = userDefaults.data(forKey: usageDataKey) else {
+            print("📊 No usage data found, starting fresh")
+            return
+        }
+        
+        do {
+            usageData = try JSONDecoder().decode(ComponentUsageData.self, from: data)
+            print("📊 Loaded usage data with \(usageData.templateUsageCount.count) tracked templates")
+        } catch {
+            print("❌ Failed to load usage data: \(error)")
+            usageData = ComponentUsageData()
         }
     }
     

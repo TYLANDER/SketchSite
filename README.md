@@ -46,12 +46,16 @@ The app features a professional full-screen canvas experience with Instagram-lik
 - **Haptic Feedback:** Contextual feedback for interactions (selection, dragging, clearing, etc.)
 - **Professional Color Scheme:** Modern blue/gray palette with accessibility considerations
 
-### ✅ **Component Library**
-- **Pre-built Templates:** 24+ component templates across 6 categories
+### ✅ **Professional Component Library Management**
+- **5 Built-in Design Systems:** Default, Material Design, Bootstrap, iOS HIG, Tailwind CSS
+- **Library Switching:** Seamless switching between design systems with persistent state
+- **Custom Library Creation:** Full-featured library creator with icon, color scheme & component selection
+- **Pre-built Templates:** 24+ component templates across 6 categories per library
 - **Categorized Organization:** Basic, Navigation, Forms, Media, Layout, Feedback
 - **Search Functionality:** Quick search through component library
 - **Quick Add Section:** Fast access to most commonly used components
 - **Responsive Sizing:** Templates adapt to canvas size with proper aspect ratios
+- **Library-Aware Code Generation:** AI automatically uses appropriate CSS frameworks
 
 ### ✅ **Inspector & Editing**
 - **Component Inspector:** Edit type, label, size, and properties
@@ -100,6 +104,20 @@ The app features a professional full-screen canvas experience with Instagram-lik
 - **Enhanced Error Handling:** Comprehensive error management system
 - **Performance Optimizations:** Efficient rendering and state management
 
+### 🎨 **Component Library Management System (v3.0)**
+- **Professional Library Architecture:** 5 built-in design systems with complete component sets
+- **Custom Library Creation:** Full-featured library creator with 13 icons, 7 color schemes, category/component selection
+- **Library-Aware Code Generation:** AI automatically detects library type and uses appropriate CSS frameworks
+- **Persistent Library State:** UserDefaults-based persistence with automatic library switching
+- **Visual Library Interface:** Professional library manager with pack details, statistics, and color swatches
+
+### 📱 **iPhone 16 Pro UI Optimization (v3.1)**
+- **Perfect Canvas Layout:** 40pt top padding, 20pt bottom toolbar padding, 16pt edge spacing
+- **Consistent Margin System:** Left/right alignment with 4pt trailing padding on model picker
+- **Clean Interface Design:** Removed clutter (redo button, photo upload), streamlined 6-button toolbar
+- **Model Picker Optimization:** 70-120pt width, single-line text, proper truncation support
+- **Professional Spacing:** All elements have proper breathing room with iPhone 16 Pro specific tuning
+
 ---
 
 ## Roadmap Status
@@ -137,22 +155,30 @@ The app features a professional full-screen canvas experience with Instagram-lik
   Complete chat interface for iterative code refinement with conversation history, real-time updates, and multi-model support
 - [x] **Editable Text Content**  
   Inspector-based text editing for all text-supporting components with intelligent defaults and type-aware visibility
+- [x] **Advanced Component Properties (Phase 1)**  
+  Boolean properties, instance swap properties, enhanced text properties, color properties, and navigation items properties
+- [x] **Advanced Component Properties (Phase 2)**  
+  Size & spacing properties, theme integration through library color schemes, and interactive property management
+- [x] **Component Library Management System**  
+  Professional library management with 5 built-in design systems, custom library creation, and library-aware code generation
+- [x] **iPhone 16 Pro UI Optimization**  
+  Perfect canvas layout with professional spacing, consistent margins, and ideal toolbar positioning
 
 ### 🚧 **In Progress**
-- [ ] **Advanced Component Properties (Phase 1)**  
-  Boolean properties, instance swap properties, enhanced text properties, and color properties
-
-### 🔮 **Planned (Beta Features)**
-- [ ] **Advanced Component Properties (Phase 2)**  
-  Size & spacing properties, interactive properties, conditional properties, and theme integration
 - [ ] **Sketch Manager & Multi-Project Support**  
   Figma-style project management with thumbnail grid, recent files, search/filter, auto-save, and iCloud sync
+
+### 🔮 **Planned (Beta Features)**
 - [ ] **Project Templates Gallery**  
   Pre-built sketch templates for common app patterns (login screens, dashboards, e-commerce, etc.)
 - [ ] **Advanced Export Pipeline**  
   Export to multiple formats (SwiftUI, React, Flutter) with customizable templates and styling
 - [ ] **Collaboration & Sharing**  
   Share sketches via link, real-time collaboration, and team workspaces
+- [ ] **Component Import/Export**  
+  Import custom libraries from JSON, export libraries to share with others
+- [ ] **iPad Optimization**  
+  Optimize the current iPhone 16 Pro layout for iPad screen sizes and interactions
 
 ### 📋 **Planned (Low Priority)**
 - [ ] **Resizable Drawer**  
@@ -170,12 +196,17 @@ The app features a professional full-screen canvas experience with Instagram-lik
 
 ### **Quick Start**
 1. **Draw:** Use your finger or Apple Pencil to sketch UI elements on the full-screen canvas
-2. **Library:** Tap the library icon (grid) to add pre-built components from 6 categories
+2. **Library:** Tap the plus icon (➕) to add pre-built components from the current design system
 3. **Generate:** Tap the wand icon to analyze your drawing and detect components
 4. **Interact:** Tap components to select, drag to move, use handles to resize
 5. **Inspect:** Long press (0.4s) any component to open the inspector and edit properties
 6. **Preview:** Tap the browser icon to see your generated HTML/CSS live in-app
 7. **Export:** Copy, share, or export your generated code
+
+### **Library Management**
+1. **Switch Libraries:** Tap "SketchSite" header → "Switch Library" → Choose from 5 design systems
+2. **Create Custom Library:** Main menu → "Add Library" → Configure name, icon, colors, components
+3. **Library-Aware Generation:** AI automatically uses appropriate CSS framework (Bootstrap, Material, etc.)
 
 ### **Advanced Features**
 - **Undo/Redo:** Use arrow buttons to undo/redo drawing actions
@@ -198,11 +229,14 @@ The app features a professional full-screen canvas experience with Instagram-lik
 
 ### **Key Components**
 - **CanvasStateManager:** Drawing state, undo/redo, and canvas operations
-- **ComponentManager:** Component collection, selection, and manipulation
+- **ComponentManager:** Component collection, selection, and manipulation with ID-based tracking
+- **ComponentLibraryManager:** Professional library management with 5 design systems and custom creation
 - **VisionAnalysisService:** Image analysis and component detection
-- **ChatGPTService:** AI integration for code generation
-- **ComponentLibrary:** Pre-built template management
+- **ChatGPTService:** AI integration for code generation with library-aware prompts
+- **ComponentLibrary:** Enhanced template management with responsive sizing
+- **LibraryCreatorView:** Full-featured custom library creation interface
 - **ErrorManager:** Comprehensive error handling and user feedback
+- **ColorExtensions:** Shared utilities for hex color parsing and CGSize Codable support
 
 ### **Performance Features**
 - **ID-Based Component Tracking:** Prevents stale references and crashes
