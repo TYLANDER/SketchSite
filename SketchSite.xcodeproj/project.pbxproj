@@ -16,6 +16,7 @@
 		2ECBECB91A7334ED8AC2245A /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08DCC32E16F9ABFFF9BAE798 /* CanvasView.swift */; };
 		3102511A02A4BCEFFE6ED5EF /* ToolbarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62CE953D5633E57279BDB538 /* ToolbarButton.swift */; };
 		3566337904B40652AB2F016C /* ComponentLibraryDemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D838E9C19365A9FA54B4FE9A /* ComponentLibraryDemoView.swift */; };
+		38EC114C941D2F019FA74DC7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DA1278C92F7FD134A8968607 /* Assets.xcassets */; };
 		3DFA247FA89A9B13D785C8DA /* InspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4891CC8844DD39F4A9047D /* InspectorView.swift */; };
 		3E31136304B99C84BC5C1F1E /* LayoutDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82B3C0D6D6404387F385662C /* LayoutDescriptor.swift */; };
 		48ADECE8F3DE56EC3030BF2F /* CodePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE52F54ABC774C40CF9C098A /* CodePreviewView.swift */; };
@@ -104,6 +105,7 @@
 		D50F5B3032BFADB556AEBB7C /* SketchSite.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SketchSite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D5234C3AAC0625A85AF27789 /* SketchSiteUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchSiteUITests.swift; sourceTree = "<group>"; };
 		D838E9C19365A9FA54B4FE9A /* ComponentLibraryDemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentLibraryDemoView.swift; sourceTree = "<group>"; };
+		DA1278C92F7FD134A8968607 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DF86342ECB4F7B54C62434FF /* SketchSiteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchSiteApp.swift; sourceTree = "<group>"; };
 		E1235E2BC145C35AE84DF526 /* ComponentDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentDetector.swift; sourceTree = "<group>"; };
 		E9E634B15A76E2D81A1CF5D7 /* SketchManagerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchManagerView.swift; sourceTree = "<group>"; };
@@ -161,6 +163,7 @@
 		6F25D281975492179841C1DE = {
 			isa = PBXGroup;
 			children = (
+				DA1278C92F7FD134A8968607 /* Assets.xcassets */,
 				B3406DDD7110D0E7742B876C /* DiagnosticsRunner.swift */,
 				25FB42289633B8F6A90897AA /* PrivacyInfo.xcprivacy */,
 				DF86342ECB4F7B54C62434FF /* SketchSiteApp.swift */,
@@ -315,6 +318,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				38EC114C941D2F019FA74DC7 /* Assets.xcassets in Resources */,
 				71D4D76017954AA9F1E12EFC /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
