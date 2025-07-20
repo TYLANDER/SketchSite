@@ -297,119 +297,233 @@ public struct DetectedComponent: Identifiable, Hashable, Codable {
     
     private mutating func initializeUIComponentProperties(for uiType: UIComponentType) {
         switch uiType {
+        // MARK: - Basic Interactive Components
         case .button:
-            // Boolean properties
             properties.addBooleanProperty(BooleanProperty(name: "Has Icon", defaultValue: false))
             properties.addBooleanProperty(BooleanProperty(name: "Is Disabled", defaultValue: false))
             properties.addBooleanProperty(BooleanProperty(name: "Loading State", defaultValue: false))
-            
-            // Instance swap properties
-            properties.addInstanceSwapProperty(InstanceSwapProperty(
-                name: "Icon Type",
-                availableOptions: ["arrow.right", "plus", "star", "heart", "download", "share"],
-                defaultOption: "arrow.right"
-            ))
-            properties.addInstanceSwapProperty(InstanceSwapProperty(
-                name: "Button Style",
-                availableOptions: ["Primary", "Secondary", "Outline", "Ghost"],
-                defaultOption: "Primary"
-            ))
-            
-            // Enhanced text properties
-            properties.addEnhancedTextProperty(EnhancedTextProperty(
-                name: "Primary Text",
-                content: textContent ?? "Button",
-                style: .bold,
-                alignment: .center
-            ))
-            
-            // Color properties
-            properties.addColorProperty(ColorProperty(name: "Primary Color", semanticRole: .primary))
-            properties.addColorProperty(ColorProperty(name: "Text Color", semanticRole: .secondary))
-            
-        case .label:
-            // Enhanced text properties
-            properties.addEnhancedTextProperty(EnhancedTextProperty(
-                name: "Text Content",
-                content: textContent ?? "Label",
-                style: .regular,
-                alignment: .left
-            ))
-            
-            // Color properties
-            properties.addColorProperty(ColorProperty(name: "Text Color", semanticRole: .primary))
-            
-        case .formControl:
-            // Boolean properties
-            properties.addBooleanProperty(BooleanProperty(name: "Is Required", defaultValue: false))
-            properties.addBooleanProperty(BooleanProperty(name: "Has Error", defaultValue: false))
-            
-            // Enhanced text properties
-            properties.addEnhancedTextProperty(EnhancedTextProperty(
-                name: "Placeholder Text",
-                content: "Enter text",
-                style: .regular,
-                alignment: .left
-            ))
-            
-            // Color properties
-            properties.addColorProperty(ColorProperty(name: "Border Color", semanticRole: .secondary))
-            
-        case .alert:
-            // Instance swap properties
-            properties.addInstanceSwapProperty(InstanceSwapProperty(
-                name: "Alert Type",
-                availableOptions: ["Info", "Success", "Warning", "Error"],
-                defaultOption: "Info"
-            ))
-            
-            // Boolean properties
-            properties.addBooleanProperty(BooleanProperty(name: "Show Icon", defaultValue: true))
-            properties.addBooleanProperty(BooleanProperty(name: "Dismissible", defaultValue: true))
-            
-            // Color properties
-            properties.addColorProperty(ColorProperty(name: "Alert Color", semanticRole: .info))
-            
-        case .navbar:
-            // Boolean properties
-            properties.addBooleanProperty(BooleanProperty(name: "Show Logo", defaultValue: true))
-            
-            // Instance swap properties
-            properties.addInstanceSwapProperty(InstanceSwapProperty(
-                name: "Navigation Style",
-                availableOptions: ["Fixed", "Sticky", "Static"],
-                defaultOption: "Fixed"
-            ))
-            
-            // Add navigation items for navbar
-            let defaultNavItems = NavigationItemsProperty(
-                name: "Navigation Items",
-                items: [
-                    NavigationItem(text: "Home", isActive: true),
-                    NavigationItem(text: "About", isActive: false),
-                    NavigationItem(text: "Services", isActive: false),
-                    NavigationItem(text: "Contact", isActive: false)
-                ],
-                maxItems: 6
-            )
-            properties.addNavigationItemsProperty(defaultNavItems)
-            
-            // Color properties
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Button Style", availableOptions: ["Primary", "Secondary", "Outline", "Ghost"], defaultOption: "Primary"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Size", availableOptions: ["Small", "Medium", "Large"], defaultOption: "Medium"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Icon Type", availableOptions: ["arrow.right", "plus", "star", "heart", "download", "share"], defaultOption: "arrow.right"))
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Button Text", content: textContent ?? "Button", style: .bold, alignment: .center))
             properties.addColorProperty(ColorProperty(name: "Background Color", semanticRole: .primary))
             properties.addColorProperty(ColorProperty(name: "Text Color", semanticRole: .secondary))
             
-        default:
-            // Basic text and color properties for other components
-            if componentSupportsText(uiType) {
-                properties.addEnhancedTextProperty(EnhancedTextProperty(
-                    name: "Text Content",
-                    content: textContent ?? DetectedComponent.defaultTextContent(for: type) ?? "",
-                    style: .regular,
-                    alignment: .left
-                ))
-            }
+        case .buttonGroup:
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Orientation", availableOptions: ["Horizontal", "Vertical"], defaultOption: "Horizontal"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Style", availableOptions: ["Segmented", "Separate", "Connected"], defaultOption: "Connected"))
+            properties.addBooleanProperty(BooleanProperty(name: "Equal Width", defaultValue: true))
+            properties.addColorProperty(ColorProperty(name: "Background Color", semanticRole: .primary))
             
-            properties.addColorProperty(ColorProperty(name: "Primary Color", semanticRole: .primary))
+        // MARK: - Text & Content Components  
+        case .label:
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Text Content", content: textContent ?? "Label", style: .regular, alignment: .left))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Typography", availableOptions: ["Body", "Heading", "Caption", "Subtitle"], defaultOption: "Body"))
+            properties.addBooleanProperty(BooleanProperty(name: "Truncate", defaultValue: false))
+            properties.addColorProperty(ColorProperty(name: "Text Color", semanticRole: .primary))
+            
+        case .badge:
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Badge Text", content: textContent ?? "Badge", style: .bold, alignment: .center))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Style", availableOptions: ["Solid", "Outline", "Pill"], defaultOption: "Solid"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Size", availableOptions: ["Small", "Medium", "Large"], defaultOption: "Medium"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Variant", availableOptions: ["Primary", "Success", "Warning", "Error", "Info"], defaultOption: "Primary"))
+            properties.addColorProperty(ColorProperty(name: "Background Color", semanticRole: .primary))
+            properties.addColorProperty(ColorProperty(name: "Text Color", semanticRole: .secondary))
+            
+        case .icon:
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Icon Type", availableOptions: ["star", "heart", "plus", "minus", "home", "user", "settings", "search"], defaultOption: "star"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Size", availableOptions: ["Small", "Medium", "Large", "XLarge"], defaultOption: "Medium"))
+            properties.addBooleanProperty(BooleanProperty(name: "Filled", defaultValue: false))
+            properties.addColorProperty(ColorProperty(name: "Icon Color", semanticRole: .primary))
+            
+        // MARK: - Form Components
+        case .formControl:
+            properties.addBooleanProperty(BooleanProperty(name: "Is Required", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Has Error", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Is Disabled", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Read Only", defaultValue: false))
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Placeholder Text", content: "Enter text", style: .regular, alignment: .left))
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Label Text", content: "Field Label", style: .regular, alignment: .left))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Input Type", availableOptions: ["Text", "Email", "Password", "Number", "Tel", "URL"], defaultOption: "Text"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Size", availableOptions: ["Small", "Medium", "Large"], defaultOption: "Medium"))
+            properties.addColorProperty(ColorProperty(name: "Border Color", semanticRole: .secondary))
+            properties.addColorProperty(ColorProperty(name: "Focus Color", semanticRole: .primary))
+            
+        case .dropdown:
+            properties.addBooleanProperty(BooleanProperty(name: "Searchable", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Multi Select", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Is Disabled", defaultValue: false))
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Placeholder Text", content: "Select option...", style: .regular, alignment: .left))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Style", availableOptions: ["Standard", "Borderless", "Filled"], defaultOption: "Standard"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Size", availableOptions: ["Small", "Medium", "Large"], defaultOption: "Medium"))
+            properties.addColorProperty(ColorProperty(name: "Border Color", semanticRole: .secondary))
+            
+        case .form:
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Layout", availableOptions: ["Vertical", "Horizontal", "Inline"], defaultOption: "Vertical"))
+            properties.addBooleanProperty(BooleanProperty(name: "Show Validation", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Required Indicators", defaultValue: true))
+            properties.addColorProperty(ColorProperty(name: "Background Color", semanticRole: .secondary))
+            
+        // MARK: - Navigation Components
+        case .navbar:
+            properties.addBooleanProperty(BooleanProperty(name: "Show Logo", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Sticky", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Show Search", defaultValue: false))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Position", availableOptions: ["Top", "Bottom", "Sidebar"], defaultOption: "Top"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Style", availableOptions: ["Light", "Dark", "Transparent"], defaultOption: "Light"))
+            let navItems = NavigationItemsProperty(name: "Navigation Items", items: [
+                NavigationItem(text: "Home", isActive: true), NavigationItem(text: "About", isActive: false),
+                NavigationItem(text: "Services", isActive: false), NavigationItem(text: "Contact", isActive: false)
+            ], maxItems: 8)
+            properties.addNavigationItemsProperty(navItems)
+            properties.addColorProperty(ColorProperty(name: "Background Color", semanticRole: .primary))
+            properties.addColorProperty(ColorProperty(name: "Text Color", semanticRole: .secondary))
+            
+        case .navs:
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Style", availableOptions: ["Tabs", "Pills", "Underline"], defaultOption: "Tabs"))
+            properties.addBooleanProperty(BooleanProperty(name: "Justify Content", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Vertical", defaultValue: false))
+            let navItems = NavigationItemsProperty(name: "Navigation Items", items: [
+                NavigationItem(text: "Tab 1", isActive: true), NavigationItem(text: "Tab 2", isActive: false),
+                NavigationItem(text: "Tab 3", isActive: false)
+            ], maxItems: 6)
+            properties.addNavigationItemsProperty(navItems)
+            properties.addColorProperty(ColorProperty(name: "Active Color", semanticRole: .primary))
+            
+        case .tab:
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Tab Label", content: textContent ?? "Tab", style: .regular, alignment: .center))
+            properties.addBooleanProperty(BooleanProperty(name: "Is Active", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Is Disabled", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Has Icon", defaultValue: false))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Icon Type", availableOptions: ["home", "user", "settings", "mail", "bell"], defaultOption: "home"))
+            properties.addColorProperty(ColorProperty(name: "Active Color", semanticRole: .primary))
+            
+        case .breadcrumb:
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Separator", availableOptions: ["Chevron", "Slash", "Arrow", "Dot"], defaultOption: "Chevron"))
+            properties.addBooleanProperty(BooleanProperty(name: "Show Home", defaultValue: true))
+            let breadcrumbItems = NavigationItemsProperty(name: "Breadcrumb Items", items: [
+                NavigationItem(text: "Home", isActive: false), NavigationItem(text: "Category", isActive: false),
+                NavigationItem(text: "Current", isActive: true)
+            ], maxItems: 5)
+            properties.addNavigationItemsProperty(breadcrumbItems)
+            properties.addColorProperty(ColorProperty(name: "Text Color", semanticRole: .secondary))
+            properties.addColorProperty(ColorProperty(name: "Active Color", semanticRole: .primary))
+            
+        case .pagination:
+            properties.addBooleanProperty(BooleanProperty(name: "Show Numbers", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Show First/Last", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Show Previous/Next", defaultValue: true))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Size", availableOptions: ["Small", "Medium", "Large"], defaultOption: "Medium"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Style", availableOptions: ["Standard", "Rounded", "Outline"], defaultOption: "Standard"))
+            properties.addColorProperty(ColorProperty(name: "Active Color", semanticRole: .primary))
+            
+        // MARK: - Media Components
+        case .image:
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Alt Text", content: "Image description", style: .regular, alignment: .left))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Aspect Ratio", availableOptions: ["Square", "16:9", "4:3", "3:2", "Auto"], defaultOption: "Auto"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Object Fit", availableOptions: ["Cover", "Contain", "Fill", "Scale Down"], defaultOption: "Cover"))
+            properties.addBooleanProperty(BooleanProperty(name: "Responsive", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Lazy Load", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Has Border", defaultValue: false))
+            properties.addColorProperty(ColorProperty(name: "Border Color", semanticRole: .secondary))
+            
+        case .thumbnail:
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Size", availableOptions: ["Small", "Medium", "Large"], defaultOption: "Medium"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Shape", availableOptions: ["Square", "Circle", "Rounded"], defaultOption: "Rounded"))
+            properties.addBooleanProperty(BooleanProperty(name: "Has Hover Effect", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Has Border", defaultValue: false))
+            properties.addColorProperty(ColorProperty(name: "Border Color", semanticRole: .secondary))
+            
+        case .carousel:
+            properties.addBooleanProperty(BooleanProperty(name: "Auto Play", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Show Dots", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Show Arrows", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Infinite Loop", defaultValue: true))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Transition", availableOptions: ["Slide", "Fade", "Zoom"], defaultOption: "Slide"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Slides Visible", availableOptions: ["1", "2", "3", "4"], defaultOption: "1"))
+            properties.addColorProperty(ColorProperty(name: "Indicator Color", semanticRole: .primary))
+            
+        // MARK: - Layout Components  
+        case .mediaObject:
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Image Position", availableOptions: ["Left", "Right", "Top"], defaultOption: "Left"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Alignment", availableOptions: ["Top", "Center", "Bottom"], defaultOption: "Top"))
+            properties.addBooleanProperty(BooleanProperty(name: "Has Shadow", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Has Border", defaultValue: false))
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Title Text", content: "Card Title", style: .bold, alignment: .left))
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Content Text", content: "Card content description", style: .regular, alignment: .left))
+            properties.addColorProperty(ColorProperty(name: "Background Color", semanticRole: .secondary))
+            properties.addColorProperty(ColorProperty(name: "Border Color", semanticRole: .secondary))
+            
+        case .listGroup:
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Style", availableOptions: ["Standard", "Flush", "Horizontal"], defaultOption: "Standard"))
+            properties.addBooleanProperty(BooleanProperty(name: "Numbered", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Selectable", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Show Dividers", defaultValue: true))
+            properties.addColorProperty(ColorProperty(name: "Background Color", semanticRole: .secondary))
+            properties.addColorProperty(ColorProperty(name: "Border Color", semanticRole: .secondary))
+            
+        case .table:
+            properties.addBooleanProperty(BooleanProperty(name: "Striped Rows", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Bordered", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Hover Effects", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Responsive", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Sortable Headers", defaultValue: false))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Size", availableOptions: ["Compact", "Standard", "Spacious"], defaultOption: "Standard"))
+            properties.addColorProperty(ColorProperty(name: "Header Color", semanticRole: .primary))
+            properties.addColorProperty(ColorProperty(name: "Border Color", semanticRole: .secondary))
+            
+        case .well:
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Size", availableOptions: ["Small", "Medium", "Large"], defaultOption: "Medium"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Style", availableOptions: ["Standard", "Bordered", "Shadow"], defaultOption: "Standard"))
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Content Text", content: textContent ?? "Well content", style: .regular, alignment: .left))
+            properties.addColorProperty(ColorProperty(name: "Background Color", semanticRole: .secondary))
+            properties.addColorProperty(ColorProperty(name: "Border Color", semanticRole: .secondary))
+            
+        case .collapse:
+            properties.addBooleanProperty(BooleanProperty(name: "Is Expanded", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Show Toggle Icon", defaultValue: true))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Animation", availableOptions: ["Slide", "Fade", "None"], defaultOption: "Slide"))
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Header Text", content: "Toggle Header", style: .bold, alignment: .left))
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Content Text", content: "Collapsible content", style: .regular, alignment: .left))
+            properties.addColorProperty(ColorProperty(name: "Header Color", semanticRole: .primary))
+            
+        // MARK: - Feedback Components
+        case .alert:
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Type", availableOptions: ["Info", "Success", "Warning", "Error"], defaultOption: "Info"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Style", availableOptions: ["Filled", "Outlined", "Light"], defaultOption: "Light"))
+            properties.addBooleanProperty(BooleanProperty(name: "Show Icon", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Dismissible", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Has Actions", defaultValue: false))
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Title Text", content: "Alert Title", style: .bold, alignment: .left))
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Message Text", content: textContent ?? "Alert message", style: .regular, alignment: .left))
+            properties.addColorProperty(ColorProperty(name: "Alert Color", semanticRole: .info))
+            
+        case .modal:
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Size", availableOptions: ["Small", "Medium", "Large", "Extra Large"], defaultOption: "Medium"))
+            properties.addBooleanProperty(BooleanProperty(name: "Has Backdrop", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Dismissible", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Has Header", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Has Footer", defaultValue: true))
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Title Text", content: "Modal Title", style: .bold, alignment: .left))
+            properties.addColorProperty(ColorProperty(name: "Background Color", semanticRole: .secondary))
+            properties.addColorProperty(ColorProperty(name: "Header Color", semanticRole: .primary))
+            
+        case .tooltip:
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Position", availableOptions: ["Top", "Bottom", "Left", "Right"], defaultOption: "Top"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Trigger", availableOptions: ["Hover", "Click", "Focus"], defaultOption: "Hover"))
+            properties.addBooleanProperty(BooleanProperty(name: "Show Arrow", defaultValue: true))
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Tooltip Text", content: textContent ?? "Tooltip content", style: .regular, alignment: .center))
+            properties.addColorProperty(ColorProperty(name: "Background Color", semanticRole: .primary))
+            properties.addColorProperty(ColorProperty(name: "Text Color", semanticRole: .secondary))
+            
+        case .progressBar:
+            properties.addBooleanProperty(BooleanProperty(name: "Animated", defaultValue: true))
+            properties.addBooleanProperty(BooleanProperty(name: "Striped", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Show Label", defaultValue: true))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Style", availableOptions: ["Standard", "Thin", "Thick"], defaultOption: "Standard"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Variant", availableOptions: ["Primary", "Success", "Warning", "Error"], defaultOption: "Primary"))
+            properties.addColorProperty(ColorProperty(name: "Progress Color", semanticRole: .primary))
+            properties.addColorProperty(ColorProperty(name: "Background Color", semanticRole: .secondary))
         }
     }
     
