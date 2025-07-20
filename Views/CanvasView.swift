@@ -588,49 +588,28 @@ struct CanvasContainerView: View {
         }.joined(separator: "\n")
         
         let prompt = """
-        Generate HTML/CSS for this UI layout. READ EACH COMPONENT TYPE CAREFULLY:
+        Create a clean, production-ready HTML page with embedded CSS for this UI layout:
         
         **Canvas:** \(Int(canvasSize.width))×\(Int(canvasSize.height))px
-        **Component Count:** \(validComponents.count)
+        **Components:** \(validComponents.count) total
         
-        **EXACT COMPONENTS TO CREATE:**
         \(explicitComponentList)
-        
-        **STRICT REQUIREMENTS - FOLLOW EXACTLY:**
-        🚫 DO NOT create "form fields" unless the component type explicitly says "form control"
-        🚫 DO NOT use placeholder or dummy text
-        🚫 DO NOT repeat the same component type multiple times unless specified
-        ✅ CREATE the exact HTML element for each component type:
-        
-        **TYPE MAPPINGS (MANDATORY):**
-        - "icon" → <i class="fa fa-star"></i> or <svg> icon
-        - "button" → <button class="btn">Button Text</button>
-        - "navbar" → <nav class="navbar"> with navigation links
-        - "label" → <span> or <p> with text
-        - "image" → <img> or placeholder div
-        - "form control" → <input> or <textarea>
-        - "dropdown" → <select> with options
-        - "alert" → <div class="alert"> notification
-        - "badge" → <span class="badge"> status
-        - "table" → <table> with rows/columns
-        - "modal" → <div class="modal"> dialog
-        - "well" → <div class="well"> container
-        - "carousel" → <div class="carousel"> slider
-        - "progress bar" → <div class="progress"> bar
-        - "pagination" → <nav> with page links
-        - "tab" → <div class="tabs"> navigation
-        - "breadcrumb" → <nav class="breadcrumb"> trail
-        - "tooltip" → <div class="tooltip"> popup
-        - "thumbnail" → <img class="thumbnail"> small image
-        - "media object" → <div class="card"> content card
-        - "list group" → <ul class="list"> items
         
         \(designSystemInstructions)
         
-        **VERIFICATION:**
-        Before writing HTML, verify you have exactly \(validComponents.count) different components matching the types above.
+        **CRITICAL REQUIREMENTS:**
+        - Create ONLY the exact HTML elements for each component type listed above
+        - Use realistic, professional content (no "Lorem ipsum" or placeholder text)
+        - Generate a complete, clean HTML page that looks production-ready
+        - Include NO development comments, annotations, or debug information in the HTML
+        - Make it look like a real website that users would actually see
+        - Ensure all CSS is embedded in <style> tags in the <head>
+        - Use proper semantic HTML and accessible markup
         
-        **OUTPUT:** Complete HTML file with embedded CSS.
+        **Component Type Mappings:**
+        icon → SVG or icon font, button → <button>, navbar → <nav>, label → text element, image → <img>, form control → <input>/<textarea>, dropdown → <select>, alert → notification div, badge → status span, table → <table>, modal → dialog div, well → container div, carousel → slider div, progress bar → progress element, pagination → page nav, tab → tab nav, breadcrumb → breadcrumb nav, tooltip → tooltip div, thumbnail → small image, media object → card div, list group → <ul> list
+        
+        Output ONLY the complete HTML file - no explanations, no markdown, no comments.
         """
         
         ChatGPTService.shared.generateCode(prompt: prompt, model: selectedModel) { result in
@@ -640,7 +619,8 @@ struct CanvasContainerView: View {
                 switch result {
                 case .success(let code):
                     print("✅ Code generation successful")
-                    self.generatedCode = code
+                    // Clean the generated code for production preview
+                    self.generatedCode = self.cleanGeneratedCode(code)
                     
                     if self.shouldShowPreviewAfterGeneration {
                         self.shouldShowPreviewAfterGeneration = false
@@ -655,6 +635,59 @@ struct CanvasContainerView: View {
                 }
             }
         }
+    }
+    
+    // MARK: - Code Cleaning for Production Preview
+    
+    private func cleanGeneratedCode(_ code: String) -> String {
+        var cleanedCode = code
+        
+        // Remove any markdown code block markers that might have slipped through
+        cleanedCode = cleanedCode.replacingOccurrences(of: "```html", with: "")
+        cleanedCode = cleanedCode.replacingOccurrences(of: "```css", with: "")
+        cleanedCode = cleanedCode.replacingOccurrences(of: "```", with: "")
+        
+        // Remove development comments from HTML
+        cleanedCode = cleanedCode.replacingOccurrences(of: "<!-- DEBUG:", with: "<!--")
+        cleanedCode = cleanedCode.replacingOccurrences(of: "<!-- Component:", with: "<!--")
+        cleanedCode = cleanedCode.replacingOccurrences(of: "<!-- TODO:", with: "<!--")
+        cleanedCode = cleanedCode.replacingOccurrences(of: "<!-- NOTE:", with: "<!--")
+        cleanedCode = cleanedCode.replacingOccurrences(of: "<!-- INSTRUCTION:", with: "<!--")
+        
+        // Remove any CSS comments with development info
+        let cssCommentPattern = "/\\*\\s*(DEBUG|TODO|NOTE|INSTRUCTION|Component)[^*]*\\*/"
+        cleanedCode = cleanedCode.replacingOccurrences(of: cssCommentPattern, 
+                                                      with: "", 
+                                                      options: .regularExpression)
+        
+        // Remove any lines that look like development annotations
+        let lines = cleanedCode.components(separatedBy: .newlines)
+        let filteredLines = lines.filter { line in
+            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            // Filter out lines that are clearly development annotations
+            if trimmed.hasPrefix("<!-- Component") ||
+               trimmed.hasPrefix("<!-- DEBUG") ||
+               trimmed.hasPrefix("<!-- TODO") ||
+               trimmed.hasPrefix("<!-- NOTE") ||
+               trimmed.contains("Element 1:") ||
+               trimmed.contains("Element 2:") ||
+               trimmed.contains("Component 1:") ||
+               trimmed.contains("Component 2:") {
+                return false
+            }
+            
+            return true
+        }
+        
+        cleanedCode = filteredLines.joined(separator: "\n")
+        
+        // Clean up any excessive whitespace
+        while cleanedCode.contains("\n\n\n") {
+            cleanedCode = cleanedCode.replacingOccurrences(of: "\n\n\n", with: "\n\n")
+        }
+        
+        return cleanedCode.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
     // MARK: - Design System Instructions
