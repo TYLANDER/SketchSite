@@ -10,6 +10,7 @@
 		02D1432F5237AE8EE255E8C0 /* SketchManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9E634B15A76E2D81A1CF5D7 /* SketchManagerView.swift */; };
 		11E114BA4F33ECDE61443AE0 /* LibraryManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CB5EC5420863F6A1AD8FC5B /* LibraryManagerView.swift */; };
 		123EC7087EA968CABB0A2055 /* ComponentLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = A167E6CE41FEFF25682630AC /* ComponentLibrary.swift */; };
+		25651855DC10666E397A109A /* APIKeyObfuscator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6C3AC113B13EA662E7F9404 /* APIKeyObfuscator.swift */; };
 		2AD5074724DCA7EADF2143DA /* ColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204771A5E1DC8FE13F45A60C /* ColorExtensions.swift */; };
 		2C5575242DECE39F6D4568FF /* ComponentDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1235E2BC145C35AE84DF526 /* ComponentDetector.swift */; };
 		2E6A160C341649F517AC82D3 /* AnnotationProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70034ABAD8FF5C469444B75F /* AnnotationProcessor.swift */; };
@@ -96,6 +97,7 @@
 		8FDC29A2E902C23C136D7FC5 /* RectangleComponentDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RectangleComponentDetector.swift; sourceTree = "<group>"; };
 		A167E6CE41FEFF25682630AC /* ComponentLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentLibrary.swift; sourceTree = "<group>"; };
 		A5776417915CE6F7A1AF7212 /* CanvasStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasStateManager.swift; sourceTree = "<group>"; };
+		A6C3AC113B13EA662E7F9404 /* APIKeyObfuscator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyObfuscator.swift; sourceTree = "<group>"; };
 		AE52F54ABC774C40CF9C098A /* CodePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodePreviewView.swift; sourceTree = "<group>"; };
 		B3406DDD7110D0E7742B876C /* DiagnosticsRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsRunner.swift; sourceTree = "<group>"; };
 		B8EDE1C89BC517C4F151452C /* SketchSiteTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SketchSiteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -121,6 +123,7 @@
 			isa = PBXGroup;
 			children = (
 				70034ABAD8FF5C469444B75F /* AnnotationProcessor.swift */,
+				A6C3AC113B13EA662E7F9404 /* APIKeyObfuscator.swift */,
 				5993A6D636E56DC2F33F90E5 /* CanvasSnapshot.swift */,
 				A5776417915CE6F7A1AF7212 /* CanvasStateManager.swift */,
 				204771A5E1DC8FE13F45A60C /* ColorExtensions.swift */,
@@ -333,6 +336,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				25651855DC10666E397A109A /* APIKeyObfuscator.swift in Sources */,
 				2E6A160C341649F517AC82D3 /* AnnotationProcessor.swift in Sources */,
 				A067FA6A765479138566D19E /* BrowserPreviewView.swift in Sources */,
 				865CB193FC5A7CFB832016AA /* CanvasSnapshot.swift in Sources */,
