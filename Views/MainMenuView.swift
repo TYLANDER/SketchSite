@@ -11,136 +11,144 @@ struct MainMenuView: View {
     let onDismiss: () -> Void
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Header with app branding
-            VStack(spacing: 12) {
-                HStack {
-                    HStack(spacing: 4) {
-                        Text("SketchSite")
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundColor(.primary)
-                        
-                        Image(systemName: "chevron.down")
-                            .font(.caption)
-                            .foregroundColor(.primary)
-                            .rotationEffect(.degrees(90)) // Rotate to point right for sidebar
-                    }
-                    
-                    Spacer()
-                    
-                    Button(action: onDismiss) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(.secondary)
-                    }
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                // Top alignment padding (to match canvas header on iPad)
+                if UIDevice.current.userInterfaceIdiom == .pad {
+                    Color.clear
+                        .frame(height: geometry.safeAreaInsets.top + 40)
                 }
                 
-                Divider()
-            }
-            .padding()
-            .background(.regularMaterial)
-            
-            // Menu Items
-            ScrollView {
-                VStack(spacing: 0) {
-                MenuItemRow(
-                    icon: "folder",
-                    title: "Files",
-                    subtitle: "Manage your sketches",
-                    action: {
-                        onOpenFiles()
-                        onDismiss()
-                    }
-                )
-                
-                Divider()
-                    .padding(.leading, 60)
-                
-                // Current Library Display
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 16) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color(hexString: libraryManager.currentPack.colorScheme.primary).opacity(0.1))
-                                .frame(width: 44, height: 44)
-                            
-                            Image(systemName: libraryManager.currentPack.icon)
-                                .font(.title3)
-                                .foregroundColor(Color(hexString: libraryManager.currentPack.colorScheme.primary))
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack {
-                                Text("Current Library")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                            }
-                            
-                            Text(libraryManager.currentPack.name)
-                                .font(.headline)
+                // Header with app branding
+                VStack(spacing: 12) {
+                    HStack {
+                        HStack(spacing: 4) {
+                            Text("SketchSite")
+                                .font(.system(size: 20, weight: .bold, design: .rounded))
                                 .foregroundColor(.primary)
                             
-                            Text("\(libraryManager.currentPack.templates.count) components")
+                            Image(systemName: "chevron.down")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.primary)
+                                .rotationEffect(.degrees(90)) // Rotate to point right for sidebar
                         }
                         
                         Spacer()
+                        
+                        Button(action: onDismiss) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(.secondary)
+                        }
                     }
-                    .padding(.horizontal)
-                    .padding(.vertical, 12)
+                    
+                    Divider()
                 }
-                .background(.regularMaterial.opacity(0.5))
-                
-                Divider()
-                    .padding(.leading, 60)
-                
-                MenuItemRow(
-                    icon: "arrow.2.squarepath",
-                    title: "Switch Library",
-                    subtitle: "Change design system",
-                    action: {
-                        onSwitchLibrary()
-                        onDismiss()
-                    }
-                )
-                
-                Divider()
-                    .padding(.leading, 60)
-                
-                MenuItemRow(
-                    icon: "plus.rectangle.on.folder",
-                    title: "Add Library",
-                    subtitle: "Create custom library",
-                    action: {
-                        onAddLibrary()
-                        onDismiss()
-                    }
-                )
-                
-                Divider()
-                    .padding(.leading, 60)
-                
-                MenuItemRow(
-                    icon: "gearshape",
-                    title: "Settings",
-                    subtitle: "App preferences",
-                    isComingSoon: true,
-                    action: {
-                        onOpenSettings()
-                        onDismiss()
-                    }
-                )
-                }
+                .padding()
                 .background(.regularMaterial)
+                
+                // Menu Items
+                ScrollView {
+                    VStack(spacing: 0) {
+                        MenuItemRow(
+                            icon: "folder",
+                            title: "Files",
+                            subtitle: "Manage your sketches",
+                            action: {
+                                onOpenFiles()
+                                onDismiss()
+                            }
+                        )
+                        
+                        Divider()
+                            .padding(.leading, 60)
+                        
+                        // Current Library Display
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 16) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color(hexString: libraryManager.currentPack.colorScheme.primary).opacity(0.1))
+                                        .frame(width: 44, height: 44)
+                                    
+                                    Image(systemName: libraryManager.currentPack.icon)
+                                        .font(.title3)
+                                        .foregroundColor(Color(hexString: libraryManager.currentPack.colorScheme.primary))
+                                }
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    HStack {
+                                        Text("Current Library")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                    }
+                                    
+                                    Text(libraryManager.currentPack.name)
+                                        .font(.headline)
+                                        .foregroundColor(.primary)
+                                    
+                                    Text("\(libraryManager.currentPack.templates.count) components")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                            }
+                            .padding(.horizontal)
+                            .padding(.vertical, 12)
+                        }
+                        .background(.regularMaterial.opacity(0.5))
+                        
+                        Divider()
+                            .padding(.leading, 60)
+                        
+                        MenuItemRow(
+                            icon: "arrow.2.squarepath",
+                            title: "Switch Library",
+                            subtitle: "Change design system",
+                            action: {
+                                onSwitchLibrary()
+                                onDismiss()
+                            }
+                        )
+                        
+                        Divider()
+                            .padding(.leading, 60)
+                        
+                        MenuItemRow(
+                            icon: "plus.rectangle.on.folder",
+                            title: "Add Library",
+                            subtitle: "Create custom library",
+                            action: {
+                                onAddLibrary()
+                                onDismiss()
+                            }
+                        )
+                        
+                        Divider()
+                            .padding(.leading, 60)
+                        
+                        MenuItemRow(
+                            icon: "gearshape",
+                            title: "Settings",
+                            subtitle: "App preferences",
+                            isComingSoon: true,
+                            action: {
+                                onOpenSettings()
+                                onDismiss()
+                            }
+                        )
+                    }
+                    .background(.regularMaterial)
+                }
+                
+                Spacer()
             }
-            
-            Spacer()
+            .frame(maxWidth: .infinity)
+            .background(.regularMaterial)
+            .ignoresSafeArea()
         }
-        .frame(maxWidth: .infinity)
-        .background(.regularMaterial)
-        .ignoresSafeArea()
     }
 }
 
