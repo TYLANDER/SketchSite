@@ -152,20 +152,21 @@ struct CanvasContainerView: View {
                     
                     VStack(spacing: 6) {
                         HStack(spacing: 0) {
-                            HStack(spacing: 4) {
-                                Text("SketchSite")
-                                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                                    .foregroundColor(.primary)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.8)
-                                    .allowsTightening(true)
-                                
-                                Button(action: { showMainMenu = true }) {
+                            Button(action: { showMainMenu = true }) {
+                                HStack(spacing: 4) {
+                                    Text("SketchSite")
+                                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                                        .foregroundColor(.primary)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.8)
+                                        .allowsTightening(true)
+                                    
                                     Image(systemName: "chevron.down")
                                         .font(.caption)
                                         .foregroundColor(.primary)
                                 }
                             }
+                            .buttonStyle(PlainButtonStyle())
                             
                             Spacer()
                             
