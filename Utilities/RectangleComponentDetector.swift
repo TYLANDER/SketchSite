@@ -669,39 +669,58 @@ public class RectangleComponentDetector {
     
     /// Filters out rectangles that are too small, have poor aspect ratios, or are likely noise.
     private static func filterQualityRectangles(_ rects: [CGRect], canvasSize: CGSize) -> [CGRect] {
+        // Detect device type for adaptive filtering
+        let isIPad = UIDevice.current.userInterfaceIdiom == .pad
+        
         return rects.filter { rect in
-            // Minimum size thresholds (relative to canvas)
-            let minWidth = canvasSize.width * 0.05  // At least 5% of canvas width
-            let minHeight = canvasSize.height * 0.05  // At least 5% of canvas height
-            let minArea = canvasSize.width * canvasSize.height * 0.003  // At least 0.3% of canvas area
+            // Adaptive minimum size thresholds based on device
+            let (minWidthPercent, minHeightPercent, minAreaPercent) = isIPad ? 
+                (0.02, 0.02, 0.001) :  // iPad: More lenient (2% width/height, 0.1% area)
+                (0.04, 0.04, 0.002)    // iPhone: Slightly more restrictive (4% width/height, 0.2% area)
             
-            // Check minimum dimensions
-            guard rect.width >= minWidth && rect.height >= minHeight else {
-                print("  ❌ Filtered out small rect: \(rect) (too small)")
+            let minWidth = canvasSize.width * minWidthPercent
+            let minHeight = canvasSize.height * minHeightPercent  
+            let minArea = canvasSize.width * canvasSize.height * minAreaPercent
+            
+            // Absolute minimum sizes (device-agnostic safety net)
+            let absoluteMinSize: CGFloat = isIPad ? 15.0 : 10.0  // Minimum 15pt on iPad, 10pt on iPhone
+            
+            // Check minimum dimensions with both relative and absolute thresholds
+            let effectiveMinWidth = max(minWidth, absoluteMinSize)
+            let effectiveMinHeight = max(minHeight, absoluteMinSize)
+            
+            guard rect.width >= effectiveMinWidth && rect.height >= effectiveMinHeight else {
+                print("  ❌ Filtered out small rect: \(rect) (min: \(effectiveMinWidth)×\(effectiveMinHeight))")
                 return false
             }
             
             // Check minimum area
             guard rect.width * rect.height >= minArea else {
-                print("  ❌ Filtered out small rect: \(rect) (insufficient area)")
+                print("  ❌ Filtered out small rect: \(rect) (insufficient area: \(rect.width * rect.height) < \(minArea))")
                 return false
             }
             
-            // Check aspect ratio (not too extreme)
+            // More lenient aspect ratio for iPad Apple Pencil drawing
+            let maxAspectRatio: CGFloat = isIPad ? 15.0 : 10.0
+            let minAspectRatio: CGFloat = 1.0 / maxAspectRatio
+            
             let aspectRatio = rect.width / rect.height
-            guard aspectRatio >= 0.1 && aspectRatio <= 10.0 else {
-                print("  ❌ Filtered out rect with extreme aspect ratio: \(rect) (aspect: \(aspectRatio))")
+            guard aspectRatio >= minAspectRatio && aspectRatio <= maxAspectRatio else {
+                print("  ❌ Filtered out rect with extreme aspect ratio: \(rect) (aspect: \(aspectRatio), allowed: \(minAspectRatio)-\(maxAspectRatio))")
                 return false
             }
             
-            // Check if rectangle is within canvas bounds (with some tolerance)
-            let canvasBounds = CGRect(x: -10, y: -10, width: canvasSize.width + 20, height: canvasSize.height + 20)
+            // Check if rectangle is within canvas bounds (with generous tolerance for iPad)
+            let tolerance: CGFloat = isIPad ? 20.0 : 10.0
+            let canvasBounds = CGRect(x: -tolerance, y: -tolerance, 
+                                    width: canvasSize.width + 2*tolerance, 
+                                    height: canvasSize.height + 2*tolerance)
             guard canvasBounds.contains(rect) else {
                 print("  ❌ Filtered out rect outside canvas: \(rect)")
                 return false
             }
             
-            print("  ✅ Keeping quality rect: \(rect)")
+            print("  ✅ Keeping quality rect: \(rect) (device: \(isIPad ? "iPad" : "iPhone"))")
             return true
         }
     }

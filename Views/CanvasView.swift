@@ -519,7 +519,13 @@ struct CanvasContainerView: View {
                 if newComponents.isEmpty {
                     print("⚠️ No new components detected")
                     if self.componentManager.components.isEmpty {
-                        self.errorManager.handleError(.visionAnalysisFailed("No UI components detected. Try drawing clearer rectangles or shapes."))
+                        // Provide device-specific guidance
+                        let isIPad = UIDevice.current.userInterfaceIdiom == .pad
+                        let errorMessage = isIPad ? 
+                            "No UI components detected on iPad. Try drawing larger, clearer rectangles with the Apple Pencil. Make sure rectangles are at least 20×20 points and have clear corners." :
+                            "No UI components detected. Try drawing clearer rectangles or shapes with larger sizes."
+                        
+                        self.errorManager.handleError(.visionAnalysisFailed(errorMessage))
                         completion(false)
                     } else {
                         completion(true) // We have existing components

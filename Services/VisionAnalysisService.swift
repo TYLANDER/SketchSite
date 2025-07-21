@@ -27,13 +27,29 @@ class VisionAnalysisService {
             completion(results)
         }
 
-        // Highly tuned parameters for precise rectangle detection with minimal duplicates
-        request.minimumSize = 0.1   // Larger minimum size to filter out noise and partial detections
-        request.minimumAspectRatio = 0.25  // More restrictive aspect ratios
-        request.maximumAspectRatio = 4.0   // Less extreme aspect ratios
-        request.minimumConfidence = 0.7    // Higher confidence threshold to reduce false positives
-        request.quadratureTolerance = 10.0 // Stricter tolerance for rectangle shape quality
-        request.maximumObservations = 8    // Reduce maximum detections to prevent over-detection
+        // iPad-optimized parameters for better Apple Pencil detection
+        // Detect device type to adjust parameters accordingly
+        let isIPad = UIDevice.current.userInterfaceIdiom == .pad
+        
+        if isIPad {
+            // More lenient parameters for iPad Apple Pencil input
+            request.minimumSize = 0.03        // Much smaller minimum size for hand-drawn rectangles
+            request.minimumAspectRatio = 0.1   // Allow more extreme aspect ratios for flexible drawing
+            request.maximumAspectRatio = 10.0  // Allow very wide/tall rectangles
+            request.minimumConfidence = 0.4    // Lower confidence threshold for hand-drawn shapes
+            request.quadratureTolerance = 20.0 // More forgiving tolerance for imperfect rectangles
+            request.maximumObservations = 12   // Allow more detections for complex layouts
+            print("🎨 Using iPad-optimized vision parameters for Apple Pencil input")
+        } else {
+            // More precise parameters for iPhone touch input
+            request.minimumSize = 0.08        // Slightly relaxed from original 0.1
+            request.minimumAspectRatio = 0.2  
+            request.maximumAspectRatio = 5.0   
+            request.minimumConfidence = 0.6    // Slightly relaxed from original 0.7
+            request.quadratureTolerance = 15.0 // Slightly more forgiving
+            request.maximumObservations = 10   
+            print("📱 Using iPhone-optimized vision parameters for touch input")
+        }
 
         let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
         
@@ -106,6 +122,10 @@ class VisionAnalysisService {
         }
 
         dispatchGroup.notify(queue: .main) {
+            let isIPad = UIDevice.current.userInterfaceIdiom == .pad
+            print("🎯 Vision analysis completed for \(isIPad ? "iPad" : "iPhone") - Canvas: \(Int(canvasSize.width))×\(Int(canvasSize.height))")
+            print("📊 Raw vision results: \(rectangles.count) rectangles, \(annotations.count) text annotations")
+            
             // Convert Vision boundingBoxes to canvas coordinates and clamp to canvas bounds
             let rects: [CGRect] = rectangles.compactMap { rect in
                 let bb = rect.boundingBox
@@ -115,23 +135,39 @@ class VisionAnalysisService {
                 let y = (1 - bb.maxY) * canvasSize.height
                 
                 let originalRect = CGRect(x: x, y: y, width: width, height: height)
+                print("  🔄 Converting vision rect: \(bb) → canvas rect: \(originalRect) (confidence: \(rect.confidence))")
+                
+                // More lenient size checking for iPad
+                let minSize: CGFloat = isIPad ? 8.0 : 10.0
                 
                 // Clamp rectangle to canvas bounds
                 let canvasBounds = CGRect(x: 0, y: 0, width: canvasSize.width, height: canvasSize.height)
                 let clampedRect = originalRect.intersection(canvasBounds)
                 
                 // Only keep rectangles that have meaningful size after clamping
-                guard clampedRect.width > 10 && clampedRect.height > 10 else {
-                    print("  ❌ Filtered out rect outside canvas bounds: \(originalRect)")
+                guard clampedRect.width > minSize && clampedRect.height > minSize else {
+                    print("  ❌ Filtered out rect too small after clamping: \(originalRect) → \(clampedRect) (min: \(minSize))")
                     return nil
                 }
                 
+                print("  ✅ Converted rect: \(clampedRect)")
                 return clampedRect
+            }
+            
+            print("📐 After coordinate conversion: \(rects.count) rectangles")
+            for (i, rect) in rects.enumerated() {
+                print("  Rect \(i+1): \(rect) (area: \(Int(rect.width * rect.height)))")
             }
             
             // Remove duplicate/overlapping rectangles before component detection
             let deduplicatedRects = self.removeDuplicateRectangles(rects, canvasSize: canvasSize)
-            print("🔍 Deduplicated rectangles: \(rects.count) → \(deduplicatedRects.count)")
+            print("🔍 After deduplication: \(rects.count) → \(deduplicatedRects.count)")
+            
+            if deduplicatedRects.isEmpty {
+                print("⚠️ No rectangles passed deduplication - check drawing clarity and size")
+                completion([])
+                return
+            }
             
             let annotationObjs = AnnotationProcessor.extractAnnotations(from: annotations)
             let annotationDict: [String: CGRect] = Dictionary(uniqueKeysWithValues: annotationObjs.map { ($0.text, $0.position) })
@@ -143,7 +179,11 @@ class VisionAnalysisService {
                 let y = (1 - bb.maxY) * canvasSize.height
                 return CGRect(x: x, y: y, width: width, height: height)
             }
+            
+            print("🎯 Sending \(deduplicatedRects.count) rectangles to component detector...")
             let detected = RectangleComponentDetector.detectComponents(rects: deduplicatedRects, annotations: annotationDictCanvas, canvasSize: canvasSize)
+            print("🎉 Final result: \(detected.count) components detected")
+            
             completion(detected)
         }
     }
