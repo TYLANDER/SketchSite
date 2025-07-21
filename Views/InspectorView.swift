@@ -133,6 +133,9 @@ struct InspectorView: View {
                 .onChange(of: type) { oldValue, newValue in
                     component.type = .ui(newValue)
                     
+                    // Reinitialize properties for the new component type
+                    component.reinitializePropertiesForType()
+                    
                     // Update text content with default for new type if current is empty
                     if textContent.isEmpty {
                         if let defaultText = DetectedComponent.defaultTextContent(for: .ui(newValue)) {

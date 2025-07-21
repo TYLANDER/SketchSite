@@ -295,6 +295,12 @@ public struct DetectedComponent: Identifiable, Hashable, Codable {
         }
     }
     
+    // Public method to reinitialize properties when component type changes
+    public mutating func reinitializePropertiesForType() {
+        properties = ComponentProperties() // Clear existing properties
+        initializeDefaultProperties() // Reinitialize with new type
+    }
+    
     private mutating func initializeUIComponentProperties(for uiType: UIComponentType) {
         switch uiType {
         // MARK: - Basic Interactive Components
