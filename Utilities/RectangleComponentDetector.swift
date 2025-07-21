@@ -355,6 +355,20 @@ public struct DetectedComponent: Identifiable, Hashable, Codable {
             properties.addColorProperty(ColorProperty(name: "Border Color", semanticRole: .secondary))
             properties.addColorProperty(ColorProperty(name: "Focus Color", semanticRole: .primary))
             
+        case .textarea:
+            properties.addBooleanProperty(BooleanProperty(name: "Is Required", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Has Error", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Is Disabled", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Read Only", defaultValue: false))
+            properties.addBooleanProperty(BooleanProperty(name: "Resizable", defaultValue: true))
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Placeholder Text", content: "Enter your message...", style: .regular, alignment: .left))
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Label Text", content: "Text Area Label", style: .regular, alignment: .left))
+            properties.addEnhancedTextProperty(EnhancedTextProperty(name: "Content Text", content: textContent ?? "", style: .regular, alignment: .left))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Rows", availableOptions: ["3", "4", "5", "6", "8", "10"], defaultOption: "4"))
+            properties.addInstanceSwapProperty(InstanceSwapProperty(name: "Size", availableOptions: ["Small", "Medium", "Large"], defaultOption: "Medium"))
+            properties.addColorProperty(ColorProperty(name: "Border Color", semanticRole: .secondary))
+            properties.addColorProperty(ColorProperty(name: "Focus Color", semanticRole: .primary))
+            
         case .dropdown:
             properties.addBooleanProperty(BooleanProperty(name: "Searchable", defaultValue: false))
             properties.addBooleanProperty(BooleanProperty(name: "Multi Select", defaultValue: false))
@@ -575,7 +589,7 @@ public struct DetectedComponent: Identifiable, Hashable, Codable {
     private func componentSupportsText(_ componentType: UIComponentType) -> Bool {
         switch componentType {
         case .button, .label, .navbar, .tab, .breadcrumb, .badge, .alert, 
-             .formControl, .dropdown, .tooltip, .pagination, .modal, .well:
+             .formControl, .textarea, .dropdown, .tooltip, .pagination, .modal, .well:
             return true
         case .image, .icon, .thumbnail, .carousel, .table, .progressBar, 
              .form, .listGroup, .mediaObject, .buttonGroup, .navs, .collapse:
@@ -596,6 +610,7 @@ public struct DetectedComponent: Identifiable, Hashable, Codable {
             case .badge: return "Badge"
             case .alert: return "Alert Message"
             case .formControl: return "Enter text"
+            case .textarea: return "Enter your message..."
             case .dropdown: return "Select option"
             case .tooltip: return "Tooltip"
             case .pagination: return "1 2 3"
@@ -858,6 +873,8 @@ public class RectangleComponentDetector {
             return .navbar
         } else if label.contains("input") || label.contains("field") || label.contains("form") {
             return .formControl
+        } else if label.contains("textarea") || label.contains("text area") || label.contains("message") {
+            return .textarea
         } else if label.contains("card") {
             return .mediaObject
         } else if label.contains("list") {
@@ -935,6 +952,8 @@ public class RectangleComponentDetector {
         // FORM CONTROLS - Map to appropriate form component types
         case .formControl, .textInput:
             return .formControl
+        case .textarea:
+            return .textarea
         case .dropdown:
             return .dropdown
         case .checkbox, .radioButton, .toggleSwitch:

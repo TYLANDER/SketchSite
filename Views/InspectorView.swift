@@ -477,7 +477,7 @@ struct InspectorView: View {
     private func componentSupportsText(_ componentType: UIComponentType) -> Bool {
         switch componentType {
         case .button, .label, .navbar, .tab, .breadcrumb, .badge, .alert, 
-             .formControl, .dropdown, .tooltip, .pagination, .modal, .well:
+             .formControl, .textarea, .dropdown, .tooltip, .pagination, .modal, .well:
             return true
         case .image, .icon, .thumbnail, .carousel, .table, .progressBar, 
              .form, .listGroup, .mediaObject, .buttonGroup, .navs, .collapse:

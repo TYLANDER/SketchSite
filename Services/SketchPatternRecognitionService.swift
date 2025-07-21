@@ -38,6 +38,7 @@ public class SketchPatternRecognitionService {
             case checkbox = "checkbox"                      // Square with checkmark
             case radioButton = "radio_button"               // Circle with center dot
             case textInput = "text_input"                   // Rectangle with placeholder lines
+            case textarea = "textarea"                      // Large rectangle with multiple text lines
             case searchField = "search_field"               // Rectangle with magnifying glass
             case toggleSwitch = "toggle_switch"             // Oval with circle inside
             
@@ -95,6 +96,7 @@ public class SketchPatternRecognitionService {
                 case .checkbox: return "Checkbox"
                 case .radioButton: return "Radio Button"
                 case .textInput: return "Text Input"
+                case .textarea: return "Text Area"
                 case .searchField: return "Search Field"
                 case .toggleSwitch: return "Toggle Switch"
                 
@@ -236,6 +238,16 @@ public class SketchPatternRecognitionService {
                         type: .textInput,
                         boundingBox: boundingBox,
                         confidence: rectangle.confidence * 0.8,
+                        associatedRectangle: boundingBox
+                    ))
+                }
+                
+                // Text Area detection (larger rectangle for multi-line text input)
+                else if aspectRatio > 1.2 && aspectRatio < 4.0 && boundingBox.height > 0.12 && boundingBox.height < 0.4 && area > 0.05 {
+                    patterns.append(SketchedPattern(
+                        type: .textarea,
+                        boundingBox: boundingBox,
+                        confidence: rectangle.confidence * 0.85,
                         associatedRectangle: boundingBox
                     ))
                 }

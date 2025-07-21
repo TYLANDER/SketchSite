@@ -25,6 +25,7 @@ public enum UIComponentType: String, CaseIterable, Codable {
     case progressBar = "progress bar"
     case table
     case tab
+    case textarea
     case thumbnail
     case tooltip
     case well
