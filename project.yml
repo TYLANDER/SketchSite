@@ -33,6 +33,9 @@
              UIImageName: ""
            UISupportedInterfaceOrientations:
              - UIInterfaceOrientationPortrait
+             - UIInterfaceOrientationPortraitUpsideDown
+             - UIInterfaceOrientationLandscapeLeft
+             - UIInterfaceOrientationLandscapeRight
            UIRequiresFullScreen: true
            UIStatusBarHidden: false
            UIViewControllerBasedStatusBarAppearance: false
