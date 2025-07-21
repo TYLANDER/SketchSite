@@ -200,16 +200,100 @@ struct ComponentOverlayView: View {
     // MARK: - Component Label
     
     private var componentLabel: some View {
-        Text(comp.type.description.capitalized)
-            .font(.caption2.bold())
-            .foregroundColor(.white)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 3)
-            .background(Color.black.opacity(0.8))
-            .cornerRadius(4)
-            .offset(y: -componentHeight/2 - 12)
-            .offset(dragOffset)
-            .allowsHitTesting(false)
+        VStack(spacing: 2) {
+            // Primary component type label
+            Text(displayComponentType)
+                .font(.caption2.bold())
+                .foregroundColor(.white)
+                .lineLimit(1)
+            
+            // Optional pattern recognition indicator
+            if let patternInfo = getPatternInfo() {
+                Text("🎨 \(patternInfo)")
+                    .font(.caption2)
+                    .foregroundColor(.green)
+                    .opacity(0.9)
+                    .lineLimit(1)
+            }
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .background(backgroundColorForLabel)
+        .cornerRadius(4)
+        .offset(y: -componentHeight/2 - 12)
+        .offset(dragOffset)
+        .allowsHitTesting(false)
+    }
+    
+    /// Enhanced component type display with pattern recognition awareness
+    private var displayComponentType: String {
+        // Check if this component was enhanced by pattern recognition
+        if let label = comp.label?.lowercased() {
+            // If the label contains pattern recognition hints, enhance the display
+            if label.contains("hamburger") {
+                return "Navigation Menu"
+            } else if label.contains("image") {
+                return "Image Placeholder"
+            } else if label.contains("form") {
+                return "Form Field"
+            } else if label.contains("checkbox") {
+                return "Checkbox"
+            } else if label.contains("card") {
+                return "Card Component"
+            }
+        }
+        
+        // Enhanced type descriptions for better UX
+        switch comp.type {
+        case .ui(let uiType):
+            switch uiType {
+            case .navbar: return "Navigation"
+            case .formControl: return "Input Field"
+            case .mediaObject: return "Card"
+            case .buttonGroup: return "Button Group"
+            case .listGroup: return "List"
+            case .progressBar: return "Progress"
+            default: return uiType.rawValue.capitalized
+            }
+        case .group(let groupType):
+            switch groupType {
+            case .navbar: return "Nav Group"
+            case .cardGrid: return "Card Grid"
+            case .buttonGroup: return "Button Group"
+            case .formFieldGroup: return "Form Group"
+            }
+        case .unknown:
+            return "Unknown"
+        }
+    }
+    
+    /// Gets pattern recognition information if available
+    private func getPatternInfo() -> String? {
+        guard let label = comp.label?.lowercased() else { return nil }
+        
+        if label.contains("hamburger") {
+            return "Hamburger Menu"
+        } else if label.contains("image") {
+            return "Sketched Image"
+        } else if label.contains("form") {
+            return "Form Pattern"
+        } else if label.contains("checkbox") {
+            return "Checkbox Pattern"
+        } else if label.contains("card") {
+            return "Card Pattern"
+        }
+        
+        return nil
+    }
+    
+    /// Dynamic background color based on component type and pattern recognition
+    private var backgroundColorForLabel: Color {
+        // Use different colors for pattern-recognized components
+        if getPatternInfo() != nil {
+            return Color.green.opacity(0.9) // Green for pattern-recognized components
+        } else {
+            return Color.black.opacity(0.8) // Standard black for regular components
+        }
     }
     
     // MARK: - Computed Properties

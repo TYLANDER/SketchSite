@@ -620,6 +620,47 @@ public struct DetectedComponent: Identifiable, Hashable, Codable {
 
 /// Detects and classifies UI components from rectangles and annotations.
 public class RectangleComponentDetector {
+    /// Enhanced API: detects components from rectangles, annotations, and sketched patterns.
+    /// - Parameters:
+    ///   - rects: Array of CGRects representing detected rectangles.
+    ///   - annotations: Optional dictionary of annotation labels to CGRects.
+    ///   - patterns: Array of sketched UI patterns detected.
+    ///   - canvasSize: The size of the canvas for relative calculations.
+    /// - Returns: Array of DetectedComponent with enhanced pattern-based types and labels.
+    public static func detectComponentsWithPatterns(
+        rects: [CGRect],
+        annotations: [String: CGRect] = [:],
+        patterns: [SketchPatternRecognitionService.SketchedPattern] = [],
+        canvasSize: CGSize
+    ) -> [DetectedComponent] {
+        // First, use pattern recognition to enhance type inference
+        var enhancedAnnotations = annotations
+        var patternBasedTypes: [CGRect: UIComponentType] = [:]
+        
+        // Map patterns to component types and create synthetic annotations
+        for pattern in patterns {
+            let patternRect = pattern.boundingBox
+            
+            // Map pattern types to UI component types
+            let componentType = mapPatternToComponentType(pattern.type)
+            patternBasedTypes[patternRect] = componentType
+            
+            // Add pattern-based annotation
+            let patternLabel = pattern.type.displayName.lowercased()
+            enhancedAnnotations[patternLabel] = patternRect
+            
+            print("🎨 Pattern-enhanced detection: \(pattern.type.displayName) → \(componentType.rawValue)")
+        }
+        
+        // Use the enhanced detection with pattern information
+        return detectComponentsWithEnhancedInfo(
+            rects: rects, 
+            annotations: enhancedAnnotations, 
+            patternTypes: patternBasedTypes,
+            canvasSize: canvasSize
+        )
+    }
+    
     /// Main API: detects components from rectangles and optional annotations.
     /// - Parameters:
     ///   - rects: Array of CGRects representing detected rectangles.
@@ -631,6 +672,22 @@ public class RectangleComponentDetector {
         annotations: [String: CGRect] = [:],
         canvasSize: CGSize
     ) -> [DetectedComponent] {
+        // Use the enhanced detection method with empty patterns
+        return detectComponentsWithEnhancedInfo(
+            rects: rects,
+            annotations: annotations,
+            patternTypes: [:],
+            canvasSize: canvasSize
+        )
+    }
+    
+    /// Internal enhanced detection method that handles both traditional and pattern-based detection
+    private static func detectComponentsWithEnhancedInfo(
+        rects: [CGRect],
+        annotations: [String: CGRect],
+        patternTypes: [CGRect: UIComponentType],
+        canvasSize: CGSize
+    ) -> [DetectedComponent] {
         // 1. Filter out rectangles that are too small or have poor quality
         let filteredRects = filterQualityRectangles(rects, canvasSize: canvasSize)
         print("🔍 Filtered rectangles: \(rects.count) → \(filteredRects.count)")
@@ -640,12 +697,15 @@ public class RectangleComponentDetector {
         var detected: [DetectedComponent] = []
         var usedRects = Set<CGRect>()
         
-        // 3. For each group, infer type
+        // 3. For each group, infer type (with pattern enhancement)
         for group in groups {
             if group.count == 1 {
                 let rect = group[0]
                 let label = annotationLabel(for: rect, annotations: annotations)
-                let type = inferType(for: rect, canvasSize: canvasSize, annotation: label)
+                
+                // Check if we have a pattern-based type for this rectangle
+                let type = patternTypes[rect] ?? inferType(for: rect, canvasSize: canvasSize, annotation: label)
+                
                 detected.append(DetectedComponent(rect: rect, type: .ui(type), label: label))
                 usedRects.insert(rect)
             } else {
@@ -658,10 +718,11 @@ public class RectangleComponentDetector {
                 }
             }
         }
+        
         // 4. Any unused rects (not grouped)
         for rect in filteredRects where !usedRects.contains(rect) {
             let label = annotationLabel(for: rect, annotations: annotations)
-            let type = inferType(for: rect, canvasSize: canvasSize, annotation: label)
+            let type = patternTypes[rect] ?? inferType(for: rect, canvasSize: canvasSize, annotation: label)
             detected.append(DetectedComponent(rect: rect, type: .ui(type), label: label))
         }
         
@@ -854,6 +915,36 @@ public class RectangleComponentDetector {
 
     // MARK: - Annotation Matching
 
+    /// Maps sketched pattern types to UI component types
+    private static func mapPatternToComponentType(_ patternType: SketchPatternRecognitionService.SketchedPattern.PatternType) -> UIComponentType {
+        switch patternType {
+        case .hamburgerMenu:
+            return .navbar  // Hamburger menus typically indicate navigation
+        case .imagePlaceholder:
+            return .image
+        case .formField:
+            return .formControl
+        case .checkbox:
+            return .formControl  // Checkbox is a type of form control
+        case .radioButton:
+            return .formControl  // Radio button is a type of form control
+        case .iconSymbol:
+            return .icon
+        case .cardWithElements:
+            return .mediaObject  // Cards with elements map to media objects
+        case .textLines:
+            return .label  // Text lines typically represent labels or content
+        case .dropdownArrow:
+            return .dropdown
+        case .buttonIcon:
+            return .button
+        case .progressBar:
+            return .progressBar
+        case .tabIndicator:
+            return .tab
+        }
+    }
+    
     /// Returns the label for a rectangle if an annotation overlaps or is close.
     private static func annotationLabel(for rect: CGRect, annotations: [String: CGRect]) -> String? {
         // Find annotation whose rect overlaps or is close

@@ -5,7 +5,11 @@ import VisionKit
 import CoreGraphics
 
 /// Service for analyzing images using Vision to detect rectangles, text, and infer UI layout components.
+/// Enhanced with professional UI/UX sketching pattern recognition for Apple Pencil input.
 class VisionAnalysisService {
+    
+    /// Pattern recognition service for detecting sketched wireframe elements
+    private let patternRecognitionService = SketchPatternRecognitionService()
     /// Detects rectangles in a UIImage using Vision and returns VNRectangleObservation results.
     func detectRectangles(in image: UIImage, completion: @escaping ([VNRectangleObservation]) -> Void) {
         guard let cgImage = image.cgImage else {
@@ -96,6 +100,7 @@ class VisionAnalysisService {
     }
     
     /// Detects rectangles and text, then infers components and returns [DetectedComponent].
+    /// Enhanced with sketching pattern recognition for professional wireframe detection.
     /// - Parameters:
     ///   - image: The UIImage to analyze.
     ///   - canvasSize: The size of the canvas for coordinate conversion.
@@ -108,6 +113,7 @@ class VisionAnalysisService {
         let dispatchGroup = DispatchGroup()
         var rectangles: [VNRectangleObservation] = []
         var annotations: [VNRecognizedTextObservation] = []
+        var sketchedPatterns: [SketchPatternRecognitionService.SketchedPattern] = []
 
         dispatchGroup.enter()
         detectRectangles(in: image) {
@@ -120,11 +126,23 @@ class VisionAnalysisService {
             annotations = $0
             dispatchGroup.leave()
         }
+        
+        // NEW: Detect sketched UI patterns for enhanced wireframe recognition
+        dispatchGroup.enter()
+        patternRecognitionService.detectSketchedPatterns(in: image) { patterns in
+            sketchedPatterns = patterns
+            dispatchGroup.leave()
+        }
 
         dispatchGroup.notify(queue: .main) {
             let isIPad = UIDevice.current.userInterfaceIdiom == .pad
-            print("🎯 Vision analysis completed for \(isIPad ? "iPad" : "iPhone") - Canvas: \(Int(canvasSize.width))×\(Int(canvasSize.height))")
-            print("📊 Raw vision results: \(rectangles.count) rectangles, \(annotations.count) text annotations")
+            print("🎯 Enhanced vision analysis completed for \(isIPad ? "iPad" : "iPhone") - Canvas: \(Int(canvasSize.width))×\(Int(canvasSize.height))")
+            print("📊 Raw vision results: \(rectangles.count) rectangles, \(annotations.count) text annotations, \(sketchedPatterns.count) sketched patterns")
+            
+            // Log detected sketched patterns
+            for pattern in sketchedPatterns {
+                print("🎨 Detected pattern: \(pattern.type.displayName) (confidence: \(pattern.confidence))")
+            }
             
             // Convert Vision boundingBoxes to canvas coordinates and clamp to canvas bounds
             let rects: [CGRect] = rectangles.compactMap { rect in
@@ -180,9 +198,17 @@ class VisionAnalysisService {
                 return CGRect(x: x, y: y, width: width, height: height)
             }
             
-            print("🎯 Sending \(deduplicatedRects.count) rectangles to component detector...")
-            let detected = RectangleComponentDetector.detectComponents(rects: deduplicatedRects, annotations: annotationDictCanvas, canvasSize: canvasSize)
-            print("🎉 Final result: \(detected.count) components detected")
+            // Convert sketched patterns to canvas coordinates
+            let canvasPatterns = self.convertPatternsToCanvasCoordinates(sketchedPatterns, canvasSize: canvasSize)
+            
+            print("🎯 Sending \(deduplicatedRects.count) rectangles and \(canvasPatterns.count) patterns to enhanced component detector...")
+            let detected = RectangleComponentDetector.detectComponentsWithPatterns(
+                rects: deduplicatedRects, 
+                annotations: annotationDictCanvas, 
+                patterns: canvasPatterns,
+                canvasSize: canvasSize
+            )
+            print("🎉 Final result: \(detected.count) components detected with pattern recognition")
             
             completion(detected)
         }
@@ -236,5 +262,34 @@ class VisionAnalysisService {
         }
         
         return uniqueRects
+    }
+    
+    /// Converts sketched patterns from Vision coordinates to canvas coordinates
+    private func convertPatternsToCanvasCoordinates(_ patterns: [SketchPatternRecognitionService.SketchedPattern], canvasSize: CGSize) -> [SketchPatternRecognitionService.SketchedPattern] {
+        return patterns.map { pattern in
+            let boundingBox = pattern.boundingBox
+            let canvasRect = CGRect(
+                x: boundingBox.minX * canvasSize.width,
+                y: (1 - boundingBox.maxY) * canvasSize.height,
+                width: boundingBox.width * canvasSize.width,
+                height: boundingBox.height * canvasSize.height
+            )
+            
+            let associatedRect = pattern.associatedRectangle.map { rect in
+                CGRect(
+                    x: rect.minX * canvasSize.width,
+                    y: (1 - rect.maxY) * canvasSize.height,
+                    width: rect.width * canvasSize.width,
+                    height: rect.height * canvasSize.height
+                )
+            }
+            
+            return SketchPatternRecognitionService.SketchedPattern(
+                type: pattern.type,
+                boundingBox: canvasRect,
+                confidence: pattern.confidence,
+                associatedRectangle: associatedRect
+            )
+        }
     }
 }

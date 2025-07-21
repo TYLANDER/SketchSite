@@ -37,6 +37,7 @@
 		9F53A17FC6C503FC1A919D4F /* VisionAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0801B484E8711DAA386A2DF /* VisionAnalysisService.swift */; };
 		A067FA6A765479138566D19E /* BrowserPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75CFF6EEC1DE52A7ACA95102 /* BrowserPreviewView.swift */; };
 		ACBC336875206956AC0ABF94 /* ComponentLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC9F08B2903EF2C4ADE884C7 /* ComponentLibraryView.swift */; };
+		B0514CBB2DDD2F2D96F7267D /* SketchPatternRecognitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9856ACB7A4B630C21D841BE /* SketchPatternRecognitionService.swift */; };
 		B202969C5EC7F7D103ED76AA /* ChatGPTService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64EA9320DDA162BD563DD9A9 /* ChatGPTService.swift */; };
 		B2B163B94A8754E3089CDAD4 /* ConversationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ACC89816597C55263423AF1 /* ConversationManager.swift */; };
 		BE78C3D7EE51A3E0019103E9 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5AB2C9102D3F1CDB0BF5C0F /* ImagePicker.swift */; };
@@ -108,6 +109,7 @@
 		D50F5B3032BFADB556AEBB7C /* SketchSite.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SketchSite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D5234C3AAC0625A85AF27789 /* SketchSiteUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchSiteUITests.swift; sourceTree = "<group>"; };
 		D838E9C19365A9FA54B4FE9A /* ComponentLibraryDemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentLibraryDemoView.swift; sourceTree = "<group>"; };
+		D9856ACB7A4B630C21D841BE /* SketchPatternRecognitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchPatternRecognitionService.swift; sourceTree = "<group>"; };
 		D9E3A343DEDA9E1B70462195 /* SidebarMenuOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarMenuOverlay.swift; sourceTree = "<group>"; };
 		DA1278C92F7FD134A8968607 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DF86342ECB4F7B54C62434FF /* SketchSiteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchSiteApp.swift; sourceTree = "<group>"; };
@@ -205,6 +207,7 @@
 			children = (
 				64EA9320DDA162BD563DD9A9 /* ChatGPTService.swift */,
 				7565884C3353639DDF85078A /* ExportService.swift */,
+				D9856ACB7A4B630C21D841BE /* SketchPatternRecognitionService.swift */,
 				F0801B484E8711DAA386A2DF /* VisionAnalysisService.swift */,
 			);
 			path = Services;
@@ -370,6 +373,7 @@
 				41739BD4D00DA108D2745A95 /* SidebarMenuOverlay.swift in Sources */,
 				60EF8D66F00187C9AF67207C /* SketchManager.swift in Sources */,
 				02D1432F5237AE8EE255E8C0 /* SketchManagerView.swift in Sources */,
+				B0514CBB2DDD2F2D96F7267D /* SketchPatternRecognitionService.swift in Sources */,
 				50E55870D3E56B60FE5D1930 /* SketchSiteApp.swift in Sources */,
 				3102511A02A4BCEFFE6ED5EF /* ToolbarButton.swift in Sources */,
 				60EB1EB0E8ED33CC3111F424 /* TypePickerSheetView.swift in Sources */,
