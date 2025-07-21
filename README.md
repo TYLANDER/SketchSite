@@ -26,8 +26,9 @@ The app features a professional full-screen canvas experience with Instagram-lik
 ### ✅ **Core Drawing & Analysis**
 - **PencilKit Canvas:** Full-screen drawing with Apple Pencil and finger support
 - **Undo/Redo Drawing:** Instant undo/redo for drawing actions with state management
-- **Vision Analysis:** Advanced rectangle and text annotation detection
-- **Component Inference:** AI-powered classification of UI elements (button, image, nav bar, etc.)
+- **Advanced Vision Analysis:** Multi-layered detection combining rectangle detection, text recognition, and professional UI pattern recognition
+- **Professional Sketching Recognition:** Detects 35+ hand-drawn UI/UX sketching patterns including hamburger menus, form fields, checkboxes, radio buttons, image placeholders, and wireframe symbols
+- **Component Inference:** AI-powered classification of 26 UI element types (button, image, nav bar, textarea, etc.)
 - **Smart Deduplication:** Removes overlapping and duplicate detected components
 
 ### ✅ **Component Interaction System**
@@ -50,7 +51,7 @@ The app features a professional full-screen canvas experience with Instagram-lik
 - **5 Built-in Design Systems:** Default, Material Design, Bootstrap, iOS HIG, Tailwind CSS
 - **Library Switching:** Seamless switching between design systems with persistent state
 - **Custom Library Creation:** Full-featured library creator with icon, color scheme & component selection
-- **Pre-built Templates:** 24+ component templates across 6 categories per library
+- **Pre-built Templates:** 26+ component templates across 6 categories per library including textarea for multi-line text
 - **Categorized Organization:** Basic, Navigation, Forms, Media, Layout, Feedback
 - **Search Functionality:** Quick search through component library
 - **Quick Add Section:** Fast access to most commonly used components
@@ -118,13 +119,23 @@ The app features a professional full-screen canvas experience with Instagram-lik
 - **Model Picker Optimization:** 70-120pt width, single-line text, proper truncation support
 - **Professional Spacing:** All elements have proper breathing room with iPhone 16 Pro specific tuning
 
+### 🎨 **Professional Sketching Recognition System (v3.2)**
+- **Comprehensive Pattern Detection:** Advanced recognition of 35+ professional UI/UX sketching patterns and wireframe symbols
+- **Designer-Friendly Detection:** Recognizes standard sketching conventions like hamburger menus (3 horizontal lines), image placeholders (X or diagonal lines), form fields, checkboxes, radio buttons
+- **Multi-Layered Analysis:** Combines geometric pattern detection, aspect ratio analysis, and contextual relationships for accurate classification
+- **Apple Pencil + iPad Optimized:** Real-time pattern recognition optimized for professional design workflows
+- **26 Component Types:** Full coverage including new textarea component for multi-line text input and body copy
+- **Clean Visual Feedback:** Removed potentially confusing pattern recognition indicators for cleaner user experience
+
 ---
 
 ## Roadmap Status
 
 ### ✅ **Completed (High Priority)**
 - [x] **Rectangle-to-Component Detection Refinement**  
-  Advanced grouping, heuristics, and support for 25+ UI element types
+  Advanced grouping, heuristics, and support for 26 UI element types including textarea
+- [x] **Professional Sketching Recognition System**  
+  Comprehensive pattern detection for 35+ UI/UX sketching patterns and wireframe symbols optimized for Apple Pencil + iPad workflows
 - [x] **Element Inspector**  
   Comprehensive tap-to-inspect with type, label, and size editing
 - [x] **Undo/Redo System**  
@@ -195,9 +206,9 @@ The app features a professional full-screen canvas experience with Instagram-lik
 ## Usage
 
 ### **Quick Start**
-1. **Draw:** Use your finger or Apple Pencil to sketch UI elements on the full-screen canvas
+1. **Draw:** Use your finger or Apple Pencil to sketch UI elements using standard wireframe conventions (rectangles, lines, circles, X's for images, etc.)
 2. **Library:** Tap the plus icon (➕) to add pre-built components from the current design system
-3. **Generate:** Tap the wand icon to analyze your drawing and detect components
+3. **Generate:** Tap the wand icon to analyze your drawing and automatically detect 35+ UI patterns and classify 26 component types
 4. **Interact:** Tap components to select, drag to move, use handles to resize
 5. **Inspect:** Long press (0.4s) any component to open the inspector and edit properties
 6. **Preview:** Tap the browser icon to see your generated HTML/CSS live in-app
@@ -231,7 +242,8 @@ The app features a professional full-screen canvas experience with Instagram-lik
 - **CanvasStateManager:** Drawing state, undo/redo, and canvas operations
 - **ComponentManager:** Component collection, selection, and manipulation with ID-based tracking
 - **ComponentLibraryManager:** Professional library management with 5 design systems and custom creation
-- **VisionAnalysisService:** Image analysis and component detection
+- **VisionAnalysisService:** Image analysis and component detection with pattern recognition integration
+- **SketchPatternRecognitionService:** Advanced pattern recognition for 35+ professional UI/UX sketching patterns and wireframe symbols
 - **ChatGPTService:** AI integration for code generation with library-aware prompts
 - **ComponentLibrary:** Enhanced template management with responsive sizing
 - **LibraryCreatorView:** Full-featured custom library creation interface
