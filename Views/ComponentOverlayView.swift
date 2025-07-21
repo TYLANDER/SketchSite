@@ -229,17 +229,86 @@ struct ComponentOverlayView: View {
     private var displayComponentType: String {
         // Check if this component was enhanced by pattern recognition
         if let label = comp.label?.lowercased() {
-            // If the label contains pattern recognition hints, enhance the display
-            if label.contains("hamburger") {
-                return "Navigation Menu"
+            // BASIC UI ELEMENTS
+            if label.contains("button") && label.contains("pattern") {
+                return "Button"
+            } else if label.contains("icon") && label.contains("pattern") {
+                return "Icon"
             } else if label.contains("image") {
-                return "Image Placeholder"
-            } else if label.contains("form") {
-                return "Form Field"
+                return "Image"
+            } else if label.contains("label") && label.contains("pattern") {
+                return "Text Label"
+            } else if label.contains("badge") {
+                return "Badge"
+            } else if label.contains("thumbnail") {
+                return "Thumbnail"
+            }
+            
+            // FORM CONTROLS
+            else if label.contains("text") && label.contains("input") {
+                return "Text Input"
+            } else if label.contains("dropdown") {
+                return "Dropdown"
             } else if label.contains("checkbox") {
                 return "Checkbox"
+            } else if label.contains("radio") {
+                return "Radio Button"
+            } else if label.contains("toggle") {
+                return "Toggle Switch"
+            } else if label.contains("search") && label.contains("field") {
+                return "Search Field"
+            } else if label.contains("form") {
+                return "Form Control"
+            }
+            
+            // NAVIGATION ELEMENTS
+            else if label.contains("navbar") || label.contains("navigation") {
+                return "Navigation Bar"
+            } else if label.contains("breadcrumb") {
+                return "Breadcrumb"
+            } else if label.contains("pagination") {
+                return "Pagination"
+            } else if label.contains("tab") {
+                return "Tab"
+            } else if label.contains("hamburger") {
+                return "Navigation Menu"
+            }
+            
+            // LAYOUT & CONTAINER ELEMENTS
+            else if label.contains("modal") {
+                return "Modal"
+            } else if label.contains("alert") {
+                return "Alert"
+            } else if label.contains("tooltip") {
+                return "Tooltip"
+            } else if label.contains("well") {
+                return "Well"
+            } else if label.contains("collapse") {
+                return "Collapse"
+            } else if label.contains("carousel") {
+                return "Carousel"
+            }
+            
+            // CONTENT & MEDIA
+            else if label.contains("table") {
+                return "Table"
+            } else if label.contains("list") && label.contains("group") {
+                return "List Group"
+            } else if label.contains("media") && label.contains("object") {
+                return "Media Object"
+            } else if label.contains("progress") {
+                return "Progress Bar"
             } else if label.contains("card") {
-                return "Card Component"
+                return "Card"
+            }
+            
+            // GROUP ELEMENTS
+            else if label.contains("button") && label.contains("group") {
+                return "Button Group"
+            } else if label.contains("form") && label.contains("group") {
+                return "Form Group"
+            } else if label.contains("card") && label.contains("grid") {
+                return "Card Grid"
             }
         }
         
@@ -247,12 +316,30 @@ struct ComponentOverlayView: View {
         switch comp.type {
         case .ui(let uiType):
             switch uiType {
+            case .button: return "Button"
+            case .icon: return "Icon"
+            case .image: return "Image"
+            case .label: return "Label"
+            case .badge: return "Badge"
+            case .thumbnail: return "Thumbnail"
+            case .formControl: return "Form Control"
+            case .dropdown: return "Dropdown"
             case .navbar: return "Navigation"
-            case .formControl: return "Input Field"
-            case .mediaObject: return "Card"
-            case .buttonGroup: return "Button Group"
+            case .navs: return "Navigation"
+            case .breadcrumb: return "Breadcrumb"
+            case .pagination: return "Pagination"
+            case .tab: return "Tab"
+            case .modal: return "Modal"
+            case .alert: return "Alert"
+            case .tooltip: return "Tooltip"
+            case .well: return "Well"
+            case .collapse: return "Collapse"
+            case .carousel: return "Carousel"
+            case .table: return "Table"
             case .listGroup: return "List"
+            case .mediaObject: return "Media Object"
             case .progressBar: return "Progress"
+            case .buttonGroup: return "Button Group"
             default: return uiType.rawValue.capitalized
             }
         case .group(let groupType):
@@ -271,16 +358,86 @@ struct ComponentOverlayView: View {
     private func getPatternInfo() -> String? {
         guard let label = comp.label?.lowercased() else { return nil }
         
-        if label.contains("hamburger") {
-            return "Hamburger Menu"
+        // BASIC UI ELEMENTS
+        if label.contains("button") && label.contains("pattern") {
+            return "Button Pattern"
+        } else if label.contains("icon") && label.contains("pattern") {
+            return "Icon Pattern"
         } else if label.contains("image") {
-            return "Sketched Image"
-        } else if label.contains("form") {
-            return "Form Pattern"
+            return "Image Pattern"
+        } else if label.contains("label") && label.contains("pattern") {
+            return "Label Pattern"
+        } else if label.contains("badge") {
+            return "Badge Pattern"
+        } else if label.contains("thumbnail") {
+            return "Thumbnail Pattern"
+        }
+        
+        // FORM CONTROLS
+        else if label.contains("text") && label.contains("input") {
+            return "Text Input Pattern"
+        } else if label.contains("dropdown") {
+            return "Dropdown Pattern"
         } else if label.contains("checkbox") {
             return "Checkbox Pattern"
+        } else if label.contains("radio") {
+            return "Radio Button Pattern"
+        } else if label.contains("toggle") {
+            return "Toggle Switch Pattern"
+        } else if label.contains("search") && label.contains("field") {
+            return "Search Field Pattern"
+        } else if label.contains("form") {
+            return "Form Control Pattern"
+        }
+        
+        // NAVIGATION ELEMENTS
+        else if label.contains("navbar") || label.contains("navigation") {
+            return "Navigation Bar Pattern"
+        } else if label.contains("breadcrumb") {
+            return "Breadcrumb Pattern"
+        } else if label.contains("pagination") {
+            return "Pagination Pattern"
+        } else if label.contains("tab") {
+            return "Tab Pattern"
+        } else if label.contains("hamburger") {
+            return "Hamburger Menu Pattern"
+        }
+        
+        // LAYOUT & CONTAINER ELEMENTS
+        else if label.contains("modal") {
+            return "Modal Pattern"
+        } else if label.contains("alert") {
+            return "Alert Pattern"
+        } else if label.contains("tooltip") {
+            return "Tooltip Pattern"
+        } else if label.contains("well") {
+            return "Well Pattern"
+        } else if label.contains("collapse") {
+            return "Collapse Pattern"
+        } else if label.contains("carousel") {
+            return "Carousel Pattern"
+        }
+        
+        // CONTENT & MEDIA
+        else if label.contains("table") {
+            return "Table Pattern"
+        } else if label.contains("list") && label.contains("group") {
+            return "List Group Pattern"
+        } else if label.contains("media") && label.contains("object") {
+            return "Media Object Pattern"
+        } else if label.contains("progress") {
+            return "Progress Bar Pattern"
         } else if label.contains("card") {
             return "Card Pattern"
+        }
+        
+        // GROUP ELEMENTS
+        else if label.contains("button") && label.contains("group") {
+            return "Button Group Pattern"
+        } else if label.contains("form") && label.contains("group") {
+            return "Form Field Group Pattern"
+        } else if label.contains("card") && label.contains("grid") {
+            return "Card Grid Pattern"
         }
         
         return nil

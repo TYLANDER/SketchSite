@@ -918,28 +918,93 @@ public class RectangleComponentDetector {
     /// Maps sketched pattern types to UI component types
     private static func mapPatternToComponentType(_ patternType: SketchPatternRecognitionService.SketchedPattern.PatternType) -> UIComponentType {
         switch patternType {
+        // BASIC UI ELEMENTS - Direct mapping
+        case .button:
+            return .button
+        case .icon:
+            return .icon
+        case .image:
+            return .image
+        case .label:
+            return .label
+        case .badge:
+            return .badge
+        case .thumbnail:
+            return .thumbnail
+            
+        // FORM CONTROLS - Map to appropriate form component types
+        case .formControl, .textInput:
+            return .formControl
+        case .dropdown:
+            return .dropdown
+        case .checkbox, .radioButton, .toggleSwitch:
+            return .formControl  // All interactive form controls
+        case .searchField:
+            return .formControl  // Search is a specialized form control
+            
+        // NAVIGATION ELEMENTS - Map to navigation types
+        case .navbar:
+            return .navbar
+        case .navs:
+            return .navs
+        case .breadcrumb:
+            return .breadcrumb
+        case .pagination:
+            return .pagination
+        case .tab:
+            return .tab
         case .hamburgerMenu:
             return .navbar  // Hamburger menus typically indicate navigation
+            
+        // LAYOUT & CONTAINER ELEMENTS - Map to container types
+        case .modal:
+            return .modal
+        case .alert:
+            return .alert
+        case .tooltip:
+            return .tooltip
+        case .well:
+            return .well
+        case .collapse:
+            return .collapse
+        case .carousel:
+            return .carousel
+            
+        // CONTENT & MEDIA - Map to content types
+        case .table:
+            return .table
+        case .listGroup:
+            return .listGroup
+        case .mediaObject:
+            return .mediaObject
+        case .progressBar:
+            return .progressBar
+        case .card:
+            return .mediaObject  // Cards are a type of media object
+            
+        // GROUP ELEMENTS - Map to individual components (groups handled separately)
+        case .buttonGroup:
+            return .button  // Individual buttons within a group
+        case .formFieldGroup:
+            return .formControl  // Individual form controls within a group
+        case .cardGrid:
+            return .mediaObject  // Individual cards within a grid
+            
+        // LEGACY PATTERNS - Maintain backward compatibility
         case .imagePlaceholder:
             return .image
         case .formField:
             return .formControl
-        case .checkbox:
-            return .formControl  // Checkbox is a type of form control
-        case .radioButton:
-            return .formControl  // Radio button is a type of form control
         case .iconSymbol:
             return .icon
         case .cardWithElements:
-            return .mediaObject  // Cards with elements map to media objects
+            return .mediaObject
         case .textLines:
-            return .label  // Text lines typically represent labels or content
+            return .label
         case .dropdownArrow:
             return .dropdown
         case .buttonIcon:
             return .button
-        case .progressBar:
-            return .progressBar
         case .tabIndicator:
             return .tab
         }
