@@ -584,8 +584,8 @@ struct CanvasContainerView: View {
         
         isGeneratingCode = true
         
-        let layoutDescription = LayoutDescriptor.describe(components: validComponents, canvasSize: canvasSize)
-        let propertyInstructions = LayoutDescriptor.generatePropertyInstructions(for: validComponents)
+        _ = LayoutDescriptor.describe(components: validComponents, canvasSize: canvasSize)
+        _ = LayoutDescriptor.generatePropertyInstructions(for: validComponents)
         
         let designSystemInstructions = getDesignSystemInstructions()
         
@@ -807,7 +807,7 @@ struct CanvasContainerView: View {
         saveCurrentProject()
         
         // Create new project
-        let newProject = sketchManager.createNewProject(name: name, canvasSize: canvasSize)
+        _ = sketchManager.createNewProject(name: name, canvasSize: canvasSize)
         
         // Clear canvas for new project
         canvasStateManager.resetToInitialState()

@@ -139,7 +139,7 @@ struct ProfessionalColorPickerView: View {
                     .foregroundColor(.secondary)
                 
                 Slider(value: $hue, in: 0...360, step: 1)
-                    .onChange(of: hue) { _ in
+                    .onChange(of: hue) {
                         updateSelectedColor()
                     }
                 
@@ -207,7 +207,7 @@ struct ProfessionalColorPickerView: View {
                             .foregroundColor(.secondary)
                         
                         Slider(value: $saturation, in: 0...1, step: 0.01)
-                            .onChange(of: saturation) { _ in
+                            .onChange(of: saturation) {
                                 updateSelectedColor()
                             }
                     }
@@ -218,7 +218,7 @@ struct ProfessionalColorPickerView: View {
                             .foregroundColor(.secondary)
                         
                         Slider(value: $brightness, in: 0...1, step: 0.01)
-                            .onChange(of: brightness) { _ in
+                            .onChange(of: brightness) {
                                 updateSelectedColor()
                             }
                     }
@@ -229,7 +229,7 @@ struct ProfessionalColorPickerView: View {
                             .foregroundColor(.secondary)
                         
                         Slider(value: $alpha, in: 0...1, step: 0.01)
-                            .onChange(of: alpha) { _ in
+                            .onChange(of: alpha) {
                                 updateSelectedColor()
                             }
                     }
