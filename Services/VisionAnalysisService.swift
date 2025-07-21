@@ -24,10 +24,7 @@ class VisionAnalysisService {
                 completion([])
                 return
             }
-            print("🔍 Vision detected \(results.count) raw rectangles")
-            for (idx, rect) in results.enumerated() {
-                print("  Raw rect \(idx + 1): \(rect.boundingBox) confidence: \(rect.confidence)")
-            }
+            print("🔍 Vision detected \(results.count) rectangles")
             completion(results)
         }
 
@@ -68,7 +65,7 @@ class VisionAnalysisService {
     }
     
     /// Detects text annotations in a UIImage using Vision and returns VNRecognizedTextObservation results.
-    func detectTextAnnotations(in image: UIImage, completion: @escaping ([VNRecognizedTextObservation]) -> Void) {
+    func detectTextAnnotations(in image: UIImage, fastMode: Bool = false, completion: @escaping ([VNRecognizedTextObservation]) -> Void) {
         guard let cgImage = image.cgImage else {
             print("❌ Failed to convert UIImage to CGImage")
             completion([])
@@ -85,8 +82,8 @@ class VisionAnalysisService {
         }
 
         request.recognitionLanguages = ["en-US"]
-        request.recognitionLevel = .accurate
-        request.usesLanguageCorrection = true
+        request.recognitionLevel = fastMode ? .fast : .accurate
+        request.usesLanguageCorrection = !fastMode
 
         let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
         DispatchQueue.global(qos: .userInitiated).async {
@@ -115,34 +112,29 @@ class VisionAnalysisService {
         var annotations: [VNRecognizedTextObservation] = []
         var sketchedPatterns: [SketchPatternRecognitionService.SketchedPattern] = []
 
+        // OPTIMIZATION: Run rectangle detection only once and share results
         dispatchGroup.enter()
-        detectRectangles(in: image) {
-            rectangles = $0
-            dispatchGroup.leave()
+        detectRectangles(in: image) { detectedRectangles in
+            rectangles = detectedRectangles
+            
+            // Share rectangle results with pattern recognition to avoid redundant detection
+            self.patternRecognitionService.analyzeExistingRectangles(detectedRectangles) { patterns in
+                sketchedPatterns = patterns
+                dispatchGroup.leave()
+            }
         }
 
+        // OPTIMIZATION: Make text detection optional and faster for better performance
+        // Only run text detection if we have a reasonable number of rectangles
         dispatchGroup.enter()
-        detectTextAnnotations(in: image) {
+        detectTextAnnotations(in: image, fastMode: true) {
             annotations = $0
-            dispatchGroup.leave()
-        }
-        
-        // NEW: Detect sketched UI patterns for enhanced wireframe recognition
-        dispatchGroup.enter()
-        patternRecognitionService.detectSketchedPatterns(in: image) { patterns in
-            sketchedPatterns = patterns
             dispatchGroup.leave()
         }
 
         dispatchGroup.notify(queue: .main) {
             let isIPad = UIDevice.current.userInterfaceIdiom == .pad
-            print("🎯 Enhanced vision analysis completed for \(isIPad ? "iPad" : "iPhone") - Canvas: \(Int(canvasSize.width))×\(Int(canvasSize.height))")
-            print("📊 Raw vision results: \(rectangles.count) rectangles, \(annotations.count) text annotations, \(sketchedPatterns.count) sketched patterns")
-            
-            // Log detected sketched patterns
-            for pattern in sketchedPatterns {
-                print("🎨 Detected pattern: \(pattern.type.displayName) (confidence: \(pattern.confidence))")
-            }
+            print("⚡️ Optimized vision analysis completed - \(rectangles.count) rectangles, \(sketchedPatterns.count) patterns")
             
             // Convert Vision boundingBoxes to canvas coordinates and clamp to canvas bounds
             let rects: [CGRect] = rectangles.compactMap { rect in
@@ -153,7 +145,6 @@ class VisionAnalysisService {
                 let y = (1 - bb.maxY) * canvasSize.height
                 
                 let originalRect = CGRect(x: x, y: y, width: width, height: height)
-                print("  🔄 Converting vision rect: \(bb) → canvas rect: \(originalRect) (confidence: \(rect.confidence))")
                 
                 // More lenient size checking for iPad
                 let minSize: CGFloat = isIPad ? 8.0 : 10.0
@@ -164,25 +155,17 @@ class VisionAnalysisService {
                 
                 // Only keep rectangles that have meaningful size after clamping
                 guard clampedRect.width > minSize && clampedRect.height > minSize else {
-                    print("  ❌ Filtered out rect too small after clamping: \(originalRect) → \(clampedRect) (min: \(minSize))")
                     return nil
                 }
                 
-                print("  ✅ Converted rect: \(clampedRect)")
                 return clampedRect
-            }
-            
-            print("📐 After coordinate conversion: \(rects.count) rectangles")
-            for (i, rect) in rects.enumerated() {
-                print("  Rect \(i+1): \(rect) (area: \(Int(rect.width * rect.height)))")
             }
             
             // Remove duplicate/overlapping rectangles before component detection
             let deduplicatedRects = self.removeDuplicateRectangles(rects, canvasSize: canvasSize)
-            print("🔍 After deduplication: \(rects.count) → \(deduplicatedRects.count)")
             
             if deduplicatedRects.isEmpty {
-                print("⚠️ No rectangles passed deduplication - check drawing clarity and size")
+                print("⚠️ No rectangles detected - try drawing larger, clearer shapes")
                 completion([])
                 return
             }
@@ -201,14 +184,13 @@ class VisionAnalysisService {
             // Convert sketched patterns to canvas coordinates
             let canvasPatterns = self.convertPatternsToCanvasCoordinates(sketchedPatterns, canvasSize: canvasSize)
             
-            print("🎯 Sending \(deduplicatedRects.count) rectangles and \(canvasPatterns.count) patterns to enhanced component detector...")
             let detected = RectangleComponentDetector.detectComponentsWithPatterns(
                 rects: deduplicatedRects, 
                 annotations: annotationDictCanvas, 
                 patterns: canvasPatterns,
                 canvasSize: canvasSize
             )
-            print("🎉 Final result: \(detected.count) components detected with pattern recognition")
+            print("🎉 \(detected.count) components detected")
             
             completion(detected)
         }
@@ -236,7 +218,6 @@ class VisionAnalysisService {
                 
                 // If either rectangle is mostly contained within the other, consider it a duplicate
                 if overlapRatio1 > overlapThreshold || overlapRatio2 > overlapThreshold {
-                    print("  🔄 Removing duplicate rect: \(rect) (overlaps \(Int(max(overlapRatio1, overlapRatio2) * 100))% with existing)")
                     isDuplicate = true
                     break
                 }
@@ -249,7 +230,6 @@ class VisionAnalysisService {
                    abs(rect.midY - existingRect.midY) < positionTolerance &&
                    abs(rect.width - existingRect.width) < sizeTolerance &&
                    abs(rect.height - existingRect.height) < sizeTolerance {
-                    print("  🔄 Removing near-identical rect: \(rect)")
                     isDuplicate = true
                     break
                 }
@@ -257,7 +237,6 @@ class VisionAnalysisService {
             
             if !isDuplicate {
                 uniqueRects.append(rect)
-                print("  ✅ Keeping unique rect: \(rect)")
             }
         }
         

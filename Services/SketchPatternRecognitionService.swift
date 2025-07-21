@@ -144,6 +144,95 @@ public class SketchPatternRecognitionService {
     
     // MARK: - Main Detection Function
     
+    /// OPTIMIZED: Analyzes existing rectangle detection results for patterns (much faster)
+    public func analyzeExistingRectangles(_ rectangles: [VNRectangleObservation], completion: @escaping ([SketchedPattern]) -> Void) {
+        var patterns: [SketchedPattern] = []
+        
+        // Analyze existing rectangles for component-specific patterns
+        for rectangle in rectangles {
+            let aspectRatio = rectangle.boundingBox.width / rectangle.boundingBox.height
+            let boundingBox = rectangle.boundingBox
+            let area = boundingBox.width * boundingBox.height
+            
+            // BASIC UI ELEMENTS - Fast pattern recognition based on geometry
+            
+            // Button detection (rounded rectangle, moderate aspect ratio)
+            if aspectRatio > 1.5 && aspectRatio < 4.0 && area > 0.01 && area < 0.15 {
+                patterns.append(SketchedPattern(
+                    type: .button,
+                    boundingBox: boundingBox,
+                    confidence: rectangle.confidence * 0.85,
+                    associatedRectangle: boundingBox
+                ))
+            }
+            
+            // Text Input detection (wide rectangle)
+            else if aspectRatio > 2.5 && aspectRatio < 8.0 && boundingBox.height > 0.03 && boundingBox.height < 0.12 {
+                patterns.append(SketchedPattern(
+                    type: .textInput,
+                    boundingBox: boundingBox,
+                    confidence: rectangle.confidence * 0.8,
+                    associatedRectangle: boundingBox
+                ))
+            }
+            
+            // Text Area detection (larger, more square for multi-line text)
+            else if aspectRatio > 1.2 && aspectRatio < 4.0 && area > 0.05 && boundingBox.height > 0.08 {
+                patterns.append(SketchedPattern(
+                    type: .textarea,
+                    boundingBox: boundingBox,
+                    confidence: rectangle.confidence * 0.8,
+                    associatedRectangle: boundingBox
+                ))
+            }
+            
+            // Image placeholder detection (square or slightly rectangular)
+            else if aspectRatio > 0.8 && aspectRatio < 1.8 && area > 0.02 {
+                patterns.append(SketchedPattern(
+                    type: .image,
+                    boundingBox: boundingBox,
+                    confidence: rectangle.confidence * 0.75,
+                    associatedRectangle: boundingBox
+                ))
+            }
+            
+            // Icon detection (small, roughly square)
+            else if area < 0.02 && aspectRatio > 0.6 && aspectRatio < 1.4 {
+                patterns.append(SketchedPattern(
+                    type: .icon,
+                    boundingBox: boundingBox,
+                    confidence: rectangle.confidence * 0.7,
+                    associatedRectangle: boundingBox
+                ))
+            }
+            
+            // Card detection (larger rectangular areas)
+            else if area > 0.1 && aspectRatio > 0.6 && aspectRatio < 2.0 {
+                patterns.append(SketchedPattern(
+                    type: .card,
+                    boundingBox: boundingBox,
+                    confidence: rectangle.confidence * 0.7,
+                    associatedRectangle: boundingBox
+                ))
+            }
+            
+            // Modal detection (very large area, likely centered)
+            else if area > 0.2 && aspectRatio > 0.5 && aspectRatio < 1.5 {
+                patterns.append(SketchedPattern(
+                    type: .modal,
+                    boundingBox: boundingBox,
+                    confidence: rectangle.confidence * 0.8,
+                    associatedRectangle: boundingBox
+                ))
+            }
+        }
+        
+        print("⚡️ Fast pattern analysis: \(patterns.count) patterns from \(rectangles.count) rectangles")
+        DispatchQueue.main.async {
+            completion(patterns)
+        }
+    }
+
     /// Detects sketched UI patterns in an image
     public func detectSketchedPatterns(in image: UIImage, completion: @escaping ([SketchedPattern]) -> Void) {
         guard let cgImage = image.cgImage else {
