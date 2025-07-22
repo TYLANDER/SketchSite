@@ -34,6 +34,7 @@
 		87DA6630C6381B03EF8E00DA /* ComponentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 716ED01FAEAAD07936538AE9 /* ComponentManager.swift */; };
 		8BA4DF1590B851CD4DBD95DC /* ProfessionalColorPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA621F3EA28984E9142BE97 /* ProfessionalColorPickerView.swift */; };
 		8EC0A9E5287816A9A3B42ECD /* CanvasStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5776417915CE6F7A1AF7212 /* CanvasStateManager.swift */; };
+		9595EB6A1576B89882A15E6E /* GenerateAPIKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751AE12652D4953CE2FA772C /* GenerateAPIKeys.swift */; };
 		9C5CB6573C8FCDEA84E99A8D /* FollowUpChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B0EF7F94C39CB69062AA0B2 /* FollowUpChatView.swift */; };
 		9F53A17FC6C503FC1A919D4F /* VisionAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0801B484E8711DAA386A2DF /* VisionAnalysisService.swift */; };
 		A067FA6A765479138566D19E /* BrowserPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75CFF6EEC1DE52A7ACA95102 /* BrowserPreviewView.swift */; };
@@ -91,6 +92,7 @@
 		70034ABAD8FF5C469444B75F /* AnnotationProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationProcessor.swift; sourceTree = "<group>"; };
 		716ED01FAEAAD07936538AE9 /* ComponentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentManager.swift; sourceTree = "<group>"; };
 		74E825A4B980C67B5066711A /* ComponentLibraryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentLibraryManager.swift; sourceTree = "<group>"; };
+		751AE12652D4953CE2FA772C /* GenerateAPIKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateAPIKeys.swift; sourceTree = "<group>"; };
 		7565884C3353639DDF85078A /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
 		75CFF6EEC1DE52A7ACA95102 /* BrowserPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserPreviewView.swift; sourceTree = "<group>"; };
 		7B0EF7F94C39CB69062AA0B2 /* FollowUpChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowUpChatView.swift; sourceTree = "<group>"; };
@@ -137,6 +139,7 @@
 				716ED01FAEAAD07936538AE9 /* ComponentManager.swift */,
 				0ACC89816597C55263423AF1 /* ConversationManager.swift */,
 				6F88B8C58B03A62E2736518D /* ErrorManager.swift */,
+				751AE12652D4953CE2FA772C /* GenerateAPIKeys.swift */,
 				6ABA2A2F24F2674568F48411 /* GeometryCalculator.swift */,
 				82B3C0D6D6404387F385662C /* LayoutDescriptor.swift */,
 				8FDC29A2E902C23C136D7FC5 /* RectangleComponentDetector.swift */,
@@ -365,6 +368,7 @@
 				D2D2A1A9FDA01BC99DF82220 /* ErrorManager.swift in Sources */,
 				CDAFD824DDBB80CF29640607 /* ExportService.swift in Sources */,
 				9C5CB6573C8FCDEA84E99A8D /* FollowUpChatView.swift in Sources */,
+				9595EB6A1576B89882A15E6E /* GenerateAPIKeys.swift in Sources */,
 				D8DBA8323AABE060D81DBDA1 /* GeometryCalculator.swift in Sources */,
 				BE78C3D7EE51A3E0019103E9 /* ImagePicker.swift in Sources */,
 				3DFA247FA89A9B13D785C8DA /* InspectorView.swift in Sources */,
