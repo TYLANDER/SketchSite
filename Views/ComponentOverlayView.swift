@@ -87,24 +87,10 @@ struct ComponentOverlayView: View {
         .onTapGesture {
             handleTap()
         }
-        .contextMenu {
-            Button(action: onInspect) {
-                Label("Edit Properties", systemImage: "pencil")
-            }
-            
-            Divider()
-            
-            Button(role: .destructive, action: {
-                provideTactileFeedback(.heavy)
-                onDelete()
-            }) {
-                Label("Delete Component", systemImage: "trash")
-            }
-        }
         .allowsHitTesting(true)
         .zIndex(dragZIndex)
         .accessibilityLabel("Component: \(comp.type.description)")
-        .accessibilityHint("Tap to select, long press to inspect, drag to move, or use handles to resize component.")
+        .accessibilityHint("Tap to select, long press to inspect, double tap to delete, drag to move, or use handles to resize component.")
     }
     
     // MARK: - Modern Visual Feedback Properties (2025 HIG)
