@@ -234,16 +234,29 @@ struct CanvasContainerView: View {
                         }
                         .disabled(isAnalyzing || isGeneratingCode)
                         Spacer()
-                        Button(action: {
-                            // On iPad, open directly in Safari for better experience
+                        Menu {
+                            Button(action: {
+                                // Always open in Safari
+                                openPreviewInSafari()
+                            }) {
+                                Label("Open in Safari", systemImage: "safari")
+                            }
+                            
+                            Button(action: {
+                                // Always open in-app
+                                openPreview()
+                            }) {
+                                Label("Preview In-App", systemImage: "doc.text.magnifyingglass")
+                            }
+                        } label: {
+                            Image(systemName: "safari").font(.title)
+                        } primaryAction: {
+                            // Default behavior: iPad → Safari, iPhone → In-app
                             if UIDevice.current.userInterfaceIdiom == .pad {
                                 openPreviewInSafari()
                             } else {
-                                // On iPhone, use in-app preview
                                 openPreview()
                             }
-                        }) {
-                            Image(systemName: "safari").font(.title)
                         }
                         .disabled(componentManager.components.isEmpty)
                         Spacer()
@@ -522,18 +535,115 @@ struct CanvasContainerView: View {
     private func openPreviewInSafari() {
         // Check if we have generated code, if not generate it first
         if generatedCode.isEmpty || !generatedCode.contains("<html") {
-            // Need to generate code first, then open in Safari
-            shouldShowPreviewAfterGeneration = false // Don't show sheet
-            generateCode()
+            print("🔄 Generating code for Safari preview...")
             
-            // Wait for code generation to complete, then open Safari
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                if !self.generatedCode.isEmpty {
-                    SafariPreviewHelper.openInSafari(self.generatedCode)
+            // Generate code and then open in Safari when complete
+            isGeneratingCode = true
+            
+            guard !componentManager.components.isEmpty else {
+                print("🚫 No components to generate code for Safari preview")
+                errorManager.handleError(.codeGenerationFailed("No components detected. Please draw some UI elements first."))
+                return
+            }
+            
+            let validComponents = componentManager.components.filter { comp in
+                return comp.rect.width > 0 && comp.rect.height > 0
+            }
+            
+            guard !validComponents.isEmpty else {
+                print("🚫 All components have invalid dimensions")
+                errorManager.handleError(.codeGenerationFailed("Component data is invalid. Please recreate your components."))
+                return
+            }
+            
+            // Apply auto-layout processing if enabled
+            let layoutConfig = autoLayoutEnabled ? AutoLayoutProcessor.LayoutConfig.default : AutoLayoutProcessor.LayoutConfig.disabled
+            let layoutGroups = AutoLayoutProcessor.processLayout(components: validComponents, canvasSize: canvasSize, config: layoutConfig)
+            
+            let designSystemInstructions = getDesignSystemInstructions()
+            
+            // Build layout-aware component description
+            let layoutDescription = autoLayoutEnabled 
+                ? AutoLayoutProcessor.generateLayoutDescription(groups: layoutGroups)
+                : validComponents.enumerated().map { (index, comp) in
+                    return "Component \(index + 1): **\(comp.type.description.uppercased())** (position: \(Int(comp.rect.midX)), \(Int(comp.rect.midY)), size: \(Int(comp.rect.width))×\(Int(comp.rect.height)))"
+                }.joined(separator: "\n")
+            
+            // Generate auto-layout CSS if enabled
+            let autoLayoutCSS = autoLayoutEnabled ? AutoLayoutProcessor.generateAutoLayoutCSS(groups: layoutGroups, config: layoutConfig) : ""
+            
+            let autoLayoutInstructions = autoLayoutEnabled ? """
+            
+            **AUTO-LAYOUT ENABLED:**
+            Use the following modern, responsive layout structure with professional auto-layout principles:
+            
+            \(layoutDescription)
+            
+            **Auto-Layout CSS Framework:**
+            \(autoLayoutCSS)
+            
+            **LAYOUT REQUIREMENTS:**
+            - Use the provided auto-layout CSS classes and structure
+            - Create a responsive, mobile-first design
+            - Apply consistent spacing and alignment using the layout groups
+            - Use Flexbox and CSS Grid for responsive behavior
+            - Ensure proper visual hierarchy between sections
+            - Add smooth transitions and modern styling
+            """ : """
+            
+            **EXACT POSITIONING:**
+            Place components at their exact canvas positions:
+            
+            \(layoutDescription)
+            """
+            
+            let prompt = """
+            Create a clean, production-ready HTML page with embedded CSS for this UI layout:
+            
+            **Canvas:** \(Int(canvasSize.width))×\(Int(canvasSize.height))px
+            **Components:** \(validComponents.count) total
+            \(autoLayoutInstructions)
+            
+            \(designSystemInstructions)
+            
+            **CRITICAL REQUIREMENTS:**
+            - Create ONLY the exact HTML elements for each component type listed above
+            - Use realistic, professional content (no "Lorem ipsum" or placeholder text)
+            - Generate a complete, clean HTML page that looks production-ready
+            - Include NO development comments, annotations, or debug information in the HTML
+            - Make it look like a real website that users would actually see
+            - Ensure all CSS is embedded in <style> tags in the <head>
+            - Use proper semantic HTML and accessible markup
+            \(autoLayoutEnabled ? "- Use the provided auto-layout CSS framework for responsive design" : "- Position elements using absolute positioning to match canvas layout")
+            
+            **Component Type Mappings:**
+            icon → SVG or icon font, button → <button>, navbar → <nav>, label → text element, image → <img>, form control → <input>/<textarea>, dropdown → <select>, alert → notification div, badge → status span, table → <table>, modal → dialog div, well → container div, carousel → slider div, progress bar → progress element, pagination → page nav, tab → tab nav, breadcrumb → breadcrumb nav, tooltip → tooltip div, thumbnail → small image, media object → card div, list group → <ul> list
+            
+            Output ONLY the complete HTML file - no explanations, no markdown, no comments.
+            """
+            
+            ChatGPTService.shared.generateCode(prompt: prompt, model: selectedModel) { result in
+                DispatchQueue.main.async {
+                    self.isGeneratingCode = false
+                    
+                    switch result {
+                    case .success(let code):
+                        print("✅ Code generation successful for Safari preview")
+                        // Clean the generated code for production preview
+                        self.generatedCode = self.cleanGeneratedCode(code)
+                        
+                        // Open directly in Safari
+                        SafariPreviewHelper.openInSafari(self.generatedCode)
+                        
+                    case .failure(let error):
+                        print("❌ Code generation failed: \(error)")
+                        self.errorManager.handleError(.codeGenerationFailed(error.localizedDescription))
+                    }
                 }
             }
         } else {
             // Code already exists, open directly in Safari
+            print("📱 Opening existing code in Safari...")
             SafariPreviewHelper.openInSafari(generatedCode)
         }
     }
