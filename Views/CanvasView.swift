@@ -223,7 +223,15 @@ struct CanvasContainerView: View {
                         }
                         .disabled(isAnalyzing || isGeneratingCode)
                         Spacer()
-                        Button(action: openPreview) {
+                        Button(action: {
+                            // On iPad, open directly in Safari for better experience
+                            if UIDevice.current.userInterfaceIdiom == .pad {
+                                openPreviewInSafari()
+                            } else {
+                                // On iPhone, use in-app preview
+                                openPreview()
+                            }
+                        }) {
                             Image(systemName: "safari").font(.title)
                         }
                         .disabled(componentManager.components.isEmpty)
@@ -456,6 +464,26 @@ struct CanvasContainerView: View {
         // Always regenerate code to ensure latest component changes
         shouldShowPreviewAfterGeneration = true
         generateCode()
+    }
+    
+    /// Opens preview directly in Safari (used for iPad optimization)
+    private func openPreviewInSafari() {
+        // Check if we have generated code, if not generate it first
+        if generatedCode.isEmpty || !generatedCode.contains("<html") {
+            // Need to generate code first, then open in Safari
+            shouldShowPreviewAfterGeneration = false // Don't show sheet
+            generateCode()
+            
+            // Wait for code generation to complete, then open Safari
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                if !self.generatedCode.isEmpty {
+                    SafariPreviewHelper.openInSafari(self.generatedCode)
+                }
+            }
+        } else {
+            // Code already exists, open directly in Safari
+            SafariPreviewHelper.openInSafari(generatedCode)
+        }
     }
     
     private func openFollowUpChat() {
