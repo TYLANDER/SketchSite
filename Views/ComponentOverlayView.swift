@@ -11,6 +11,7 @@ struct ComponentOverlayView: View {
     let onDrag: (CGPoint) -> Void
     let onResize: (CGRect) -> Void
     let onInspect: () -> Void
+    let onDelete: () -> Void
     let canvasSize: CGSize
     
     @State private var isDragging = false
@@ -80,8 +81,25 @@ struct ComponentOverlayView: View {
         .position(x: clampedX, y: clampedY)
         .simultaneousGesture(modernDragGesture)
         .simultaneousGesture(longPressGesture)
+        .onTapGesture(count: 2) {
+            handleDoubleTap()
+        }
         .onTapGesture {
             handleTap()
+        }
+        .contextMenu {
+            Button(action: onInspect) {
+                Label("Edit Properties", systemImage: "pencil")
+            }
+            
+            Divider()
+            
+            Button(role: .destructive, action: {
+                provideTactileFeedback(.heavy)
+                onDelete()
+            }) {
+                Label("Delete Component", systemImage: "trash")
+            }
         }
         .allowsHitTesting(true)
         .zIndex(dragZIndex)
@@ -418,6 +436,25 @@ struct ComponentOverlayView: View {
         if !isDragging && !isResizing && !isLongPressing {
             print("🔘 Component \(idx + 1) tapped: \(comp.type.description)")
             onTap()
+        }
+    }
+    
+    private func handleDoubleTap() {
+        if !isDragging && !isResizing && !isLongPressing {
+            print("⚡ Component \(idx + 1) double-tapped - deleting: \(comp.type.description)")
+            
+            // Strong haptic feedback for deletion
+            provideTactileFeedback(.heavy)
+            
+            // Quick visual feedback
+            withAnimation(.easeInOut(duration: 0.2)) {
+                dragMagnification = 0.8
+            }
+            
+            // Delete after brief animation
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                onDelete()
+            }
         }
     }
     

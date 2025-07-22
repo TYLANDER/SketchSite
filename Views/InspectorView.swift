@@ -9,9 +9,13 @@ struct InspectorView: View {
     @State private var type: UIComponentType = .label
     @State private var usePercentages: Bool = false
     @State private var selectedTab: InspectorTab = .basic
+    @State private var showDeleteConfirmation = false
     
     // Canvas size for percentage calculations (passed from parent)
     var canvasSize: CGSize = UIScreen.main.bounds.size
+    
+    // Delete callback
+    var onDelete: (() -> Void)? = nil
     
     enum InspectorTab: String, CaseIterable {
         case basic = "Basic"

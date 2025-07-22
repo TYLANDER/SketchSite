@@ -56,6 +56,7 @@ struct CanvasContainerView: View {
     @State private var showComponentLibrary = false
     @State private var showLibraryManager = false
     @State private var showLibraryCreator = false
+    @State private var showDeleteConfirmation = false
     
     // Menu and project management
     @State private var showMainMenu = false
@@ -127,6 +128,15 @@ struct CanvasContainerView: View {
                         },
                         onInspect: {
                             showInspector = true
+                        },
+                        onDelete: {
+                            componentManager.removeComponent(withID: component.id)
+                            
+                            // Provide haptic feedback
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+                            impactFeedback.impactOccurred()
+                            
+                            print("🗑️ Deleted component via overlay action")
                         },
                         canvasSize: canvasSize
                     )
@@ -297,7 +307,18 @@ struct CanvasContainerView: View {
                                 componentManager.updateComponent(withID: selectedID, newComponent: newComponent)
                             }
                         ),
-                        canvasSize: canvasSize
+                        canvasSize: canvasSize,
+                        onDelete: {
+                            // Delete the component
+                            componentManager.removeComponent(withID: selectedID)
+                            showInspector = false
+                            
+                            // Provide haptic feedback
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+                            impactFeedback.impactOccurred()
+                            
+                            print("🗑️ Deleted component via Inspector")
+                        }
                     )
                     .navigationTitle("Edit Component")
                     .navigationBarTitleDisplayMode(.inline)
@@ -320,6 +341,14 @@ struct CanvasContainerView: View {
                                     // Clear and regenerate code to ensure fresh state
                                     generatedCode = ""
                                 }
+                            }
+                        }
+                        
+                        ToolbarItem(placement: .destructiveAction) {
+                            Button(role: .destructive) {
+                                showDeleteConfirmation = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
                             }
                         }
                     })
@@ -443,6 +472,27 @@ struct CanvasContainerView: View {
         }
         .sheet(isPresented: $showLibraryCreator) {
             LibraryCreatorView()
+        }
+        .confirmationDialog(
+            "Delete Component",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                if let selectedID = componentManager.selectedComponentID {
+                    componentManager.removeComponent(withID: selectedID)
+                    showInspector = false
+                    
+                    // Provide haptic feedback
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+                    impactFeedback.impactOccurred()
+                    
+                    print("🗑️ Deleted component via confirmation dialog")
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Are you sure you want to delete this component? This action cannot be undone.")
         }
     }
 
