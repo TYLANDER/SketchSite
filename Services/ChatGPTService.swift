@@ -165,6 +165,11 @@ class ChatGPTService {
         }
         
         let url = isClaude ? URL(string: "https://api.anthropic.com/v1/messages")! : URL(string: "https://api.openai.com/v1/chat/completions")!
+        
+        // Debug: Log API key info (first 10 chars only for security)
+        let keyPrefix = String(apiKey.prefix(10))
+        print("🔑 Using \(isClaude ? "Anthropic" : "OpenAI") API key: \(keyPrefix)...")
+        print("🌐 Making request to: \(url.absoluteString)")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         if isClaude {
@@ -206,10 +211,28 @@ class ChatGPTService {
         // Track usage before making request
         ProductionAPIKeys.shared.trackUsage()
         
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        // Configure URL session with longer timeout for better reliability
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 60.0  // 60 seconds
+        config.timeoutIntervalForResource = 120.0 // 2 minutes
+        let session = URLSession(configuration: config)
+        
+        session.dataTask(with: request) { data, response, error in
             if let error = error {
+                print("🚫 Network error: \(error.localizedDescription)")
                 completion(.failure(error))
                 return
+            }
+            
+            // Check HTTP response status
+            if let httpResponse = response as? HTTPURLResponse {
+                print("📡 HTTP Status: \(httpResponse.statusCode)")
+                if httpResponse.statusCode != 200 {
+                    let errorMsg = "HTTP \(httpResponse.statusCode): \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))"
+                    print("🚫 \(errorMsg)")
+                    completion(.failure(APIError.apiError(errorMsg)))
+                    return
+                }
             }
             
             guard let data = data else {
