@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-/// Professional color picker similar to Figma's interface
+/// Professional color picker with modern interface design
 struct ProfessionalColorPickerView: View {
     @Binding var property: ColorProperty
     @Environment(\.dismiss) private var dismiss

@@ -192,7 +192,7 @@ struct AutoLayoutToggleRow: View {
                         .scaleEffect(0.9)
                 }
                 
-                Text(isEnabled ? "Figma-style responsive design" : "Use exact canvas positions")
+                Text(isEnabled ? "Professional responsive design" : "Use exact canvas positions")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .lineLimit(1)

@@ -1,7 +1,7 @@
 import Foundation
 import CoreGraphics
 
-/// Figma-style auto-layout processor for transforming raw component positions into beautiful, responsive layouts
+/// Professional auto-layout processor for transforming raw component positions into beautiful, responsive layouts
 /// Analyzes spatial relationships and applies consistent spacing, alignment, and grouping rules
 class AutoLayoutProcessor {
     

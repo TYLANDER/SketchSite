@@ -633,7 +633,7 @@ struct CanvasContainerView: View {
         let autoLayoutInstructions = autoLayoutEnabled ? """
         
         **AUTO-LAYOUT ENABLED:**
-        Use the following modern, responsive layout structure with Figma-style auto-layout principles:
+        Use the following modern, responsive layout structure with professional auto-layout principles:
         
         \(layoutDescription)
         

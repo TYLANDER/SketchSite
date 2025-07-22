@@ -78,7 +78,7 @@ The app features a professional full-screen canvas experience with Instagram-lik
 - **Image Analysis:** Extract UI components from screenshots and mockups
 
 ### 🔮 **Coming Soon: Multi-Project Support**
-- **Sketch Manager:** Figma-style home screen with project thumbnails and metadata
+- **Sketch Manager:** Professional home screen with project thumbnails and metadata
 - **Auto-Save & Sync:** Automatic project saving with iCloud synchronization
 - **Project Templates:** Pre-built templates for common app design patterns
 - **Search & Organization:** Filter and organize sketches by date, name, or tags
@@ -177,7 +177,7 @@ The app features a professional full-screen canvas experience with Instagram-lik
 
 ### 🚧 **In Progress**
 - [ ] **Sketch Manager & Multi-Project Support**  
-  Figma-style project management with thumbnail grid, recent files, search/filter, auto-save, and iCloud sync
+  Professional project management with thumbnail grid, recent files, search/filter, auto-save, and iCloud sync
 
 ### 🔮 **Planned (Beta Features)**
 - [ ] **Project Templates Gallery**  

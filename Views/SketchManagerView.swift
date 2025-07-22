@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Figma-style sketch manager for multi-project support
+/// Professional sketch manager for multi-project support
 struct SketchManagerView: View {
     @StateObject private var sketchManager = SketchManager.shared
     @Environment(\.dismiss) private var dismiss
