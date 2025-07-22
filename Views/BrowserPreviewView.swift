@@ -90,28 +90,95 @@ struct BrowserPreviewView: UIViewRepresentable {
 /// Helper for opening HTML content directly in Safari on iPad
 struct SafariPreviewHelper {
     
-    /// Opens HTML content in Safari (primarily for iPad use)
+    /// Opens HTML content in Safari using multiple fallback methods
     static func openInSafari(_ html: String) {
-        let fileName = "sketchsite_preview_\(UUID().uuidString).html"
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        print("🚀 Attempting to open HTML in Safari...")
+        print("📄 HTML content length: \(html.count) characters")
+        
+        // Method 1: Try data URL approach (most reliable)
+        if let encodedHTML = html.data(using: .utf8)?.base64EncodedString() {
+            let dataURL = "data:text/html;base64,\(encodedHTML)"
+            if let url = URL(string: dataURL) {
+                print("🔗 Using data URL approach")
+                UIApplication.shared.open(url, options: [:]) { success in
+                    if success {
+                        print("✅ Successfully opened preview in Safari via data URL")
+                    } else {
+                        print("❌ Data URL method failed, trying Documents directory...")
+                        // Fallback to Documents directory method
+                        SafariPreviewHelper.openInSafariViaDocuments(html)
+                    }
+                }
+                return
+            }
+        }
+        
+        // Method 2: Fallback to Documents directory
+        print("📁 Using Documents directory method")
+        openInSafariViaDocuments(html)
+    }
+    
+    /// Fallback method using Documents directory
+    private static func openInSafariViaDocuments(_ html: String) {
+        guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            print("❌ Could not access Documents directory")
+            showSafariError()
+            return
+        }
+        
+        let fileName = "SketchSite_Preview_\(Date().timeIntervalSince1970).html"
+        let fileURL = documentsPath.appendingPathComponent(fileName)
         
         do {
-            try html.write(to: tempURL, atomically: true, encoding: .utf8)
+            print("📝 Writing HTML to Documents: \(fileURL.path)")
+            try html.write(to: fileURL, atomically: true, encoding: .utf8)
             
-            UIApplication.shared.open(tempURL, options: [:]) { success in
-                if success {
-                    print("✅ Successfully opened preview in Safari")
-                    
-                    // Clean up after 10 seconds
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                        try? FileManager.default.removeItem(at: tempURL)
+            // Verify file was created
+            if FileManager.default.fileExists(atPath: fileURL.path) {
+                print("✅ HTML file created successfully")
+                
+                UIApplication.shared.open(fileURL, options: [:]) { success in
+                    if success {
+                        print("✅ Successfully opened preview in Safari via Documents")
+                        
+                        // Clean up after 30 seconds
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+                            try? FileManager.default.removeItem(at: fileURL)
+                            print("🧹 Cleaned up temporary HTML file")
+                        }
+                    } else {
+                        print("❌ Failed to open file from Documents directory")
+                        showSafariError()
                     }
-                } else {
-                    print("❌ Failed to open preview in Safari")
                 }
+            } else {
+                print("❌ File was not created successfully")
+                showSafariError()
             }
         } catch {
-            print("❌ Error creating temporary HTML file: \(error)")
+            print("❌ Error creating HTML file in Documents: \(error)")
+            showSafariError()
+        }
+    }
+    
+    /// Show user-friendly error message
+    private static func showSafariError() {
+        DispatchQueue.main.async {
+            // Create a simple alert or notification
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first {
+                
+                let alert = UIAlertController(
+                    title: "Safari Preview Error",
+                    message: "Unable to open preview in Safari. Please try the in-app preview instead or check your device settings.",
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: "OK", style: .default))
+                
+                if let rootViewController = window.rootViewController {
+                    rootViewController.present(alert, animated: true)
+                }
+            }
         }
     }
 } 
