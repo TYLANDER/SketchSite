@@ -720,7 +720,19 @@ struct CanvasContainerView: View {
         Output ONLY the complete HTML file - no explanations, no markdown, no comments.
         """
         
-        ChatGPTService.shared.generateCode(prompt: prompt, model: selectedModel) { result in
+        // Test connectivity before making API call
+        print("🧪 Running connectivity test before API call...")
+        ChatGPTService.shared.testConnectivity { success, message in
+            if !success {
+                print("🚫 Connectivity test failed: \(message)")
+                self.isGeneratingCode = false
+                self.errorManager.handleError(.codeGenerationFailed("Network connectivity issue: \(message)"))
+                return
+            }
+            
+            print("✅ Connectivity test passed, proceeding with API call...")
+            
+            ChatGPTService.shared.generateCode(prompt: prompt, model: self.selectedModel) { result in
             DispatchQueue.main.async {
                 self.isGeneratingCode = false
                 
@@ -741,6 +753,7 @@ struct CanvasContainerView: View {
                     print("❌ Code generation failed: \(error.localizedDescription)")
                     self.errorManager.handleError(.codeGenerationFailed(error.localizedDescription))
                 }
+            }
             }
         }
     }

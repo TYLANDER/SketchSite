@@ -169,7 +169,12 @@ class ChatGPTService {
         // Debug: Log API key info (first 10 chars only for security)
         let keyPrefix = String(apiKey.prefix(10))
         print("🔑 Using \(isClaude ? "Anthropic" : "OpenAI") API key: \(keyPrefix)...")
+        print("🔑 API key length: \(apiKey.count) characters")
+        print("🔑 API key is valid format: \(apiKey.hasPrefix("sk-") || apiKey.hasPrefix("sk-ant-"))")
         print("🌐 Making request to: \(url.absoluteString)")
+        
+        // Test basic connectivity first
+        print("🧪 Testing network connectivity...")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         if isClaude {
@@ -269,6 +274,31 @@ class ChatGPTService {
                 }
             } catch {
                 completion(.failure(error))
+            }
+        }.resume()
+    }
+    
+    /// Simple connectivity test for debugging
+    func testConnectivity(completion: @escaping (Bool, String) -> Void) {
+        print("🧪 Testing basic network connectivity...")
+        
+        let testURL = URL(string: "https://httpbin.org/get")!
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 10.0
+        let session = URLSession(configuration: config)
+        
+        session.dataTask(with: testURL) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("🚫 Basic connectivity test FAILED: \(error.localizedDescription)")
+                    completion(false, error.localizedDescription)
+                } else if let httpResponse = response as? HTTPURLResponse {
+                    print("✅ Basic connectivity test PASSED: HTTP \(httpResponse.statusCode)")
+                    completion(true, "Success")
+                } else {
+                    print("❓ Connectivity test unclear")
+                    completion(false, "Unknown response")
+                }
             }
         }.resume()
     }
