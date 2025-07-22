@@ -9,6 +9,7 @@ struct MainMenuView: View {
     let onSwitchLibrary: () -> Void
     let onAddLibrary: () -> Void
     let onDismiss: () -> Void
+    @Binding var autoLayoutEnabled: Bool
     
     var body: some View {
         GeometryReader { geometry in
@@ -129,6 +130,13 @@ struct MainMenuView: View {
                         Divider()
                             .padding(.leading, 60)
                         
+                        AutoLayoutToggleRow(
+                            isEnabled: $autoLayoutEnabled
+                        )
+                        
+                        Divider()
+                            .padding(.leading, 60)
+                        
                         MenuItemRow(
                             icon: "gearshape",
                             title: "Settings",
@@ -148,6 +156,55 @@ struct MainMenuView: View {
             .frame(maxWidth: .infinity)
             .background(.regularMaterial)
             .ignoresSafeArea()
+        }
+    }
+}
+
+// MARK: - Auto Layout Toggle Row
+
+struct AutoLayoutToggleRow: View {
+    @Binding var isEnabled: Bool
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            // Icon
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.purple.opacity(0.1))
+                    .frame(width: 32, height: 32)
+                
+                Image(systemName: "rectangle.3.group")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.purple)
+            }
+            
+            // Content
+            VStack(alignment: .leading, spacing: 1) {
+                HStack {
+                    Text("Auto Layout")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                    
+                    Toggle("", isOn: $isEnabled)
+                        .labelsHidden()
+                        .scaleEffect(0.9)
+                }
+                
+                Text(isEnabled ? "Figma-style responsive design" : "Use exact canvas positions")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isEnabled.toggle()
+            }
         }
     }
 }
@@ -224,7 +281,8 @@ struct MainMenuView_Previews: PreviewProvider {
             onOpenSettings: { },
             onSwitchLibrary: { },
             onAddLibrary: { },
-            onDismiss: { }
+            onDismiss: { },
+            autoLayoutEnabled: .constant(true)
         )
     }
 }

@@ -17,6 +17,7 @@
 		2ECBECB91A7334ED8AC2245A /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08DCC32E16F9ABFFF9BAE798 /* CanvasView.swift */; };
 		3102511A02A4BCEFFE6ED5EF /* ToolbarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62CE953D5633E57279BDB538 /* ToolbarButton.swift */; };
 		3566337904B40652AB2F016C /* ComponentLibraryDemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D838E9C19365A9FA54B4FE9A /* ComponentLibraryDemoView.swift */; };
+		372D30E6EA6BED668BCF5258 /* AutoLayoutProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B23E8F184E2BA0D70B0B01D3 /* AutoLayoutProcessor.swift */; };
 		38EC114C941D2F019FA74DC7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DA1278C92F7FD134A8968607 /* Assets.xcassets */; };
 		3DFA247FA89A9B13D785C8DA /* InspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4891CC8844DD39F4A9047D /* InspectorView.swift */; };
 		3E31136304B99C84BC5C1F1E /* LayoutDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82B3C0D6D6404387F385662C /* LayoutDescriptor.swift */; };
@@ -100,6 +101,7 @@
 		A5776417915CE6F7A1AF7212 /* CanvasStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasStateManager.swift; sourceTree = "<group>"; };
 		A6C3AC113B13EA662E7F9404 /* APIKeyObfuscator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyObfuscator.swift; sourceTree = "<group>"; };
 		AE52F54ABC774C40CF9C098A /* CodePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodePreviewView.swift; sourceTree = "<group>"; };
+		B23E8F184E2BA0D70B0B01D3 /* AutoLayoutProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoLayoutProcessor.swift; sourceTree = "<group>"; };
 		B3406DDD7110D0E7742B876C /* DiagnosticsRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsRunner.swift; sourceTree = "<group>"; };
 		B8EDE1C89BC517C4F151452C /* SketchSiteTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SketchSiteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C5AB2C9102D3F1CDB0BF5C0F /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
@@ -205,6 +207,7 @@
 		CFC198C4417DE7ABB9702CE0 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				B23E8F184E2BA0D70B0B01D3 /* AutoLayoutProcessor.swift */,
 				64EA9320DDA162BD563DD9A9 /* ChatGPTService.swift */,
 				7565884C3353639DDF85078A /* ExportService.swift */,
 				D9856ACB7A4B630C21D841BE /* SketchPatternRecognitionService.swift */,
@@ -341,6 +344,7 @@
 			files = (
 				25651855DC10666E397A109A /* APIKeyObfuscator.swift in Sources */,
 				2E6A160C341649F517AC82D3 /* AnnotationProcessor.swift in Sources */,
+				372D30E6EA6BED668BCF5258 /* AutoLayoutProcessor.swift in Sources */,
 				A067FA6A765479138566D19E /* BrowserPreviewView.swift in Sources */,
 				865CB193FC5A7CFB832016AA /* CanvasSnapshot.swift in Sources */,
 				8EC0A9E5287816A9A3B42ECD /* CanvasStateManager.swift in Sources */,

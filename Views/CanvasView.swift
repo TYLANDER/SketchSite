@@ -50,6 +50,7 @@ struct CanvasContainerView: View {
     @State private var showBrowserPreview = false
     @State private var showFollowUpChat = false
     @State private var shouldShowPreviewAfterGeneration = false
+    @State private var autoLayoutEnabled = true
     @State private var selectedModel = "gpt-4o"
     @State private var showInspector = false
     @State private var showComponentLibrary = false
@@ -423,7 +424,8 @@ struct CanvasContainerView: View {
                 },
                 onDismiss: {
                     showMainMenu = false
-                }
+                },
+                autoLayoutEnabled: $autoLayoutEnabled
             )
         }
         .sheet(isPresented: $showSketchManager) {
@@ -612,23 +614,53 @@ struct CanvasContainerView: View {
         
         isGeneratingCode = true
         
-        _ = LayoutDescriptor.describe(components: validComponents, canvasSize: canvasSize)
-        _ = LayoutDescriptor.generatePropertyInstructions(for: validComponents)
+        // Apply auto-layout processing if enabled
+        let layoutConfig = autoLayoutEnabled ? AutoLayoutProcessor.LayoutConfig.default : AutoLayoutProcessor.LayoutConfig.disabled
+        let layoutGroups = AutoLayoutProcessor.processLayout(components: validComponents, canvasSize: canvasSize, config: layoutConfig)
         
         let designSystemInstructions = getDesignSystemInstructions()
         
-        // Build explicit component list for AI
-        let explicitComponentList = validComponents.enumerated().map { (index, comp) in
-            return "Component \(index + 1): **\(comp.type.description.uppercased())** (position: \(Int(comp.rect.midX)), \(Int(comp.rect.midY)), size: \(Int(comp.rect.width))×\(Int(comp.rect.height)))"
-        }.joined(separator: "\n")
+        // Build layout-aware component description
+        let layoutDescription = autoLayoutEnabled 
+            ? AutoLayoutProcessor.generateLayoutDescription(groups: layoutGroups)
+            : validComponents.enumerated().map { (index, comp) in
+                return "Component \(index + 1): **\(comp.type.description.uppercased())** (position: \(Int(comp.rect.midX)), \(Int(comp.rect.midY)), size: \(Int(comp.rect.width))×\(Int(comp.rect.height)))"
+            }.joined(separator: "\n")
+        
+        // Generate auto-layout CSS if enabled
+        let autoLayoutCSS = autoLayoutEnabled ? AutoLayoutProcessor.generateAutoLayoutCSS(groups: layoutGroups, config: layoutConfig) : ""
+        
+        let autoLayoutInstructions = autoLayoutEnabled ? """
+        
+        **AUTO-LAYOUT ENABLED:**
+        Use the following modern, responsive layout structure with Figma-style auto-layout principles:
+        
+        \(layoutDescription)
+        
+        **Auto-Layout CSS Framework:**
+        \(autoLayoutCSS)
+        
+        **LAYOUT REQUIREMENTS:**
+        - Use the provided auto-layout CSS classes and structure
+        - Create a responsive, mobile-first design
+        - Apply consistent spacing and alignment using the layout groups
+        - Use Flexbox and CSS Grid for responsive behavior
+        - Ensure proper visual hierarchy between sections
+        - Add smooth transitions and modern styling
+        """ : """
+        
+        **EXACT POSITIONING:**
+        Place components at their exact canvas positions:
+        
+        \(layoutDescription)
+        """
         
         let prompt = """
         Create a clean, production-ready HTML page with embedded CSS for this UI layout:
         
         **Canvas:** \(Int(canvasSize.width))×\(Int(canvasSize.height))px
         **Components:** \(validComponents.count) total
-        
-        \(explicitComponentList)
+        \(autoLayoutInstructions)
         
         \(designSystemInstructions)
         
@@ -640,6 +672,7 @@ struct CanvasContainerView: View {
         - Make it look like a real website that users would actually see
         - Ensure all CSS is embedded in <style> tags in the <head>
         - Use proper semantic HTML and accessible markup
+        \(autoLayoutEnabled ? "- Use the provided auto-layout CSS framework for responsive design" : "- Position elements using absolute positioning to match canvas layout")
         
         **Component Type Mappings:**
         icon → SVG or icon font, button → <button>, navbar → <nav>, label → text element, image → <img>, form control → <input>/<textarea>, dropdown → <select>, alert → notification div, badge → status span, table → <table>, modal → dialog div, well → container div, carousel → slider div, progress bar → progress element, pagination → page nav, tab → tab nav, breadcrumb → breadcrumb nav, tooltip → tooltip div, thumbnail → small image, media object → card div, list group → <ul> list
