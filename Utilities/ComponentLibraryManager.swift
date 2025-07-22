@@ -310,7 +310,9 @@ class ComponentLibraryManager: ObservableObject {
             Self.createMaterialDesignPack(),
             Self.createBootstrapPack(),
             Self.createiOSPack(),
-            Self.createTailwindPack()
+            Self.createTailwindPack(),
+            Self.createGitLabPajamasPack(),
+            Self.createIBMCarbonPack()
         ]
     }
     
@@ -587,6 +589,44 @@ class ComponentLibraryManager: ObservableObject {
             categories: ComponentCategory.allCases,
             templates: templates,
             colorScheme: .tailwind
+        )
+    }
+    
+    static func createGitLabPajamasPack() -> ComponentLibraryPack {
+        let templates = ComponentLibrary.shared.allTemplates.filter { $0.category == .gitlabPajamas }
+        
+        return ComponentLibraryPack(
+            name: "GitLab Pajamas",
+            description: "GitLab's open-source design system for building cohesive experiences",
+            icon: "fox.circle.fill",
+            author: "GitLab",
+            categories: [.gitlabPajamas],
+            templates: templates,
+            colorScheme: PackColorScheme(
+                primary: "#1F75CB",
+                secondary: "#666666",
+                accent: "#FC6D26",
+                background: "#FAFAFA"
+            )
+        )
+    }
+    
+    static func createIBMCarbonPack() -> ComponentLibraryPack {
+        let templates = ComponentLibrary.shared.allTemplates.filter { $0.category == .ibmCarbon }
+        
+        return ComponentLibraryPack(
+            name: "IBM Carbon",
+            description: "IBM's enterprise-grade design system for digital products and experiences",
+            icon: "atom",
+            author: "IBM",
+            categories: [.ibmCarbon],
+            templates: templates,
+            colorScheme: PackColorScheme(
+                primary: "#0F62FE",
+                secondary: "#525252",
+                accent: "#DA1E28",
+                background: "#F4F4F4"
+            )
         )
     }
 } 
