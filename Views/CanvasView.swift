@@ -703,6 +703,20 @@ struct CanvasContainerView: View {
         **Component Type Mappings:**
         icon → SVG or icon font, button → <button>, navbar → <nav>, label → text element, image → <img>, form control → <input>/<textarea>, dropdown → <select>, alert → notification div, badge → status span, table → <table>, modal → dialog div, well → container div, carousel → slider div, progress bar → progress element, pagination → page nav, tab → tab nav, breadcrumb → breadcrumb nav, tooltip → tooltip div, thumbnail → small image, media object → card div, list group → <ul> list
         
+        **Image Placeholder Guidelines:**
+        - image → Use: https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=600&fit=crop&crop=faces,center (Professional team photo)
+        - thumbnail → Use: https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face,center (Professional headshot)
+        - media object → Use: https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop&crop=center (Clean product/technology image)
+        - carousel → Use multiple: https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=400&fit=crop, https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=400&fit=crop, https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=800&h=400&fit=crop
+        - icon → Use Font Awesome or similar icon fonts for scalable icons
+        
+        **Image Implementation Requirements:**
+        - All images MUST include proper alt text describing the content
+        - Use responsive images with appropriate srcset when possible
+        - Ensure images are styled to fit their containers properly
+        - Add subtle border-radius (4-8px) for modern appearance
+        - Include object-fit: cover for consistent aspect ratios
+        
         Output ONLY the complete HTML file - no explanations, no markdown, no comments.
         """
         
