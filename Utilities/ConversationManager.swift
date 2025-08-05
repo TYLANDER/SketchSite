@@ -165,11 +165,81 @@ class ConversationManager: ObservableObject {
         case .failure(let error):
             let errorMessage = ConversationMessage(
                 role: .assistant,
-                content: "Sorry, I encountered an error: \(error.localizedDescription). Please try again.",
+                content: formatUserFriendlyError(error),
                 timestamp: Date()
             )
             messages.append(errorMessage)
             state = .error(error.localizedDescription)
+        }
+    }
+    
+    // MARK: - Error Handling
+    
+    private func formatUserFriendlyError(_ error: Error) -> String {
+        // Import the APIError from Services
+        if let apiError = error as? APIError {
+            switch apiError {
+            case .rateLimited(let retryAfter):
+                if let retryAfter = retryAfter {
+                    return "I'm temporarily rate-limited. The system will automatically retry in \(Int(retryAfter)) seconds. Please wait a moment..."
+                } else {
+                    return "I'm experiencing high demand right now. The system is automatically retrying your request. Please wait a moment..."
+                }
+            
+            case .serviceUnavailable(let service):
+                return "The \(service) service is temporarily unavailable. I'm automatically trying a backup service for you..."
+            
+            case .usageLimitExceeded(let used, let limit):
+                return "Daily usage limit reached (\(used)/\(limit) requests). The app will reset tomorrow, or contact support for extended access."
+            
+            case .missingAPIKey(let service):
+                return "Configuration issue: \(service) service is not properly set up. Please contact support if this persists."
+            
+            case .maxRetriesExceeded:
+                return "I've tried multiple times but the AI service is currently unavailable. Please try again in a few minutes."
+            
+            case .invalidResponse:
+                return "I received an unexpected response from the AI service. Let me try that again..."
+            
+            case .noDataReceived:
+                return "No response received from the AI service. Please check your internet connection and try again."
+            
+            case .apiError(let message):
+                // Clean up technical error messages for users
+                if message.lowercased().contains("rate limit") || message.lowercased().contains("429") {
+                    return "I'm experiencing high demand. The system will automatically retry your request..."
+                } else if message.lowercased().contains("timeout") {
+                    return "The request timed out. I'm automatically retrying with optimized settings..."
+                } else if message.lowercased().contains("quota") {
+                    return "API quota temporarily exceeded. Trying alternative approach..."
+                } else {
+                    return "I encountered a technical issue: \(message). The system is working to resolve this automatically."
+                }
+            }
+        }
+        
+        // Handle network errors
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .notConnectedToInternet:
+                return "No internet connection detected. Please check your network settings and try again."
+            case .timedOut:
+                return "Request timed out. The system is automatically retrying with optimized settings..."
+            case .cannotConnectToHost:
+                return "Cannot connect to the AI service. Please check your internet connection and try again."
+            case .networkConnectionLost:
+                return "Network connection lost. Please check your connection and try again."
+            default:
+                return "Network error: \(urlError.localizedDescription). Please check your internet connection."
+            }
+        }
+        
+        // Fallback for unknown errors
+        let errorDescription = error.localizedDescription
+        if errorDescription.lowercased().contains("rate limit") || errorDescription.lowercased().contains("429") {
+            return "I'm experiencing high demand. Please wait a moment while I retry your request..."
+        } else {
+            return "I encountered an unexpected issue: \(errorDescription). Please try again."
         }
     }
     

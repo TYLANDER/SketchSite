@@ -135,12 +135,36 @@ class ProductionAPIKeys {
 
 // MARK: - Enhanced ChatGPT Service
 
-/// Singleton service for interacting with the OpenAI Chat Completions API.
+/// Singleton service for interacting with the OpenAI Chat Completions API with retry logic and fallback.
 class ChatGPTService {
     static let shared = ChatGPTService()
     private init() {}
+    
+    // MARK: - Request Management
+    private let requestQueue = DispatchQueue(label: "api.request.queue", qos: .userInitiated)
+    private let semaphore = DispatchSemaphore(value: 3) // Limit concurrent requests
+    private var activeRequests: Set<UUID> = []
+    private let activeRequestsLock = NSLock()
+    
+    // MARK: - Retry Configuration
+    private let maxRetries = 3
+    private let baseDelay: TimeInterval = 2.0 // Base delay for exponential backoff
+    private let maxDelay: TimeInterval = 30.0 // Maximum delay between retries
+    
+    // MARK: - Circuit Breaker Pattern
+    private var circuitBreakerState: CircuitBreakerState = .closed
+    private var failureCount = 0
+    private var lastFailureTime: Date?
+    private let failureThreshold = 5 // Open circuit after 5 consecutive failures
+    private let recoveryTimeout: TimeInterval = 60.0 // Try to recover after 60 seconds
+    
+    private enum CircuitBreakerState {
+        case closed   // Normal operation
+        case open     // Failing, don't attempt requests
+        case halfOpen // Testing if service recovered
+    }
 
-    /// Generates front-end code using OpenAI's GPT or Anthropic Claude model, with optional conversation history.
+    /// Generates front-end code using OpenAI's GPT or Anthropic Claude model, with retry logic and fallback.
     /// - Parameters:
     ///   - prompt: The main layout or design prompt or follow-up message.
     ///   - model: The model to use (e.g., gpt-4o, gpt-3.5-turbo, claude-3-opus, etc.).
@@ -155,6 +179,118 @@ class ChatGPTService {
             return
         }
         
+        // Check circuit breaker state
+        if !canMakeRequest() {
+            completion(.failure(APIError.serviceUnavailable("AI service temporarily unavailable")))
+            return
+        }
+        
+        let requestId = UUID()
+        
+        // Queue the request to prevent API overload
+        requestQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            // Limit concurrent requests
+            self.semaphore.wait()
+            
+            // Track active request
+            self.activeRequestsLock.lock()
+            self.activeRequests.insert(requestId)
+            self.activeRequestsLock.unlock()
+            
+            // Attempt request with retry logic and fallback
+            self.attemptRequestWithRetry(
+                prompt: prompt,
+                model: model,
+                conversation: conversation,
+                requestId: requestId,
+                attempt: 1
+            ) { result in
+                // Clean up
+                self.activeRequestsLock.lock()
+                self.activeRequests.remove(requestId)
+                self.activeRequestsLock.unlock()
+                
+                self.semaphore.signal()
+                
+                // Return result on main queue
+                DispatchQueue.main.async {
+                    completion(result)
+                }
+            }
+        }
+    }
+    
+    private func attemptRequestWithRetry(
+        prompt: String,
+        model: String,
+        conversation: [[String: String]]?,
+        requestId: UUID,
+        attempt: Int,
+        completion: @escaping (Result<String, Error>) -> Void
+    ) {
+        
+        print("🚀 API Request attempt \(attempt)/\(maxRetries) (ID: \(requestId.uuidString.prefix(8)))")
+        
+        makeAPIRequest(
+            prompt: prompt,
+            model: model,
+            conversation: conversation
+        ) { [weak self] result in
+            
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let response):
+                print("✅ API Request successful (ID: \(requestId.uuidString.prefix(8)))")
+                self.recordSuccess()
+                completion(.success(response))
+                
+            case .failure(let error):
+                print("❌ API Request failed - attempt \(attempt): \(error.localizedDescription)")
+                
+                if attempt < self.maxRetries && self.shouldRetry(error: error) {
+                    let delay = self.calculateDelay(for: attempt, error: error)
+                    print("⏳ Retrying in \(delay) seconds...")
+                    
+                    DispatchQueue.global().asyncAfter(deadline: .now() + delay) {
+                        self.attemptRequestWithRetry(
+                            prompt: prompt,
+                            model: model,
+                            conversation: conversation,
+                            requestId: requestId,
+                            attempt: attempt + 1,
+                            completion: completion
+                        )
+                    }
+                } else if attempt >= self.maxRetries && model.contains("gpt-4") {
+                    // Try fallback to GPT-3.5-turbo for rate-limited GPT-4 requests
+                    print("🔄 Falling back to GPT-3.5-turbo...")
+                    self.attemptRequestWithRetry(
+                        prompt: prompt,
+                        model: "gpt-3.5-turbo",
+                        conversation: conversation,
+                        requestId: requestId,
+                        attempt: 1, // Reset attempt counter for fallback
+                        completion: completion
+                    )
+                } else {
+                    print("🚫 Max retries exceeded or non-retryable error")
+                    self.recordFailure()
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+    
+    private func makeAPIRequest(
+        prompt: String,
+        model: String,
+        conversation: [[String: String]]?,
+        completion: @escaping (Result<String, Error>) -> Void
+    ) {
+        
         let isClaude = model.starts(with: "claude")
         let apiKey = isClaude ? ProductionAPIKeys.shared.getAnthropicKey() : ProductionAPIKeys.shared.getOpenAIKey()
         
@@ -166,25 +302,18 @@ class ChatGPTService {
         
         let url = isClaude ? URL(string: "https://api.anthropic.com/v1/messages")! : URL(string: "https://api.openai.com/v1/chat/completions")!
         
-        // Debug: Log API key info (first 10 chars only for security)
-        let keyPrefix = String(apiKey.prefix(10))
-        print("🔑 Using \(isClaude ? "Anthropic" : "OpenAI") API key: \(keyPrefix)...")
-        print("🔑 API key length: \(apiKey.count) characters")
-        print("🔑 API key is valid format: \(apiKey.hasPrefix("sk-") || apiKey.hasPrefix("sk-ant-"))")
-        print("🌐 Making request to: \(url.absoluteString)")
-        
-        // Test basic connectivity first
-        print("🧪 Testing network connectivity...")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        
         if isClaude {
             request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.addValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
         } else {
-        request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         }
+        
         var requestBody: [String: Any] = [:]
         
         if isClaude {
@@ -216,25 +345,40 @@ class ChatGPTService {
         // Track usage before making request
         ProductionAPIKeys.shared.trackUsage()
         
-        // Configure URL session with longer timeout for better reliability
+        // Configure URL session with optimized settings
         let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 60.0  // 60 seconds
-        config.timeoutIntervalForResource = 120.0 // 2 minutes
+        config.timeoutIntervalForRequest = 45.0  // Reduced from 60s
+        config.timeoutIntervalForResource = 90.0 // Reduced from 120s
+        config.waitsForConnectivity = true // Wait for connectivity instead of failing immediately
         let session = URLSession(configuration: config)
         
         session.dataTask(with: request) { data, response, error in
+            
             if let error = error {
-                print("🚫 Network error: \(error.localizedDescription)")
                 completion(.failure(error))
                 return
             }
             
-            // Check HTTP response status
+            // Enhanced HTTP response handling
             if let httpResponse = response as? HTTPURLResponse {
                 print("📡 HTTP Status: \(httpResponse.statusCode)")
-                if httpResponse.statusCode != 200 {
+                
+                switch httpResponse.statusCode {
+                case 200:
+                    break // Success, continue processing
+                case 429:
+                    // Rate limited - extract retry-after header if available
+                    let retryAfter = httpResponse.value(forHTTPHeaderField: "Retry-After")
+                        .flatMap { TimeInterval($0) }
+                    completion(.failure(APIError.rateLimited(retryAfter: retryAfter)))
+                    return
+                case 500, 502, 503, 504:
+                    // Server errors - retryable
+                    let serviceName = httpResponse.url?.host ?? "API"
+                    completion(.failure(APIError.serviceUnavailable(serviceName)))
+                    return
+                default:
                     let errorMsg = "HTTP \(httpResponse.statusCode): \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))"
-                    print("🚫 \(errorMsg)")
                     completion(.failure(APIError.apiError(errorMsg)))
                     return
                 }
@@ -278,6 +422,90 @@ class ChatGPTService {
         }.resume()
     }
     
+    // MARK: - Retry Logic Helpers
+    
+    private func shouldRetry(error: Error) -> Bool {
+        if let apiError = error as? APIError {
+            switch apiError {
+            case .rateLimited, .serviceUnavailable:
+                return true
+            default:
+                return false
+            }
+        }
+        
+        // Retry on network errors
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .timedOut, .networkConnectionLost, .notConnectedToInternet, .cannotConnectToHost:
+                return true
+            default:
+                return false
+            }
+        }
+        
+        return false
+    }
+    
+    private func calculateDelay(for attempt: Int, error: Error) -> TimeInterval {
+        // Check if the error includes a retry-after hint
+        if let apiError = error as? APIError,
+           case .rateLimited(let retryAfter) = apiError,
+           let retryAfter = retryAfter {
+            return min(retryAfter, maxDelay)
+        }
+        
+        // Exponential backoff with jitter
+        let exponentialDelay = baseDelay * pow(2.0, Double(attempt - 1))
+        let jitter = Double.random(in: 0.5...1.5) // Add randomness to prevent thundering herd
+        let delay = exponentialDelay * jitter
+        
+        return min(delay, maxDelay)
+    }
+    
+    // MARK: - Circuit Breaker Implementation
+    
+    private func canMakeRequest() -> Bool {
+        switch circuitBreakerState {
+        case .closed:
+            return true
+        case .open:
+            // Check if recovery timeout has passed
+            if let lastFailure = lastFailureTime,
+               Date().timeIntervalSince(lastFailure) >= recoveryTimeout {
+                print("🔄 Circuit breaker: Attempting recovery (half-open state)")
+                circuitBreakerState = .halfOpen
+                return true
+            }
+            print("⚡ Circuit breaker: Open - blocking request")
+            return false
+        case .halfOpen:
+            return true
+        }
+    }
+    
+    private func recordSuccess() {
+        if circuitBreakerState == .halfOpen {
+            print("✅ Circuit breaker: Service recovered - closing circuit")
+            circuitBreakerState = .closed
+        }
+        failureCount = 0
+        lastFailureTime = nil
+    }
+    
+    private func recordFailure() {
+        failureCount += 1
+        lastFailureTime = Date()
+        
+        if circuitBreakerState == .halfOpen {
+            print("❌ Circuit breaker: Recovery failed - reopening circuit")
+            circuitBreakerState = .open
+        } else if failureCount >= failureThreshold {
+            print("⚡ Circuit breaker: Failure threshold reached - opening circuit")
+            circuitBreakerState = .open
+        }
+    }
+    
     /// Simple connectivity test for debugging
     func testConnectivity(completion: @escaping (Bool, String) -> Void) {
         print("🧪 Testing basic network connectivity...")
@@ -309,9 +537,12 @@ class ChatGPTService {
 enum APIError: LocalizedError, Equatable {
     case missingAPIKey(service: String)
     case usageLimitExceeded(used: Int, limit: Int)
+    case rateLimited(retryAfter: TimeInterval?)
+    case serviceUnavailable(String)
     case apiError(String)
     case invalidResponse
     case noDataReceived
+    case maxRetriesExceeded
     
     var errorDescription: String? {
         switch self {
@@ -319,12 +550,22 @@ enum APIError: LocalizedError, Equatable {
             return "\(service) API key not configured"
         case .usageLimitExceeded(let used, let limit):
             return "Daily usage limit exceeded (\(used)/\(limit)). Try again tomorrow or upgrade to Pro."
+        case .rateLimited(let retryAfter):
+            if let retryAfter = retryAfter {
+                return "Rate limit reached. Please wait \(Int(retryAfter)) seconds and try again."
+            } else {
+                return "Rate limit reached. Please wait a moment and try again."
+            }
+        case .serviceUnavailable(let service):
+            return "\(service) is temporarily unavailable. Trying backup service..."
         case .apiError(let message):
             return "API Error: \(message)"
         case .invalidResponse:
             return "Invalid response from API"
         case .noDataReceived:
             return "No data received from API"
+        case .maxRetriesExceeded:
+            return "Service temporarily unavailable. Please try again in a few minutes."
         }
     }
 }
